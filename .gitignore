@@ -32,3 +32,6 @@ replay_pid*
 
 # VSCode
 .vscode/
+
+# Maven
+target/
