@@ -11,11 +11,16 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <azure.functions.maven.plugin.version>1.24.0</azure.functions.maven.plugin.version>
-        <azure.functions.java.library.version>2.2.0</azure.functions.java.library.version>
-        <azure.functions.appName>freedger-auth-server</azure.functions.appName>
+        <azure.functions.java.library.version>2.0.1</azure.functions.java.library.version>
+        <functionAppName>freedger-auth</functionAppName>
+        <functionResourceGroup>java-functions-group</functionResourceGroup>
+        <functionAppServicePlanName>java-functions-app-service-plan</functionAppServicePlanName>
+        <functionAppRegion>eastus</functionAppRegion>
         <azure.region>eastus</azure.region>
+        <jackson.version>2.16.1</jackson.version>
+        <junit.version>4.13.2</junit.version>
     </properties>
 
     <dependencies>
@@ -24,31 +29,51 @@
             <artifactId>azure-functions-java-library</artifactId>
             <version>${azure.functions.java.library.version}</version>
         </dependency>
-        <!-- JWT and Auth0 -->
+
+        <!-- JSON Processing -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- JWT Validation -->
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>4.5.0</version>
+            <version>4.4.0</version>
         </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>jwks-rsa</artifactId>
-            <version>0.22.2</version>
+            <version>0.22.1</version>
         </dependency>
-        <!-- JSON Processing -->
+
+        <!-- Logging -->
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.13.1</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.17</version>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.18</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.13.1</version>
+            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
@@ -81,23 +106,18 @@
                     <!-- function app service plan name -->
                     <appServicePlanName>java-functions-app-service-plan</appServicePlanName>
                     <!-- function app region-->
-                    <!-- refers https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Functions:-Configuration-Details#supported-regions for all valid values -->
-                    <region>${azure.region}</region>
-                    <!-- function pricingTier, default to be consumption if not specified -->
-                    <!-- refers https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Functions:-Configuration-Details#supported-pricing-tiers for all valid values -->
-                    <!-- <pricingTier></pricingTier> -->
-                    <!-- Whether to disable application insights, default is false -->
-                    <!-- refers https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Functions:-Configuration-Details for all valid configurations for application insights-->
-                    <!-- <disableAppInsights></disableAppInsights> -->
                     <runtime>
-                        <!-- runtime os, could be windows, linux or docker-->
                         <os>linux</os>
-                        <javaVersion>24</javaVersion>
+                        <javaVersion>11</javaVersion>
                     </runtime>
                     <appSettings>
                         <property>
                             <name>FUNCTIONS_EXTENSION_VERSION</name>
                             <value>~4</value>
+                        </property>
+                        <property>
+                            <name>WEBSITE_RUN_FROM_PACKAGE</name>
+                            <value>1</value>
                         </property>
                     </appSettings>
                 </configuration>
@@ -109,6 +129,13 @@
                         </goals>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.microsoft.azure.functions</groupId>
+                        <artifactId>azure-functions-java-library</artifactId>
+                        <version>2.0.1</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
