@@ -8,19 +8,19 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwk.Jwk;
 import com.auth0.jwk.JwkException;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
-import org.freedger.model.TokenExchangeRequest;
-import org.freedger.model.TokenExchangeResponse;
-import org.freedger.util.JsonUtils;
 
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import org.freedger.dto.ErrorResponse;
+import org.freedger.dto.TokenExchangeRequest;
+import org.freedger.dto.TokenExchangeResponse;
 
 /**
  * Azure Functions with HTTP Trigger for Ditto Token Exchange.
@@ -67,27 +67,42 @@ public class AuthServer {
                 name = "req",
                 methods = {HttpMethod.POST},
                 authLevel = AuthorizationLevel.ANONYMOUS) 
-            HttpRequestMessage<Optional<String>> request,
+            HttpRequestMessage<TokenExchangeRequest> request,
             final ExecutionContext context) {
         
-        return JsonUtils.processRequest(
-            request,
-            TokenExchangeRequest.class,
-            tokenRequest -> {
-                // Validate token is not empty
-                if (tokenRequest == null || tokenRequest.getToken() == null || tokenRequest.getToken().isBlank()) {
-                    throw new IllegalArgumentException("Token is required");
-                }
-                
-                // Validate Auth0 token
-                DecodedJWT jwt = validateAuth0Token(tokenRequest.getToken());
-                
-                // Generate Ditto exchange token
-                String exchangeToken = generateExchangeToken(jwt.getSubject());
-                
-                return new TokenExchangeResponse(exchangeToken);
+        try {
+            // Get request body (already deserialized to TokenExchangeRequest by Azure Functions)
+            TokenExchangeRequest tokenRequest = request.getBody();
+            
+            // Validate request
+            if (tokenRequest == null || tokenRequest.getToken() == null || tokenRequest.getToken().isBlank()) {
+                return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .body("Token is required")
+                    .build();
             }
-        );
+            
+            // Validate Auth0 token
+            DecodedJWT jwt = validateAuth0Token(tokenRequest.getToken());
+            
+            // Generate Ditto exchange token
+            String exchangeToken = generateExchangeToken(jwt.getSubject());
+            
+            // Return response
+            return request.createResponseBuilder(HttpStatus.OK)
+                .header("Content-Type", "application/json")
+                .body(new TokenExchangeResponse(exchangeToken))
+                .build();
+                
+        } catch (SecurityException e) {
+            return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("Invalid token: " + e.getMessage()))
+                .build();
+        } catch (Exception e) {
+            context.getLogger().severe("Error processing request: " + e.getMessage());
+            return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Internal server error"))
+                .build();
+        }
     }
 
     /**

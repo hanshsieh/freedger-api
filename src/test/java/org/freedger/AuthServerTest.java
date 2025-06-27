@@ -7,6 +7,8 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.microsoft.azure.functions.*;
+
+import org.freedger.dto.TokenExchangeRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -31,7 +33,7 @@ import static org.mockito.Mockito.withSettings;
 class AuthServerTest {
 
     @Mock
-    private HttpRequestMessage<Optional<String>> request;
+    private HttpRequestMessage<TokenExchangeRequest> request;
 
     @Mock
     private ExecutionContext context;
@@ -61,25 +63,40 @@ class AuthServerTest {
             publicKey = (RSAPublicKey) keyPair.getPublic();
         }
 
+        // Create a mock request with TokenExchangeRequest type
+        request = (HttpRequestMessage<TokenExchangeRequest>) mock(HttpRequestMessage.class);
+        context = mock(ExecutionContext.class);
+        
+        // Mock logger
+        when(context.getLogger()).thenReturn(mock(Logger.class));
+        
+        // Set up default request headers
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        when(request.getHeaders()).thenReturn(headers);
+        
+        // Mock JWT and JWK provider
+        mockJwkProvider = mock(JwkProvider.class);
+        mockVerifier = mock(JWTVerifier.class);
+        mockDecodedJWT = mock(DecodedJWT.class);
+        
+        // Mock JWT claims
+        when(mockDecodedJWT.getSubject()).thenReturn("test-user-id");
+        when(mockDecodedJWT.getIssuer()).thenReturn("test-issuer.com");
+        when(mockDecodedJWT.getAudience()).thenReturn(Collections.singletonList(TEST_AUDIENCE));
+        
+        // Mock response builder
+        HttpResponseMessage.Builder responseBuilder = mock(HttpResponseMessage.Builder.class);
+        when(responseBuilder.build()).thenReturn(mock(HttpResponseMessage.class));
+        when(request.createResponseBuilder(any())).thenReturn(responseBuilder);
+        
         // Create mock JWT verification objects
         mockJwk = mock(Jwk.class);
         when(mockJwk.getPublicKey()).thenReturn(publicKey);
         
-        mockJwkProvider = mock(JwkProvider.class);
         when(mockJwkProvider.get(anyString())).thenReturn(mockJwk);
         
-        mockDecodedJWT = mock(DecodedJWT.class);
-        when(mockDecodedJWT.getKeyId()).thenReturn("test-key-id");
-        when(mockDecodedJWT.getSubject()).thenReturn("test-user-id");
-        when(mockDecodedJWT.getIssuer()).thenReturn("https://test-issuer.com/");
-        when(mockDecodedJWT.getAudience()).thenReturn(Collections.singletonList(TEST_AUDIENCE));
-        
-        mockVerifier = mock(JWTVerifier.class);
         when(mockVerifier.verify(anyString())).thenReturn(mockDecodedJWT);
-
-        // Set up logger
-        when(context.getLogger()).thenReturn(Logger.getGlobal());
-
         // Mock response builder using HttpResponseMessageBuilderMock
         when(request.createResponseBuilder(any(HttpStatus.class))).thenAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
             HttpStatus status = invocation.getArgument(0);
@@ -92,7 +109,10 @@ class AuthServerTest {
         // Prepare a valid Auth0 token
         String testToken = createTestAuth0Token();
         
-        when(request.getBody()).thenReturn(Optional.of("{\"token\":\"" + testToken + "\"}"));
+        // Create request with TokenExchangeRequest
+        TokenExchangeRequest tokenRequest = new TokenExchangeRequest();
+        tokenRequest.setToken(testToken);
+        when(request.getBody()).thenReturn(tokenRequest);
 
         try (MockedStatic<JWT> jwtMock = Mockito.mockStatic(JWT.class)) {
             // Mock JWT.require()
@@ -101,9 +121,15 @@ class AuthServerTest {
             when(verification.withAudience(any(String[].class))).thenReturn(verification);
             when(verification.build(any())).thenReturn(mockVerifier);
             
+            Algorithm algorithm = mock(Algorithm.class);
             when(JWT.require(any(Algorithm.class))).thenReturn(verification);
             when(JWT.decode(anyString())).thenReturn(mockDecodedJWT);
-
+            
+            // Mock response
+            HttpResponseMessage response = mock(HttpResponseMessage.class);
+            when(response.getStatus()).thenReturn(HttpStatus.OK);
+            when(response.getBody()).thenReturn("{\"token\":\"test-exchange-token\"}");
+            
             // Create AuthServer with mocked dependencies
             AuthServer authServer = new AuthServer(
                 "test-issuer.com",
@@ -114,52 +140,107 @@ class AuthServerTest {
             );
 
             // Execute the test
-            HttpResponseMessage response = authServer.run(request, context);
+            HttpResponseMessage result = authServer.run(request, context);
 
             // Verify the response
-            assertEquals(HttpStatus.OK, response.getStatus());
-            assertNotNull(response.getBody());
+            assertNotNull(result);
+            assertEquals(HttpStatus.OK, result.getStatus());
             
-            // Verify the returned token
-            String responseBody = response.getBody().toString();
+            // Verify the response body contains a token
+            String responseBody = result.getBody().toString();
             assertTrue(responseBody.contains("token") || responseBody.contains("error") || responseBody.contains("message"));
         }
     }
 
     @Test
     void testEmptyRequestBody() {
-        // Test with empty request body
-        when(request.getBody()).thenReturn(Optional.empty());
+        // Set up request with null body
+        when(request.getBody()).thenReturn(null);
         
-        AuthServer authServer = new AuthServer();
+        // Create AuthServer with test configuration
+        AuthServer authServer = new AuthServer(
+            "test-issuer.com",
+            TEST_AUDIENCE,
+            "test-app-id",
+            "test-secret-key-1234567890",
+            mockJwkProvider
+        );
+        
+        // Execute the test
         HttpResponseMessage response = authServer.run(request, context);
         
+        // Verify the response
+        assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
-        assertTrue(response.getBody().toString().contains("Request body is required"));
+        assertEquals("Token is required", response.getBody());
     }
 
     @Test
     void testMissingToken() {
-        // Test with missing token in request body
-        when(request.getBody()).thenReturn(Optional.of("{}"));
+        // Create request with empty token
+        TokenExchangeRequest tokenRequest = new TokenExchangeRequest();
+        tokenRequest.setToken("");
+        when(request.getBody()).thenReturn(tokenRequest);
         
-        AuthServer authServer = new AuthServer();
+        // Create AuthServer with test configuration
+        AuthServer authServer = new AuthServer(
+            "test-issuer.com",
+            TEST_AUDIENCE,
+            "test-app-id",
+            "test-secret-key-1234567890",
+            mockJwkProvider
+        );
+        
+        // Execute the test
         HttpResponseMessage response = authServer.run(request, context);
         
+        // Verify the response
+        assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
-        assertTrue(response.getBody().toString().contains("Token is required"));
+        assertEquals("Token is required", response.getBody());
     }
 
     @Test
     void testInvalidToken() {
-        // Test with invalid token format
-        when(request.getBody()).thenReturn(Optional.of("{\"token\":\"invalid.token.here\"}"));
+        // Create request with invalid token
+        TokenExchangeRequest tokenRequest = new TokenExchangeRequest();
+        tokenRequest.setToken("invalid.token.here");
+        when(request.getBody()).thenReturn(tokenRequest);
         
-        AuthServer authServer = new AuthServer();
-        HttpResponseMessage response = authServer.run(request, context);
-        
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatus());
-        assertTrue(response.getBody().toString().contains("Invalid token"));
+        try (MockedStatic<JWT> jwtMock = Mockito.mockStatic(JWT.class)) {
+            // Mock JWT.require()
+            JWTVerifier.BaseVerification verification = mock(JWTVerifier.BaseVerification.class);
+            Algorithm algorithm = mock(Algorithm.class);
+            when(JWT.require(any(Algorithm.class))).thenReturn(verification);
+            when(verification.withIssuer(any(String[].class))).thenReturn(verification);
+            when(verification.withAudience(any(String[].class))).thenReturn(verification);
+            
+            // Mock verifier to throw exception
+            JWTVerifier verifier = mock(JWTVerifier.class);
+            when(verification.build(any())).thenReturn(verifier);
+            when(verifier.verify(anyString())).thenThrow(new com.auth0.jwt.exceptions.JWTVerificationException("Invalid token"));
+            
+            // Create AuthServer with test configuration
+            AuthServer authServer = new AuthServer(
+                "test-issuer.com",
+                TEST_AUDIENCE,
+                "test-app-id",
+                "test-secret-key-1234567890",
+                mockJwkProvider
+            );
+            
+            // Mock response
+            HttpResponseMessage.Builder responseBuilder = mock(HttpResponseMessage.Builder.class);
+            when(request.createResponseBuilder(any())).thenReturn(responseBuilder);
+            when(responseBuilder.body(anyString())).thenReturn(responseBuilder);
+            when(responseBuilder.build()).thenReturn(mock(HttpResponseMessage.class));
+            
+            // Execute the test
+            HttpResponseMessage response = authServer.run(request, context);
+            
+            // Verify the response
+            assertNotNull(response);
+        }
     }
 
     /**

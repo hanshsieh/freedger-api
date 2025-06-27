@@ -1,20 +1,20 @@
-package org.freedger.model;
+package org.freedger.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Represents a token exchange request from the client.
+ * Represents the response containing the Ditto token.
  */
-public class TokenExchangeRequest {
+public class TokenExchangeResponse {
     
     @JsonProperty("token")
     private String token;
 
     // Default constructor for JSON deserialization
-    public TokenExchangeRequest() {
+    public TokenExchangeResponse() {
     }
 
-    public TokenExchangeRequest(String token) {
+    public TokenExchangeResponse(String token) {
         this.token = token;
     }
 
@@ -28,7 +28,7 @@ public class TokenExchangeRequest {
 
     @Override
     public String toString() {
-        return "TokenExchangeRequest{" +
+        return "TokenExchangeResponse{" +
                 "token='" + token + '\'' +
                 '}';
     }
