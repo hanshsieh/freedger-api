@@ -40,7 +40,7 @@ public class JsonUtils {
         try {
             // Deserialize the request body
             T requestBody = objectMapper.readValue(request.getBody().get(), clazz);
-            
+           
             // Process the request using the provided handler
             R result = handler.apply(requestBody);
             
@@ -66,13 +66,14 @@ public class JsonUtils {
      */
     public static HttpResponseMessage createErrorResponse(
             HttpRequestMessage<?> request,
-            HttpStatusType status,
+            HttpStatus status,
             String message) {
         
         ErrorResponse error = new ErrorResponse(status.toString(), message);
+        final var responseBuilder = request.createResponseBuilder(status);
         
         try {
-            return request.createResponseBuilder(status)
+            return responseBuilder
                     .header("Content-Type", "application/json")
                     .body(objectMapper.writeValueAsString(error))
                     .build();
