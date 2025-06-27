@@ -4,8 +4,12 @@ import com.auth0.jwk.Jwk;
 import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.JwkProviderBuilder;
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwk.Jwk;
+import com.auth0.jwk.JwkException;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
@@ -24,14 +28,38 @@ import java.util.concurrent.TimeUnit;
 public class AuthServer {
     private static final String CLAIM_DITTO_READ = "ditto_read";
     private static final String CLAIM_DITTO_WRITE = "ditto_write";
-    private static final String AUTH0_DOMAIN = System.getenv("AUTH0_DOMAIN");
-    private static final String AUTH0_AUDIENCE = System.getenv("AUTH0_AUDIENCE");
-    private static final String DITTO_APP_ID = System.getenv("DITTO_APP_ID");
-    private static final String EXCHANGE_TOKEN_SECRET = System.getenv("EXCHANGE_TOKEN_SECRET");
-    private static final JwkProvider jwkProvider = new JwkProviderBuilder(
-            String.format("https://%s/", AUTH0_DOMAIN))
-            .cached(10, 24, TimeUnit.HOURS)
-            .build();
+    private final String auth0Domain;
+    private final String auth0Audience;
+    private final String dittoAppId;
+    private final String exchangeTokenSecret;
+    private final JwkProvider jwkProvider;
+
+    /**
+     * Constructor for production use that creates a real JwkProvider.
+     */
+    public AuthServer() {
+        this(
+            System.getenv("AUTH0_DOMAIN"),
+            System.getenv("AUTH0_AUDIENCE"),
+            System.getenv("DITTO_APP_ID"),
+            System.getenv("EXCHANGE_TOKEN_SECRET"),
+            new JwkProviderBuilder(String.format("https://%s/", System.getenv("AUTH0_DOMAIN")))
+                .cached(10, 24, TimeUnit.HOURS)
+                .build()
+        );
+    }
+
+    /**
+     * Constructor for testing that allows injecting dependencies.
+     */
+    protected AuthServer(String auth0Domain, String auth0Audience, String dittoAppId, 
+                        String exchangeTokenSecret, JwkProvider jwkProvider) {
+        this.auth0Domain = auth0Domain;
+        this.auth0Audience = auth0Audience;
+        this.dittoAppId = dittoAppId;
+        this.exchangeTokenSecret = exchangeTokenSecret;
+        this.jwkProvider = jwkProvider;
+    }
 
     @FunctionName("CreateDittoExchangeToken")
     public HttpResponseMessage run(
@@ -47,74 +75,69 @@ public class AuthServer {
             TokenExchangeRequest.class,
             tokenRequest -> {
                 // Validate token is not empty
-                if (tokenRequest.getToken() == null || tokenRequest.getToken().trim().isEmpty()) {
+                if (tokenRequest == null || tokenRequest.getToken() == null || tokenRequest.getToken().isBlank()) {
                     throw new IllegalArgumentException("Token is required");
                 }
                 
-                // Validate Auth0 Token
+                // Validate Auth0 token
                 DecodedJWT jwt = validateAuth0Token(tokenRequest.getToken());
                 
-                // Generate Ditto Token
-                String dittoToken = generateExchangeToken(jwt.getSubject());
+                // Generate Ditto exchange token
+                String exchangeToken = generateExchangeToken(jwt.getSubject());
                 
-                // Return response
-                return new TokenExchangeResponse(dittoToken);
+                return new TokenExchangeResponse(exchangeToken);
             }
         );
     }
 
     /**
-     * Validates an Auth0 JWT token.
+     * Validates the Auth0 JWT token and returns the decoded JWT.
      * @param token The JWT token to validate
-     * @return Decoded and verified JWT
-     * @throws SecurityException if the token is invalid or verification fails
+     * @return The decoded JWT
+     * @throws SecurityException if the token is invalid
      */
-    private static DecodedJWT validateAuth0Token(String token) throws SecurityException {
-        // 1. Decode JWT without verification
-        DecodedJWT jwt;
+    private DecodedJWT validateAuth0Token(String token) throws SecurityException {
         try {
-            jwt = JWT.decode(token);
+            // Verify token signature and basic claims
+            DecodedJWT jwt = JWT.decode(token);
             
-            // 2. Get JWK
+            // Get the key from the JWKS endpoint
             Jwk jwk = jwkProvider.get(jwt.getKeyId());
-            
-            // 3. Create verification algorithm with JWK
             Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
             
-            // 4. Verify token
-            algorithm.verify(jwt);
-        } catch (Exception ex) {
-            throw new SecurityException("Invalid token: " + ex.getMessage());
+            // Verify the token
+            JWTVerifier verifier = JWT.require(algorithm)
+                .withIssuer(String.format("https://%s/", auth0Domain))
+                .withAudience(auth0Audience)
+                .acceptLeeway(1)
+                .build();
+                
+            return verifier.verify(token);
+        } catch (JWTVerificationException | JwkException e) {
+            throw new SecurityException("Invalid token: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new SecurityException("Error validating token: " + e.getMessage(), e);
         }
-        
-        // 5. Validate audience
-        if (AUTH0_AUDIENCE != null && !jwt.getAudience().contains(AUTH0_AUDIENCE)) {
-            throw new SecurityException("Invalid audience. Expected: " + AUTH0_AUDIENCE);
-        }
-        
-        // 6. Validate issuer
-        String expectedIssuer = String.format("https://%s/", AUTH0_DOMAIN);
-        if (!jwt.getIssuer().equals(expectedIssuer)) {
-            throw new SecurityException("Invalid issuer. Expected: " + expectedIssuer);
-        }
-        
-        return jwt;
     }
 
-    private static String generateExchangeToken(String userId) {
+    private String generateExchangeToken(String subject) {
         // Set expiration time (1 hour from now)
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + 3600 * 1000);
         
         // Create Exchange Token
-        return JWT.create()
-                .withIssuer(DITTO_APP_ID)
-                .withSubject(userId)
+        try {
+            return JWT.create()
+                .withIssuer(dittoAppId)
+                .withSubject(subject)
                 .withIssuedAt(now)
                 .withExpiresAt(expiryDate)
-                .withClaim(CLAIM_DITTO_READ, true)  // Enable read operations
-                .withClaim(CLAIM_DITTO_WRITE, true)  // Allow write operations
-                .sign(Algorithm.HMAC256(EXCHANGE_TOKEN_SECRET));
+                .withClaim(CLAIM_DITTO_READ, true)
+                .withClaim(CLAIM_DITTO_WRITE, true)
+                .sign(Algorithm.HMAC256(exchangeTokenSecret));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate exchange token", e);
+        }
     }
 
     // Error response creation is now handled by JsonUtils

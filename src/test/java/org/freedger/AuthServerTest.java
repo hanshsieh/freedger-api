@@ -1,11 +1,17 @@
 package org.freedger;
 
+import com.auth0.jwk.Jwk;
+import com.auth0.jwk.JwkProvider;
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.microsoft.azure.functions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 
@@ -17,8 +23,10 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
 
 class AuthServerTest {
 
@@ -34,9 +42,14 @@ class AuthServerTest {
     private static final String TEST_AUDIENCE = "test-audience";
     private static final String TEST_ISSUER = "https://test-issuer.com/";
 
+    private JwkProvider mockJwkProvider;
+    private Jwk mockJwk;
+    private JWTVerifier mockVerifier;
+    private DecodedJWT mockDecodedJWT;
+
     @BeforeEach
     void setUp() throws Exception {
-        // Initialize Mockito annotations
+        // Initialize mocks
         MockitoAnnotations.openMocks(this).close();
         
         // Generate RSA key pair for testing
@@ -48,16 +61,26 @@ class AuthServerTest {
             publicKey = (RSAPublicKey) keyPair.getPublic();
         }
 
-        // Set up environment variables for testing
-        System.setProperty("AUTH0_DOMAIN", "test-issuer.com");
-        System.setProperty("AUTH0_AUDIENCE", TEST_AUDIENCE);
-        System.setProperty("DITTO_APP_ID", "test-app-id");
-        System.setProperty("EXCHANGE_TOKEN_SECRET", "test-secret-key-1234567890");
+        // Create mock JWT verification objects
+        mockJwk = mock(Jwk.class);
+        when(mockJwk.getPublicKey()).thenReturn(publicKey);
+        
+        mockJwkProvider = mock(JwkProvider.class);
+        when(mockJwkProvider.get(anyString())).thenReturn(mockJwk);
+        
+        mockDecodedJWT = mock(DecodedJWT.class);
+        when(mockDecodedJWT.getKeyId()).thenReturn("test-key-id");
+        when(mockDecodedJWT.getSubject()).thenReturn("test-user-id");
+        when(mockDecodedJWT.getIssuer()).thenReturn("https://test-issuer.com/");
+        when(mockDecodedJWT.getAudience()).thenReturn(Collections.singletonList(TEST_AUDIENCE));
+        
+        mockVerifier = mock(JWTVerifier.class);
+        when(mockVerifier.verify(anyString())).thenReturn(mockDecodedJWT);
 
         // Set up logger
         when(context.getLogger()).thenReturn(Logger.getGlobal());
 
-        // Mock response builder
+        // Mock response builder using HttpResponseMessageBuilderMock
         when(request.createResponseBuilder(any(HttpStatus.class))).thenAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
             HttpStatus status = invocation.getArgument(0);
             return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
@@ -71,17 +94,36 @@ class AuthServerTest {
         
         when(request.getBody()).thenReturn(Optional.of("{\"token\":\"" + testToken + "\"}"));
 
-        // Execute the test
-        AuthServer authServer = new AuthServer();
-        HttpResponseMessage response = authServer.run(request, context);
+        try (MockedStatic<JWT> jwtMock = Mockito.mockStatic(JWT.class)) {
+            // Mock JWT.require()
+            JWTVerifier.BaseVerification verification = mock(JWTVerifier.BaseVerification.class);
+            when(verification.withIssuer(any(String[].class))).thenReturn(verification);
+            when(verification.withAudience(any(String[].class))).thenReturn(verification);
+            when(verification.build(any())).thenReturn(mockVerifier);
+            
+            when(JWT.require(any(Algorithm.class))).thenReturn(verification);
+            when(JWT.decode(anyString())).thenReturn(mockDecodedJWT);
 
-        // Verify the response
-        assertEquals(HttpStatus.OK, response.getStatus());
-        assertNotNull(response.getBody());
-        
-        // Verify the returned token
-        String responseBody = response.getBody().toString();
-        assertTrue(responseBody.contains("token") || responseBody.contains("error") || responseBody.contains("message"));
+            // Create AuthServer with mocked dependencies
+            AuthServer authServer = new AuthServer(
+                "test-issuer.com",
+                TEST_AUDIENCE,
+                "test-app-id",
+                "test-secret-key-1234567890",
+                mockJwkProvider
+            );
+
+            // Execute the test
+            HttpResponseMessage response = authServer.run(request, context);
+
+            // Verify the response
+            assertEquals(HttpStatus.OK, response.getStatus());
+            assertNotNull(response.getBody());
+            
+            // Verify the returned token
+            String responseBody = response.getBody().toString();
+            assertTrue(responseBody.contains("token") || responseBody.contains("error") || responseBody.contains("message"));
+        }
     }
 
     @Test
