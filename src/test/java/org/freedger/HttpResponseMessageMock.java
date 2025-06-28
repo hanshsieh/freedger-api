@@ -42,22 +42,14 @@ public class HttpResponseMessageMock implements HttpResponseMessage {
         return this.body;
     }
 
-    public static class HttpResponseMessageBuilderMock implements HttpResponseMessage.Builder {
+    public static class Builder implements HttpResponseMessage.Builder {
         private Object body;
-        private int httpStatusCode;
         private Map<String, String> headers = new HashMap<>();
         private HttpStatusType httpStatus;
 
-        public Builder status(HttpStatus status) {
-            this.httpStatusCode = status.value();
-            this.httpStatus = status;
-            return this;
-        }
-
         @Override
-        public Builder status(HttpStatusType httpStatusType) {
-            this.httpStatusCode = httpStatusType.value();
-            this.httpStatus = httpStatusType;
+        public Builder status(HttpStatusType httpStatus) {
+            this.httpStatus = httpStatus;
             return this;
         }
 

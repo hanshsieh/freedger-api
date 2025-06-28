@@ -28,41 +28,41 @@ import org.freedger.dto.TokenExchangeResponse;
 public class AuthServer {
     private static final String CLAIM_DITTO_READ = "ditto_read";
     private static final String CLAIM_DITTO_WRITE = "ditto_write";
-    private final String auth0Domain;
-    private final String auth0Audience;
-    private final String dittoAppId;
-    private final String exchangeTokenSecret;
-    private final JwkProvider jwkProvider;
+    // The issuer of the Auth0 JWT token, such as "https://auth0.com/"
+    private final String authProviderIssuer;
+    // The audience of the Auth0 JWT token, such as "https://auth0.com/"
+    private final String authProviderAudience;
+    private final String tokenIssuer;
+    private final String tokenSecret;
+    private final JwkProvider authProviderJwks;
 
-    /**
-     * Constructor for production use that creates a real JwkProvider.
-     */
     public AuthServer() {
         this(
-            System.getenv("AUTH0_DOMAIN"),
-            System.getenv("AUTH0_AUDIENCE"),
-            System.getenv("DITTO_APP_ID"),
-            System.getenv("EXCHANGE_TOKEN_SECRET"),
-            new JwkProviderBuilder(String.format("https://%s/", System.getenv("AUTH0_DOMAIN")))
+            Env.authProviderIssuer(),
+            Env.authProviderAudience(),
+            new JwkProviderBuilder(Env.authProviderJwks())
                 .cached(10, 24, TimeUnit.HOURS)
-                .build()
+                .build(),
+            Env.tokenIssuer(),
+            Env.tokenSecret()
         );
     }
 
-    /**
-     * Constructor for testing that allows injecting dependencies.
-     */
-    protected AuthServer(String auth0Domain, String auth0Audience, String dittoAppId, 
-                        String exchangeTokenSecret, JwkProvider jwkProvider) {
-        this.auth0Domain = auth0Domain;
-        this.auth0Audience = auth0Audience;
-        this.dittoAppId = dittoAppId;
-        this.exchangeTokenSecret = exchangeTokenSecret;
-        this.jwkProvider = jwkProvider;
+    protected AuthServer(
+        String authProviderIssuer, 
+        String authProviderAudience, 
+        JwkProvider authProviderJwks,
+        String tokenIssuer, 
+        String exchangeTokenSecret) {
+        this.authProviderIssuer = authProviderIssuer;
+        this.authProviderAudience = authProviderAudience;
+        this.authProviderJwks = authProviderJwks;
+        this.tokenIssuer = tokenIssuer;
+        this.tokenSecret = exchangeTokenSecret;
     }
 
     @FunctionName("CreateDittoExchangeToken")
-    public HttpResponseMessage run(
+    public HttpResponseMessage createDittoExchangeToken(
             @HttpTrigger(
                 name = "req",
                 methods = {HttpMethod.POST},
@@ -75,21 +75,20 @@ public class AuthServer {
             TokenExchangeRequest tokenRequest = request.getBody();
             
             // Validate request
-            if (tokenRequest == null || tokenRequest.getToken() == null || tokenRequest.getToken().isBlank()) {
+            if (tokenRequest == null || tokenRequest.getToken() == null) {
                 return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                    .body("Token is required")
+                    .body(new ErrorResponse("Token is required"))
                     .build();
             }
             
             // Validate Auth0 token
-            DecodedJWT jwt = validateAuth0Token(tokenRequest.getToken());
+            DecodedJWT jwt = validateAuthProviderToken(tokenRequest.getToken());
             
             // Generate Ditto exchange token
             String exchangeToken = generateExchangeToken(jwt.getSubject());
             
             // Return response
             return request.createResponseBuilder(HttpStatus.OK)
-                .header("Content-Type", "application/json")
                 .body(new TokenExchangeResponse(exchangeToken))
                 .build();
                 
@@ -106,50 +105,49 @@ public class AuthServer {
     }
 
     /**
-     * Validates the Auth0 JWT token and returns the decoded JWT.
+     * Validates the auth provider JWT token and returns the decoded JWT.
      * @param token The JWT token to validate
      * @return The decoded JWT
      * @throws SecurityException if the token is invalid
      */
-    private DecodedJWT validateAuth0Token(String token) throws SecurityException {
+    private DecodedJWT validateAuthProviderToken(String token) throws SecurityException {
         try {
             // Verify token signature and basic claims
             DecodedJWT jwt = JWT.decode(token);
             
             // Get the key from the JWKS endpoint
-            Jwk jwk = jwkProvider.get(jwt.getKeyId());
+            Jwk jwk = authProviderJwks.get(jwt.getKeyId());
             Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
             
             // Verify the token
             JWTVerifier verifier = JWT.require(algorithm)
-                .withIssuer(String.format("https://%s/", auth0Domain))
-                .withAudience(auth0Audience)
-                .acceptLeeway(1)
+                .withIssuer(authProviderIssuer)
+                .withAudience(authProviderAudience)
+                .acceptLeeway(10)
                 .build();
                 
             return verifier.verify(token);
         } catch (JWTVerificationException | JwkException e) {
             throw new SecurityException("Invalid token: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new SecurityException("Error validating token: " + e.getMessage(), e);
         }
     }
 
     private String generateExchangeToken(String subject) {
         // Set expiration time (1 hour from now)
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + 3600 * 1000);
+        Date expiryDate = new Date(now.getTime() + 60 * 60 * 1000);
         
         // Create Exchange Token
         try {
             return JWT.create()
-                .withIssuer(dittoAppId)
+                .withIssuer(tokenIssuer)
+                .withAudience(tokenIssuer)
                 .withSubject(subject)
                 .withIssuedAt(now)
                 .withExpiresAt(expiryDate)
                 .withClaim(CLAIM_DITTO_READ, true)
                 .withClaim(CLAIM_DITTO_WRITE, true)
-                .sign(Algorithm.HMAC256(exchangeTokenSecret));
+                .sign(Algorithm.HMAC256(tokenSecret));
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate exchange token", e);
         }
