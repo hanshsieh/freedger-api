@@ -1,32 +1,25 @@
 # Freedger Auth Server
 
-This is an Azure Functions project that handles authentication for Freedger applications and Ditto token exchange.
+This is an Azure Functions project that handles authentication for Freedger applications.
 
 ## Features
 
 - Validates Auth0 JWT Tokens
-- Generates Ditto-specific JWT Tokens
+- Generates Ditto Exchange Token for exchanging Auth0 Tokens to Ditto Tokens
 - Provides RESTful API endpoints for token exchange
-
-## Required Environment Variables
-
-Configure the following environment variables in `local.settings.json` (for local development) or in Azure Function App settings:
-
-| Variable Name | Description | Example |
-|---------------|-------------|---------|
-| AUTH0_DOMAIN | Auth0 Domain | `your-tenant.auth0.com` |
-| AUTH0_AUDIENCE | Auth0 API Identifier | `https://api.freedger.app` |
-| DITTO_APP_ID | Ditto Application ID | `com.example.freedger` |
-| DITTO_TOKEN_SECRET | Secret key used to sign Ditto Tokens | `your-very-secret-key` |
 
 ## Local Development
 
 ### Prerequisites
 
-- JDK 11 or later
+- JDK 23 or later
 - Maven 3.6 or later
 - Azure Functions Core Tools
 - Azure CLI (for deployment)
+
+### Local settings
+
+Copy `local.settings.example.json` to `local.settings.json` and edit it with your configuration.
 
 ### Running the Local Development Server
 
@@ -46,7 +39,7 @@ Configure the following environment variables in `local.settings.json` (for loca
    ```bash
    curl -X POST http://localhost:7071/api/CreateDittoExchangeToken \
      -H "Content-Type: application/json" \
-     -d '{"token": "your-auth0-token"}'
+     -d '{"token": "your-token"}'
    ```
 
 ## API Endpoints
@@ -60,7 +53,7 @@ Configure the following environment variables in `local.settings.json` (for loca
 - **Request Body**:
   ```json
   {
-    "token": "your-auth0-jwt-token"
+    "token": "your-jwt-token"
   }
   ```
 - **Success Response (200 OK)**:
@@ -72,7 +65,7 @@ Configure the following environment variables in `local.settings.json` (for loca
 - **Error Response (4xx/5xx)**:
   ```json
   {
-    "error": "Error message"
+    "message": "Error message"
   }
   ```
 
@@ -124,7 +117,3 @@ Configure the following environment variables in `local.settings.json` (for loca
 2. Enable HTTPS in production
 3. Consider implementing rate limiting
 4. Rotate secrets periodically
-
-## License
-
-Copyright © 2025 Freedger Team

@@ -33,6 +33,7 @@ public class AuthServer {
     // The audience of the Auth0 JWT token, such as "https://auth0.com/"
     private final String authProviderAudience;
     private final String tokenIssuer;
+    private final String tokenAudience;
     private final String tokenSecret;
     private final JwkProvider authProviderJwks;
 
@@ -44,7 +45,8 @@ public class AuthServer {
                 .cached(10, 24, TimeUnit.HOURS)
                 .build(),
             Env.tokenIssuer(),
-            Env.tokenSecret()
+            Env.tokenAudience(),
+            Env.tokenSecret1()
         );
     }
 
@@ -53,11 +55,13 @@ public class AuthServer {
         String authProviderAudience, 
         JwkProvider authProviderJwks,
         String tokenIssuer, 
+        String tokenAudience,
         String exchangeTokenSecret) {
         this.authProviderIssuer = authProviderIssuer;
         this.authProviderAudience = authProviderAudience;
         this.authProviderJwks = authProviderJwks;
         this.tokenIssuer = tokenIssuer;
+        this.tokenAudience = tokenAudience;
         this.tokenSecret = exchangeTokenSecret;
     }
 
@@ -141,7 +145,7 @@ public class AuthServer {
         try {
             return JWT.create()
                 .withIssuer(tokenIssuer)
-                .withAudience(tokenIssuer)
+                .withAudience(tokenAudience)
                 .withSubject(subject)
                 .withIssuedAt(now)
                 .withExpiresAt(expiryDate)

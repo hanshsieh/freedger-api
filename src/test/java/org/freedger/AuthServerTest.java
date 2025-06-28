@@ -48,6 +48,7 @@ class AuthServerTest {
     private static final String AUTH_PROVIDER_AUDIENCE = "test-audience";
     private static final String AUTH_PROVIDER_ISSUER = "https://test-issuer.com/";
     private static final String TOKEN_ISSUER = "https://test-issuer.com/";
+    private static final String TOKEN_AUDIENCE = "https://test-audience.com/";
     private static final String TOKEN_SECRET = "test-token-secret";
     private static final String KEY_ID = "test-key-id";
 
@@ -112,6 +113,7 @@ class AuthServerTest {
             AUTH_PROVIDER_AUDIENCE,
             jwkProvider,
             TOKEN_ISSUER,
+            TOKEN_AUDIENCE,
             TOKEN_SECRET
         );
     }
@@ -124,7 +126,8 @@ class AuthServerTest {
             mockedEnv.when(Env::authProviderAudience).thenReturn(AUTH_PROVIDER_AUDIENCE);
             mockedEnv.when(Env::authProviderJwks).thenReturn("https://test-issuer.com/.well-known/jwks.json");
             mockedEnv.when(Env::tokenIssuer).thenReturn(TOKEN_ISSUER);
-            mockedEnv.when(Env::tokenSecret).thenReturn(TOKEN_SECRET);
+            mockedEnv.when(Env::tokenAudience).thenReturn(TOKEN_AUDIENCE);
+            mockedEnv.when(Env::tokenSecret1).thenReturn(TOKEN_SECRET);
 
             AuthServer authServer = new AuthServer();
             assertNotNull(authServer);
@@ -396,7 +399,7 @@ class AuthServerTest {
         // Verify the token
         JWTVerifier verifier = JWT.require(algorithm)
             .withIssuer(TOKEN_ISSUER)
-            .withAudience(TOKEN_ISSUER)
+            .withAudience(TOKEN_AUDIENCE)
             .withSubject(USER_ID)
             .build();
             

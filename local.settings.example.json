@@ -1,0 +1,28 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "java",
+    
+    // Auth0 Configuration
+    "AUTH0_DOMAIN": "your-tenant.auth0.com",
+    "AUTH0_AUDIENCE": "https://api.auth0.org",
+    
+    // JWT Token Secrets (for both current and next rotation)
+    // In production, use strong, randomly generated secrets
+    "TOKEN_SECRET1": "your-primary-secret-key-here-min-32-chars",
+    "TOKEN_SECRET2": "your-secondary-secret-key-here-min-32-chars",
+    
+    // Application Settings
+    "TOKEN_ISSUER": "https://api.freedger.org",
+    "TOKEN_AUDIENCE": "https://api.freedger.org",
+    
+    // Optional: Logging Level
+    "APPINSIGHTS_INSTRUMENTATIONKEY": "",
+    "APPLICATIONINSIGHTS_CONNECTION_STRING": ""
+  },
+  "Host": {
+    "CORS": "*",
+    "CORSCredentials": false
+  }
+}

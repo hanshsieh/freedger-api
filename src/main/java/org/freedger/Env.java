@@ -32,6 +32,16 @@ public class Env {
     }
 
     /**
+     * The audience of the JWT token.
+     * E.g. https://freedger.org
+     * 
+     * @return The audience of the JWT token.
+     */
+    public static String tokenAudience() {
+        return System.getenv("TOKEN_AUDIENCE");
+    }
+
+    /**
      * The public key for verifying the JWT token.
      * 
      * @return The public key for verifying the JWT token.
@@ -41,12 +51,23 @@ public class Env {
     }
 
     /**
-     * The secret key for generating the JWT token.
+     * The first secret key for generating the JWT token.
+     * When creating a new token, always use the first secret key.
      * 
-     * @return The secret key for generating the JWT token.
+     * @return The first secret key for generating the JWT token.
      */
-    public static String tokenSecret() {
-        return System.getenv("TOKEN_SECRET");
+    public static String tokenSecret1() {
+        return System.getenv("TOKEN_SECRET1");
+    }
+
+    /**
+     * The second secret key for generating the JWT token.
+     * When rotating the secret key, rotate the first one, reload the function app, then rotate the second one.
+     * 
+     * @return The second secret key for generating the JWT token.
+     */
+    public static String tokenSecret2() {
+        return System.getenv("TOKEN_SECRET2");
     }
 
     /**
