@@ -44,11 +44,11 @@ import static org.mockito.Mockito.*;
 class AuthServerTest {
     private static RSAPrivateKey authProviderPrivateKey;
     private static RSAPublicKey authProviderPublicKey;
-    private static final String USER_ID = "test-user-123";
-    private static final String AUTH_PROVIDER_AUDIENCE = "test-audience";
-    private static final String AUTH_PROVIDER_ISSUER = "https://test-issuer.com/";
-    private static final String TOKEN_ISSUER = "https://test-issuer.com/";
-    private static final String TOKEN_AUDIENCE = "https://test-audience.com/";
+    private static final String SUBJECT = "auth0|685e35fe029584349202c39d";
+    private static final String[] AUTH_PROVIDER_AUDIENCES = {"https://api.freedger.org/", "https://freedger-dev.jp.auth0.com/userinfo"};
+    private static final String AUTH_PROVIDER_ISSUER = "https://freedger-dev.jp.auth0.com/";
+    private static final String TOKEN_ISSUER = "https://api.freedger.org/";
+    private static final String TOKEN_AUDIENCE = "https://audience.freedger.org/";
     private static final String TOKEN_SECRET = "test-token-secret";
     private static final String KEY_ID = "test-key-id";
 
@@ -110,7 +110,7 @@ class AuthServerTest {
 
         authServer = new AuthServer(
             AUTH_PROVIDER_ISSUER,
-            AUTH_PROVIDER_AUDIENCE,
+            AUTH_PROVIDER_AUDIENCES[0],
             jwkProvider,
             TOKEN_ISSUER,
             TOKEN_AUDIENCE,
@@ -123,7 +123,7 @@ class AuthServerTest {
     void testConstructor_Default_Success() throws Exception {
         try (MockedStatic<Env> mockedEnv = Mockito.mockStatic(Env.class)) {
             mockedEnv.when(Env::authProviderIssuer).thenReturn(AUTH_PROVIDER_ISSUER);
-            mockedEnv.when(Env::authProviderAudience).thenReturn(AUTH_PROVIDER_AUDIENCE);
+            mockedEnv.when(Env::authProviderAudience).thenReturn(AUTH_PROVIDER_AUDIENCES[0]);
             mockedEnv.when(Env::authProviderJwks).thenReturn("https://test-issuer.com/.well-known/jwks.json");
             mockedEnv.when(Env::tokenIssuer).thenReturn(TOKEN_ISSUER);
             mockedEnv.when(Env::tokenAudience).thenReturn(TOKEN_AUDIENCE);
@@ -222,8 +222,8 @@ class AuthServerTest {
         // Use the private key for signing the token
         String expiredToken = JWT.create()
                 .withIssuer(AUTH_PROVIDER_ISSUER)
-                .withSubject(USER_ID)
-                .withAudience(AUTH_PROVIDER_AUDIENCE)
+                .withSubject(SUBJECT)
+                .withAudience(AUTH_PROVIDER_AUDIENCES)
                 .withIssuedAt(issuedAt)
                 .withExpiresAt(expiresAt)
                 .withKeyId(KEY_ID)
@@ -249,7 +249,7 @@ class AuthServerTest {
         
         String token = JWT.create()
                 .withIssuer(AUTH_PROVIDER_ISSUER)
-                .withSubject(USER_ID)
+                .withSubject(SUBJECT)
                 .withAudience("invalid-audience")
                 .withIssuedAt(now)
                 .withExpiresAt(expiresAt)
@@ -277,8 +277,8 @@ class AuthServerTest {
         
         String token = JWT.create()
                 .withIssuer("invalid-issuer")
-                .withSubject(USER_ID)
-                .withAudience(AUTH_PROVIDER_AUDIENCE)
+                .withSubject(SUBJECT)
+                .withAudience(AUTH_PROVIDER_AUDIENCES)
                 .withIssuedAt(now)
                 .withExpiresAt(expiresAt)
                 .withKeyId(KEY_ID)
@@ -311,8 +311,8 @@ class AuthServerTest {
         
         String token = JWT.create()
                 .withIssuer(AUTH_PROVIDER_ISSUER)
-                .withSubject(USER_ID)
-                .withAudience(AUTH_PROVIDER_AUDIENCE)
+                .withSubject(SUBJECT)
+                .withAudience(AUTH_PROVIDER_AUDIENCES)
                 .withIssuedAt(now)
                 .withExpiresAt(expiresAt)
                 .withKeyId(KEY_ID)
@@ -384,8 +384,8 @@ class AuthServerTest {
         // Use the private key for signing the token
         return JWT.create()
                 .withIssuer(AUTH_PROVIDER_ISSUER)
-                .withSubject(USER_ID)
-                .withAudience(AUTH_PROVIDER_AUDIENCE)
+                .withSubject(SUBJECT)
+                .withAudience(AUTH_PROVIDER_AUDIENCES)
                 .withIssuedAt(now)
                 .withExpiresAt(expiresAt)
                 .withKeyId(KEY_ID)
@@ -400,7 +400,7 @@ class AuthServerTest {
         JWTVerifier verifier = JWT.require(algorithm)
             .withIssuer(TOKEN_ISSUER)
             .withAudience(TOKEN_AUDIENCE)
-            .withSubject(USER_ID)
+            .withSubject(SUBJECT)
             .build();
             
         DecodedJWT jwt = verifier.verify(exchangeToken);
