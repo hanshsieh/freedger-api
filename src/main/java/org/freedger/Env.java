@@ -79,4 +79,41 @@ public class Env {
     public static String authProviderJwks() {
         return System.getenv("AUTH_PROVIDER_JWKS");
     }
+    
+    /**
+     * The Ditto App ID for authentication.
+     * 
+     * @return The Ditto App ID
+     */
+    public static String dittoAppId() {
+        return System.getenv("DITTO_APP_ID");
+    }
+    
+    /**
+     * The Ditto API Key for authentication.
+     * 
+     * @return The Ditto API Key
+     */
+    public static String dittoApiKey() {
+        return System.getenv("DITTO_API_KEY");
+    }
+    
+    /**
+     * The base URL of the Ditto API.
+     * E.g. https://your-app-id.cloud.ditto.live/api/v4
+     * 
+     * @return The base URL of the Ditto API
+     */
+    public static String dittoApiBaseUrl() {
+        return System.getenv("DITTO_API_BASE_URL");
+    }
+    
+    /**
+     * The expected provider name for Ditto webhook authentication.
+     * 
+     * @return The provider name
+     */
+    public static String dittoProviderName() {
+        return System.getenv("DITTO_PROVIDER_NAME");
+    }
 }
