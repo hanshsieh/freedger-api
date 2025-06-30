@@ -1,4 +1,4 @@
-package org.freedger.dto;
+package org.freedger.dto.ditto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

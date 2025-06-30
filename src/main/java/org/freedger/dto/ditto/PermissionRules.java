@@ -1,4 +1,4 @@
-package org.freedger.dto;
+package org.freedger.dto.ditto;
 
 import java.util.ArrayList;
 import java.util.HashMap;
