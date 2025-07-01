@@ -1,7 +1,8 @@
 package org.freedger.ditto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -12,6 +13,10 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.Timeout;
+
+import org.freedger.ditto.DittoLedger;
+import org.freedger.ditto.ExecuteRequest;
+import org.freedger.ditto.QueryResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +31,7 @@ public class DittoHttpClient {
     private static final int REQUEST_TIMEOUT_SECONDS = 10;
     
     private final String baseUrl;
-    private final ObjectMapper objectMapper;
+    private final Gson gson;
     private final CloseableHttpClient httpClient;
     
     /**
@@ -37,7 +42,7 @@ public class DittoHttpClient {
     public DittoHttpClient(String baseUrl, String apiKey) {
         // Ensure the base URL ends with a slash for proper path concatenation
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-        this.objectMapper = new ObjectMapper();
+        this.gson = new GsonBuilder().create();
         
         // Create a reusable HttpClient with connection pooling and timeouts
         RequestConfig config = RequestConfig.custom()
@@ -68,7 +73,7 @@ public class DittoHttpClient {
             
             // Create JSON request body
             ExecuteRequest requestBody = new ExecuteRequest(query, Map.of("userId", userId));
-            String jsonRequestBody = objectMapper.writeValueAsString(requestBody);
+            String jsonRequestBody = gson.toJson(requestBody);
             
             // Create and execute the request
             HttpPost httpPost = new HttpPost(baseUrl + "store/execute");
@@ -85,9 +90,9 @@ public class DittoHttpClient {
             });
             
             // Parse and return response
-            DittoQueryResponse<DittoLedger> queryResponse = objectMapper.readValue(
+            QueryResponse<DittoLedger, Object> queryResponse = gson.fromJson(
                 responseBody,
-                objectMapper.getTypeFactory().constructParametricType(DittoQueryResponse.class, DittoLedger.class)
+                TypeToken.getParameterized(QueryResponse.class, DittoLedger.class, Object.class).getType()
             );
             
             return queryResponse.getItems();

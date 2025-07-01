@@ -1,6 +1,6 @@
 package org.freedger.ditto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 /**
@@ -9,13 +9,13 @@ import java.util.List;
 public class DittoLedger {
     public static final String COLLECTION = "Ledgers";
 
-    @JsonProperty("_id")
+    @SerializedName("_id")
     private String id;
     
-    @JsonProperty("readerIds")
+    @SerializedName("readerIds")
     private List<String> readerIds;
     
-    @JsonProperty("writerIds")
+    @SerializedName("writerIds")
     private List<String> writerIds;
 
     // Getters and Setters

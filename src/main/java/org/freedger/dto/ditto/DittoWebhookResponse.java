@@ -1,30 +1,28 @@
 package org.freedger.dto.ditto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Represents the response to Ditto's authentication webhook.
  * Follows the schema defined at: https://docs.ditto.live/sdk/latest/auth-and-authorization/data-authorization
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DittoWebhookResponse {
-    @JsonProperty("authenticated")
+    @SerializedName("authenticated")
     private boolean authenticated;
     
-    @JsonProperty("userID")
+    @SerializedName("userID")
     private String userId;
     
-    @JsonProperty("expirationSeconds")
+    @SerializedName("expirationSeconds")
     private Integer expirationSeconds;
     
-    @JsonProperty("permissions")
+    @SerializedName("permissions")
     private Permission permissions;
     
-    @JsonProperty("clientInfo")
+    @SerializedName("clientInfo")
     private Object clientInfo;
     
-    @JsonProperty("identityServiceMetadata")
+    @SerializedName("identityServiceMetadata")
     private Object identityServiceMetadata;
     
     // Default constructor for deserialization

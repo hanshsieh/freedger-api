@@ -5,16 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Represents the permission rules for read/write access.
  */
 public class PermissionRules {
-    @JsonProperty("everything")
+    @SerializedName("everything")
     private boolean everything;
     
-    @JsonProperty("queriesByCollection")
+    @SerializedName("queriesByCollection")
     private Map<String, List<String>> queriesByCollection;
     
     public PermissionRules() {

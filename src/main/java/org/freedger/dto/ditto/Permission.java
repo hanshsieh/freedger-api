@@ -1,18 +1,18 @@
 package org.freedger.dto.ditto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Represents the permissions object in the Ditto webhook response.
  */
 public class Permission {
-    @JsonProperty("read")
+    @SerializedName("read")
     private PermissionRules read;
     
-    @JsonProperty("write")
+    @SerializedName("write")
     private PermissionRules write;
     
-    @JsonProperty("remoteQuery")
+    @SerializedName("remoteQuery")
     private Boolean remoteQuery;
     
     public Permission() {

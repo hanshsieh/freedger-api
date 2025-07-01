@@ -1,13 +1,13 @@
 package org.freedger.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Represents a token exchange request from the client.
  */
 public class TokenExchangeRequest {
     
-    @JsonProperty("token")
+    @SerializedName("token")
     private String token;
 
     // Default constructor for JSON deserialization

@@ -1,10 +1,10 @@
 package org.freedger.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 public class ErrorResponse {
 
-    @JsonProperty("message")
+    @SerializedName("message")
     private String message;
     
     public ErrorResponse(String message) {

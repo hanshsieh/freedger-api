@@ -1,13 +1,13 @@
 package org.freedger.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Represents the response containing the Ditto token.
  */
 public class TokenExchangeResponse {
     
-    @JsonProperty("token")
+    @SerializedName("token")
     private String token;
 
     // Default constructor for JSON deserialization

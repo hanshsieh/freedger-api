@@ -1,12 +1,12 @@
 package org.freedger.dto.ditto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Represents the incoming webhook request from Ditto for authentication.
  */
 public class DittoWebhookRequest {
-    @JsonProperty("appID")
+    @SerializedName("appID")
     private String appId;
     
     private String provider;
