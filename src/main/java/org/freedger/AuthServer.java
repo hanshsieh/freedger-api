@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.freedger.ditto.DittoHttpClient;
 import org.freedger.ditto.DittoLedger;
-import org.freedger.dto.*;
 import org.freedger.dto.ditto.DittoWebhookRequest;
 import org.freedger.dto.ditto.DittoWebhookResponse;
 import org.freedger.dto.ditto.Permission;
@@ -31,21 +30,15 @@ import org.freedger.dto.ditto.PermissionRules;
  */
 public class AuthServer {
     private final DittoHttpClient dittoClient;
-    // The issuer of the Auth0 JWT token, such as "https://auth0.com/"
-    private final String authProviderIssuer;
-    // The audience of the Auth0 JWT token, such as "https://auth0.com/"
-    private final String authProviderAudience;
     private final JwkProvider authProviderJwks;
-    private final String dittoAppId;
-    private final String dittoProviderName;
-    private final int dittoTokenExpireSec;
+    private final Config config;
 
     public AuthServer() {
         this(EnvConfig.instance);
     }
 
     protected AuthServer(Config config) {
-        this(config, new JwkProviderBuilder(config.authProviderJwks())
+        this(config, new JwkProviderBuilder(config.authJwks())
             .cached(10, 24, TimeUnit.HOURS)
             .build());
     }
@@ -53,12 +46,8 @@ public class AuthServer {
     protected AuthServer(
         Config config, 
         JwkProvider authProviderJwks) {
-        this.authProviderIssuer = config.authProviderIssuer();
-        this.authProviderAudience = config.authProviderAudience();
+        this.config = config;
         this.authProviderJwks = authProviderJwks;
-        this.dittoAppId = config.dittoAppId();
-        this.dittoProviderName = config.dittoProviderName();
-        this.dittoTokenExpireSec = config.dittoTokenExpireSec();
         this.dittoClient = new DittoHttpClient(config.dittoApiBaseUrl(), config.dittoApiKey());
     }
 
@@ -79,8 +68,8 @@ public class AuthServer {
             
             // Verify the token
             JWTVerifier verifier = JWT.require(algorithm)
-                .withIssuer(authProviderIssuer)
-                .withAudience(authProviderAudience)
+                .withIssuer(config.authIssuer())
+                .withAudience(config.authAudience())
                 .acceptLeeway(10)
                 .build();
                 
@@ -120,14 +109,14 @@ public class AuthServer {
             }
             
             // Validate appID and provider
-            if (!dittoAppId.equals(webhookRequest.getAppId())) {
+            if (!config.dittoAppId().equals(webhookRequest.getAppId())) {
                 context.getLogger().warning("Invalid appID: " + webhookRequest.getAppId());
                 return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                     .body(DittoWebhookResponse.failure())
                     .build();
             }
             
-            if (!dittoProviderName.equals(webhookRequest.getProvider())) {
+            if (!config.dittoProvider().equals(webhookRequest.getProvider())) {
                 context.getLogger().warning("Invalid provider: " + webhookRequest.getProvider());
                 return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                     .body(DittoWebhookResponse.failure())
@@ -197,8 +186,6 @@ public class AuthServer {
         Permission permissions = new Permission(readRules, writeRules);
         
         // Create and return the response
-        return DittoWebhookResponse.success(userId, dittoTokenExpireSec, permissions);
+        return DittoWebhookResponse.success(userId, config.dittoTokenExpireSec(), permissions);
     }
-    
-    // Error response creation is now handled by JsonUtils
 }

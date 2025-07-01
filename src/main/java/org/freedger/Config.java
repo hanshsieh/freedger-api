@@ -7,7 +7,7 @@ public interface Config {
      * 
      * @return The issuer of the authentication provider.
      */
-    String authProviderIssuer();
+    String authIssuer();
 
     /**
      * The audience of the authentication provider.
@@ -15,7 +15,7 @@ public interface Config {
      * 
      * @return The audience of the authentication provider.
      */
-    String authProviderAudience();
+    String authAudience();
 
     /**
      * The JWKS endpoint of the authentication provider.
@@ -23,7 +23,7 @@ public interface Config {
      * 
      * @return The JWKS endpoint of the authentication provider.
      */
-    String authProviderJwks();
+    String authJwks();
 
     /**
      * The Ditto App ID for authentication.
@@ -51,7 +51,7 @@ public interface Config {
      * 
      * @return The provider name
      */
-    String dittoProviderName();
+    String dittoProvider();
 
     /**
      * The expiration time of the Ditto token in seconds.
