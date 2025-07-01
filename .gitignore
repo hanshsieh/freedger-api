@@ -37,4 +37,4 @@ replay_pid*
 target/
 
 # Azure Functions
-local.settings.json
+*.settings.json

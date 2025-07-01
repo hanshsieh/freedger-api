@@ -37,7 +37,7 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
 
 3. Test the API:
    ```bash
-   curl -X POST http://localhost:7071/api/CreateDittoExchangeToken \
+   curl -X POST http://localhost:7071/api/GetDittoPermissions \
      -H "Content-Type: application/json" \
      -d '{"token": "your-token"}'
    ```
