@@ -31,7 +31,6 @@ replay_pid*
 .cursor/
 
 # VSCode
-.vscode/
 
 # Maven
 target/

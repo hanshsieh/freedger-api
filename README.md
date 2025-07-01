@@ -14,8 +14,8 @@ This is an Azure Functions project that handles authentication for Freedger appl
 
 - JDK 23 or later
 - Maven 3.6 or later
-- Azure Functions Core Tools
-- Azure CLI (for deployment)
+- [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
+- [Azure CLI (for deployment)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
 
 ### Local settings
 
@@ -36,36 +36,57 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
    ```
 
 3. Test the API:
+   (Unix/Bash)
    ```bash
    curl -X POST http://localhost:7071/api/GetDittoPermissions \
      -H "Content-Type: application/json" \
-     -d '{"token": "your-token"}'
+     -d '{"appID": "bfaf1c4d-ee83-4215-9022-ac9c129364ea", "provider": "freedger_api", "token": "{TOKEN}"}'
    ```
 
+  (Windows/Powershell)
+   ```powershell
+   Invoke-RestMethod -Uri "http://localhost:7071/api/GetDittoPermissions" `
+     -Method Post `
+     -Headers @{ "Content-Type" = "application/json" } `
+     -Body '{"appID": "bfaf1c4d-ee83-4215-9022-ac9c129364ea", "provider": "freedger_api", "token": "{TOKEN}"}'
+   ```
 ## API Endpoints
 
-### Exchange Ditto Token
+### Get Ditto Permissions
 
-- **URL**: `/api/CreateDittoExchangeToken`
+- **URL**: `/api/GetDittoPermissions`
 - **Method**: `POST`
 - **Headers**: 
   - `Content-Type: application/json`
 - **Request Body**:
   ```json
   {
-    "token": "your-jwt-token"
+    "appID": "{APP_ID}",
+    "provider": "{PROVIDER}",
+    "token": "{JWT_TOKEN}"
   }
   ```
 - **Success Response (200 OK)**:
   ```json
   {
-    "token": "generated-ditto-jwt-token"
+    "authenticated": true,
+    "expirationSeconds": 28800,
+    "permissions": {
+      "read": {
+        "everything": false,
+        "queriesByCollection": {
+          "Ledgers": [
+            "_id == '0123456789'"
+          ]
+        }
+      }
+    }
   }
   ```
 - **Error Response (4xx/5xx)**:
   ```json
   {
-    "message": "Error message"
+    "authenticated": false
   }
   ```
 

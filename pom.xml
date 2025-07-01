@@ -14,11 +14,10 @@
         <java.version>23</java.version>
         <azure.functions.maven.plugin.version>1.38.0</azure.functions.maven.plugin.version>
         <azure.functions.java.library.version>3.1.0</azure.functions.java.library.version>
-        <function.appName>freedger-api</function.appName>
-        <function.resourceGroup>freedger-dev</function.resourceGroup>
-        <function.appServicePlanName>freedger-dev</function.appServicePlanName>
-        <function.region>eastus</function.region>
-        <azure.region>eastus</azure.region>
+        <functionAppName>freedger-api</functionAppName>
+        <functionResourceGroup>freedger-dev</functionResourceGroup>
+        <functionAppServicePlanName>freedger-dev</functionAppServicePlanName>
+        <functionRegion>eastus</functionRegion>
         <jackson.version>2.19.1</jackson.version>
         <junit.version>5.13.2</junit.version>
         <mockito.version>5.18.0</mockito.version>
@@ -147,11 +146,11 @@
                 <version>${azure.functions.maven.plugin.version}</version>
                 <configuration>
                     <!-- function app name -->
-                    <appName>${function.appName}</appName>
+                    <appName>${functionAppName}</appName>
                     <!-- function app resource group -->
-                    <resourceGroup>${function.resourceGroup}</resourceGroup>
+                    <resourceGroup>${functionResourceGroup}</resourceGroup>
                     <!-- function app service plan name -->
-                    <appServicePlanName>${function.appServicePlanName}</appServicePlanName>
+                    <appServicePlanName>${functionAppServicePlanName}</appServicePlanName>
                     <!-- function app region-->
                     <runtime>
                         <os>linux</os>

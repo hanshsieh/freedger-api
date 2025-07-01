@@ -102,7 +102,7 @@ public class AuthServer {
             
             // Validate request
             if (webhookRequest == null || webhookRequest.getToken() == null) {
-                context.getLogger().warning("Invalid request: token is required");
+                context.getLogger().fine("Invalid request: token is required");
                 return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                     .body(DittoWebhookResponse.failure())
                     .build();
@@ -110,14 +110,14 @@ public class AuthServer {
             
             // Validate appID and provider
             if (!config.dittoAppId().equals(webhookRequest.getAppId())) {
-                context.getLogger().warning("Invalid appID: " + webhookRequest.getAppId());
+                context.getLogger().fine("Invalid appID: " + webhookRequest.getAppId());
                 return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                     .body(DittoWebhookResponse.failure())
                     .build();
             }
             
             if (!config.dittoProvider().equals(webhookRequest.getProvider())) {
-                context.getLogger().warning("Invalid provider: " + webhookRequest.getProvider());
+                context.getLogger().fine("Invalid provider: " + webhookRequest.getProvider());
                 return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                     .body(DittoWebhookResponse.failure())
                     .build();
