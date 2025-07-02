@@ -43,9 +43,9 @@ jobs:
         uses: azure/login@v2
         with:
           # Use a managed identity to login
-          client-id: ${{ vars.LOGIN_CLIENT_ID }}
-          tenant-id: ${{ vars.LOGIN_TENANT_ID }}
-          subscription-id: ${{ vars.LOGIN_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.AZ_CLIENT_ID }}
+          tenant-id: ${{ vars.AZ_TENANT_ID }}
+          subscription-id: ${{ vars.AZ_SUBSCRIPTION_ID }}
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
