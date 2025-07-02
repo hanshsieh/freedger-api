@@ -38,7 +38,7 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
 3. Test the API:
    (Unix/Bash)
    ```bash
-   curl -X POST http://localhost:7071/api/GetDittoPermissions \
+   curl -X POST http://localhost:7071/api/ditto/authorize \
      -H "Content-Type: application/json" \
      -d '{"appID": "bfaf1c4d-ee83-4215-9022-ac9c129364ea", "provider": "freedger_api", "token": "{TOKEN}"}'
    ```
@@ -54,7 +54,7 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
 
 ### Get Ditto Permissions
 
-- **URL**: `/api/GetDittoPermissions`
+- **URL**: `/api/ditto/authorize`
 - **Method**: `POST`
 - **Headers**: 
   - `Content-Type: application/json`
@@ -70,13 +70,25 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
   ```json
   {
     "authenticated": true,
-    "expirationSeconds": 28800,
+    "userID": "auth0|685e35fe029584349202c39d",
+    "expirationSeconds": 86400,
     "permissions": {
       "read": {
         "everything": false,
         "queriesByCollection": {
+          "Accounts": [
+            "_id.ledgerId = 'f343ccac1ffe40f48dd0bca175076a62'"
+          ],
           "Ledgers": [
-            "_id == '0123456789'"
+            "_id = 'f343ccac1ffe40f48dd0bca175076a62'"
+          ]
+        }
+      },
+      "write": {
+        "everything": false,
+        "queriesByCollection": {
+          "Accounts": [
+            "_id.ledgerId = 'f343ccac1ffe40f48dd0bca175076a62'"
           ]
         }
       }
@@ -97,36 +109,36 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
    az login
    ```
 
-2. Create a resource group (if not exists):
+1. Create a resource group (if not exists):
    ```bash
-   az group create --name FreedgerRG --location eastus
+   az group create --name freedger-api --location eastasia
    ```
 
-3. Create a storage account:
+1. Create Storage Account
    ```bash
-   az storage account create --name <storage_name> --location eastus --resource-group FreedgerRG --sku Standard_LRS
+   az storage account create --name <storage_name> --location eastasia --resource-group freedger-api --sku Standard_LRS
    ```
 
-4. Create Function App:
+1. Create Function App:
    ```bash
-   az functionapp create --resource-group FreedgerRG --consumption-plan-location eastus \
-     --runtime java --runtime-version 11 --functions-version 4 \
+   az functionapp create --resource-group freedger-api --consumption-plan-location eastasia \
+     --runtime java --runtime-version 23 --functions-version 4 \
      --name <app_name> --storage-account <storage_name>
    ```
 
-5. Configure environment variables:
+1. Configure environment variables:
    ```bash
-   az functionapp config appsettings set --name <app_name> --resource-group FreedgerRG \
+   az functionapp config appsettings set --name <app_name> --resource-group freedger-api \
      --settings "AUTH0_DOMAIN=your-tenant.auth0.com"
-   az functionapp config appsettings set --name <app_name> --resource-group FreedgerRG \
+   az functionapp config appsettings set --name <app_name> --resource-group freedger-api \
      --settings "AUTH0_AUDIENCE=your-audience"
-   az functionapp config appsettings set --name <app_name> --resource-group FreedgerRG \
+   az functionapp config appsettings set --name <app_name> --resource-group freedger-api \
      --settings "DITTO_APP_ID=com.example.freedger"
-   az functionapp config appsettings set --name <app_name> --resource-group FreedgerRG \
+   az functionapp config appsettings set --name <app_name> --resource-group freedger-api \
      --settings "DITTO_TOKEN_SECRET=your-very-secret-key"
    ```
 
-6. Deploy the code:
+1. Deploy the code:
    ```bash
    mvn clean package
    mvn azure-functions:deploy
