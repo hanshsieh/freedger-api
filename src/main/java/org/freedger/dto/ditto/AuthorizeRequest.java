@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Represents the incoming webhook request from Ditto for authentication.
  */
-public class DittoWebhookRequest {
+public class AuthorizeRequest {
     @SerializedName("appID")
     private String appId;
     

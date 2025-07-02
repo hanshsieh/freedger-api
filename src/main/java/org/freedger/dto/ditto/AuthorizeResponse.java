@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName;
  * Represents the response to Ditto's authentication webhook.
  * Follows the schema defined at: https://docs.ditto.live/sdk/latest/auth-and-authorization/data-authorization
  */
-public class DittoWebhookResponse {
+public class AuthorizeResponse {
     @SerializedName("authenticated")
     private boolean authenticated;
     
@@ -26,12 +26,12 @@ public class DittoWebhookResponse {
     private Object identityServiceMetadata;
     
     // Default constructor for deserialization
-    public DittoWebhookResponse() {
+    public AuthorizeResponse() {
     }
     
     // Factory method for successful authentication
-    public static DittoWebhookResponse success(String userId, int expirationSeconds, Permission permissions) {
-        DittoWebhookResponse response = new DittoWebhookResponse();
+    public static AuthorizeResponse success(String userId, int expirationSeconds, Permission permissions) {
+        AuthorizeResponse response = new AuthorizeResponse();
         response.setAuthenticated(true);
         response.setUserId(userId);
         response.setExpirationSeconds(expirationSeconds);
@@ -40,8 +40,8 @@ public class DittoWebhookResponse {
     }
     
     // Factory method for failed authentication
-    public static DittoWebhookResponse failure() {
-        DittoWebhookResponse response = new DittoWebhookResponse();
+    public static AuthorizeResponse failure() {
+        AuthorizeResponse response = new AuthorizeResponse();
         response.setAuthenticated(false);
         return response;
     }
