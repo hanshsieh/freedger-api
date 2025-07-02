@@ -14,6 +14,10 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -33,22 +37,34 @@ public class DittoApi {
     private final JwkProvider authProviderJwks;
     private final Config config;
 
-    public DittoApi() {
+    public DittoApi() throws URISyntaxException, MalformedURLException {
         this(EnvConfig.instance);
     }
 
-    protected DittoApi(Config config) {
-        this(config, new JwkProviderBuilder(config.authJwks())
-            .cached(10, 24, TimeUnit.HOURS)
-            .build());
+    protected DittoApi(Config config) throws URISyntaxException, MalformedURLException {
+        this(config, 
+            createJwkProvider(config.authJwks()), 
+            new DittoHttpClient(config.dittoApiBaseUrl(), config.dittoApiKey()));
     }
 
     protected DittoApi(
         Config config, 
-        JwkProvider authProviderJwks) {
+        JwkProvider jwkProvider,
+        DittoHttpClient dittoClient) {
         this.config = config;
-        this.authProviderJwks = authProviderJwks;
-        this.dittoClient = new DittoHttpClient(config.dittoApiBaseUrl(), config.dittoApiKey());
+        this.authProviderJwks = jwkProvider;
+        this.dittoClient = dittoClient;
+    }
+
+    private static JwkProvider createJwkProvider(String url) {
+        try {
+            return new JwkProviderBuilder(new URI(url).toURL())
+                .cached(10, 24, TimeUnit.HOURS)
+                .timeouts(5, 5)
+                .build();
+        } catch (URISyntaxException | MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid JWKS URL: " + url, e);
+        }
     }
 
     /**
