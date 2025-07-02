@@ -39,7 +39,7 @@ public class DittoApi {
     private final ScopePredicate scopePredicate;
 
     public DittoApi() throws URISyntaxException, MalformedURLException {
-        this(EnvConfig.instance);
+        this(new EnvConfig());
     }
 
     protected DittoApi(Config config) throws URISyntaxException, MalformedURLException {
