@@ -33,12 +33,10 @@ import org.freedger.dto.ditto.PermissionRules;
  * Azure Functions with HTTP Trigger for Ditto APIs.
  */
 public class DittoApi {
-    private static final String CLAIM_SCOPE = "scope";
-    private static final Pattern SCOPE_PATTERN = 
-        Pattern.compile("\\b" + Scope.READ_DITTO_AUTH.getValue() + "\\b");
     private final DittoHttpClient dittoClient;
     private final JwkProvider authProviderJwks;
     private final Config config;
+    private final ScopePredicate scopePredicate;
 
     public DittoApi() throws URISyntaxException, MalformedURLException {
         this(EnvConfig.instance);
@@ -57,6 +55,7 @@ public class DittoApi {
         this.config = config;
         this.authProviderJwks = jwkProvider;
         this.dittoClient = dittoClient;
+        this.scopePredicate = new ScopePredicate(new String[] { Scope.READ_DITTO_AUTH.getValue() });
     }
 
     private static JwkProvider createJwkProvider(String url) {
@@ -167,13 +166,7 @@ public class DittoApi {
             JWTVerifier verifier = JWT.require(algorithm)
                 .withIssuer(config.authIssuer())
                 .withAudience(config.authAudience())
-                .withClaim(CLAIM_SCOPE, (claim, _) -> {
-                    String claimStr = claim.asString();
-                    if (claimStr == null) {
-                        return false;
-                    }
-                    return SCOPE_PATTERN.matcher(claimStr).find();
-                })
+                .withClaim(ScopePredicate.CLAIM_NAME, scopePredicate)
                 .acceptLeeway(10)
                 .build();
                 
