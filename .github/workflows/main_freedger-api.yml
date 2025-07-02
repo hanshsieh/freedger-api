@@ -27,7 +27,7 @@ jobs:
 
       - name: Setup Java Sdk ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
-        with: |
+        with:
           distribution: 'microsoft'
           java-version: ${{ env.JAVA_VERSION }}
 
