@@ -28,7 +28,7 @@ public class PermissionRules {
     
     public void addQuery(String collection, String query) {
         this.queriesByCollection
-            .computeIfAbsent(collection, _ -> new ArrayList<>())
+            .computeIfAbsent(collection, k -> new ArrayList<>())
             .add(query);
     }
     
