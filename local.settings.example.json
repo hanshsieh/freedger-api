@@ -11,11 +11,7 @@
     "DITTO_API_KEY": "PLACEHOLDER",
     "DITTO_API_BASE_URL": "https://bfaf1c4d-ee83-4215-9022-ac9c129364ea.cloud.ditto.live/api/v5",
     "DITTO_PROVIDER_NAME": "freedger_api",
-    "DITTO_TOKEN_EXPIRE_SEC": "86400",
-    
-    // Optional: Logging Level
-    "APPINSIGHTS_INSTRUMENTATIONKEY": "",
-    "APPLICATIONINSIGHTS_CONNECTION_STRING": ""
+    "DITTO_TOKEN_EXPIRE_SEC": "86400"
   },
   "Host": {
     "CORS": "*",

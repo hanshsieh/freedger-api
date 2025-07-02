@@ -17,10 +17,10 @@ import com.microsoft.azure.functions.annotation.HttpTrigger;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import org.freedger.ditto.DittoHttpClient;
 import org.freedger.ditto.DittoLedger;
@@ -33,6 +33,9 @@ import org.freedger.dto.ditto.PermissionRules;
  * Azure Functions with HTTP Trigger for Ditto APIs.
  */
 public class DittoApi {
+    private static final String CLAIM_SCOPE = "scope";
+    private static final Pattern SCOPE_PATTERN = 
+        Pattern.compile("\\b" + Scope.READ_DITTO_AUTH.getValue() + "\\b");
     private final DittoHttpClient dittoClient;
     private final JwkProvider authProviderJwks;
     private final Config config;
@@ -60,7 +63,7 @@ public class DittoApi {
         try {
             return new JwkProviderBuilder(new URI(url).toURL())
                 .cached(10, 24, TimeUnit.HOURS)
-                .timeouts(5, 5)
+                .timeouts(5000, 5000)
                 .build();
         } catch (URISyntaxException | MalformedURLException e) {
             throw new IllegalArgumentException("Invalid JWKS URL: " + url, e);
@@ -164,10 +167,18 @@ public class DittoApi {
             JWTVerifier verifier = JWT.require(algorithm)
                 .withIssuer(config.authIssuer())
                 .withAudience(config.authAudience())
+                .withClaim(CLAIM_SCOPE, (claim, _) -> {
+                    String claimStr = claim.asString();
+                    if (claimStr == null) {
+                        return false;
+                    }
+                    return SCOPE_PATTERN.matcher(claimStr).find();
+                })
                 .acceptLeeway(10)
                 .build();
                 
-            return verifier.verify(token);
+            DecodedJWT decodedJWT = verifier.verify(token);
+            return decodedJWT;
         } catch (JWTVerificationException | JwkException e) {
             throw new SecurityException("Invalid token: " + e.getMessage(), e);
         }
