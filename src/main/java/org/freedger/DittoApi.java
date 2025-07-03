@@ -25,10 +25,10 @@ import javax.inject.Inject;
 
 import org.freedger.ditto.DittoHttpClient;
 import org.freedger.ditto.DittoLedger;
-import org.freedger.dto.ditto.AuthorizeRequest;
-import org.freedger.dto.ditto.AuthorizeResponse;
-import org.freedger.dto.ditto.Permission;
-import org.freedger.dto.ditto.PermissionRules;
+import org.freedger.openapi.model.AuthorizeRequest;
+import org.freedger.openapi.model.AuthorizeResponse;
+import org.freedger.openapi.model.Permission;
+import org.freedger.openapi.model.PermissionRules;
 
 /**
  * Azure Functions with HTTP Trigger for Ditto APIs.
@@ -93,17 +93,17 @@ public class DittoApi {
         } catch (IllegalArgumentException e) {
             context.getLogger().fine("Invalid request: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                .body(AuthorizeResponse.failure())
+                .body(new AuthorizeResponse().authenticated(false))
                 .build();
         } catch (SecurityException e) {
             context.getLogger().warning("Token validation failed: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
-                .body(AuthorizeResponse.failure())
+                .body(new AuthorizeResponse().authenticated(false))
                 .build();
         } catch (Exception e) {
             context.getLogger().severe("Error processing Ditto permissions request: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(AuthorizeResponse.failure())
+                .body(new AuthorizeResponse().authenticated(false))
                 .build();
         }
     }
@@ -117,9 +117,9 @@ public class DittoApi {
         }
 
         // Validate appID and provider
-        if (!config.dittoAppId().equals(webhookRequest.getAppId())) {
-            context.getLogger().fine("Invalid appID: " + webhookRequest.getAppId());
-            throw new IllegalArgumentException("Invalid appID: " + webhookRequest.getAppId());
+        if (!config.dittoAppId().equals(webhookRequest.getAppID())) {
+            context.getLogger().fine("Invalid appID: " + webhookRequest.getAppID());
+            throw new IllegalArgumentException("Invalid appID: " + webhookRequest.getAppID());
         }
         
         if (!config.dittoProvider().equals(webhookRequest.getProvider())) {
@@ -166,8 +166,10 @@ public class DittoApi {
      */
     private AuthorizeResponse buildAuthResponse(String userId, List<DittoLedger> ledgers) {
         // Create permission rules for read and write
-        PermissionRules readRules = new PermissionRules(false);
-        PermissionRules writeRules = new PermissionRules(false);
+        PermissionRules readRules = new PermissionRules().everything(false);
+        PermissionRules writeRules = new PermissionRules().everything(false);
+        Map<String, List<String>> readQueries = new HashMap<>();
+        Map<String, List<String>> writeQueries = new HashMap<>();
         
         // For each ledger, add read/write permissions for the Accounts collection
         for (DittoLedger ledger : ledgers) {
@@ -178,18 +180,25 @@ public class DittoApi {
             boolean isWriter = ledger.getWriterIds() != null && ledger.getWriterIds().contains(userId);
             
             if (isReader || isWriter) {
-                readRules.addQuery("Ledgers", String.format("_id = '%s'", ledgerId));
-
-                String query = String.format("_id.ledgerId = '%s'", ledgerId);
-                readRules.addQuery("Accounts", query);
+                readQueries.computeIfAbsent("Ledgers", k -> new ArrayList<>())
+                    .add(String.format("_id = '%s'", ledgerId));
+                String childQuery = String.format("_id.ledgerId = '%s'", ledgerId);
+                readQueries.computeIfAbsent("Accounts", k -> new ArrayList<>())
+                    .add(childQuery);
                 
                 if (isWriter) {
-                    writeRules.addQuery("Accounts", query);
+                    writeQueries.computeIfAbsent("Accounts", k -> new ArrayList<>())
+                        .add(childQuery);
                 }
             }
         }
         
-        Permission permissions = new Permission(readRules, writeRules);       
-        return AuthorizeResponse.success(userId, config.dittoTokenExpireSec(), permissions);
+        Permission permissions = new Permission()
+            .read(readRules)
+            .write(writeRules);
+        return new AuthorizeResponse()
+            .authenticated(true)
+            .expirationSeconds(config.dittoTokenExpireSec())
+            .permissions(permissions);
     }
 }
