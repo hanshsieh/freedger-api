@@ -1,0 +1,144 @@
+openapi: 3.0.3
+info:
+  title: Freedger API
+  description: API for Ditto integration with Azure Functions
+  version: 1.0.0
+servers:
+  - url: http://localhost:7071/api
+    description: Local development server
+  - url: https://freedger-api-ejfze9a8bzbfd7au.eastasia-01.azurewebsites.net/api
+    description: Development server
+
+paths:
+  /ditto/authorize:
+    post:
+      tags:
+        - Ditto
+      summary: Authorize Ditto webhook request
+      description: |
+        Validates the Ditto webhook authentication request and returns the user's permissions.
+        This endpoint is called by Ditto to verify user permissions for data access.
+      operationId: dittoAuthorize
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizeRequest'
+      responses:
+        '200':
+          description: Successful authorization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeResponse'
+              examples:
+                errorResponse:
+                  value:
+                    authenticated: false
+        '401':
+          description: Unauthorized - Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeResponse'
+              examples:
+                errorResponse:
+                  value:
+                    authenticated: false
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeResponse'
+              examples:
+                errorResponse:
+                  value:
+                    authenticated: false
+
+components:
+  schemas:
+    AuthorizeRequest:
+      type: object
+      required:
+        - appId
+        - provider
+        - token
+      properties:
+        appID:
+          type: string
+          description: The application ID
+          example: "your-app-id"
+        provider:
+          type: string
+          description: The authentication provider
+          example: "auth0"
+        token:
+          type: string
+          description: JWT token for authentication
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    AuthorizeResponse:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+          description: Whether the authentication was successful
+          example: true
+        userID:
+          type: string
+          description: The authenticated user's ID
+          example: "user-123"
+        expirationSeconds:
+          type: integer
+          description: Token expiration time in seconds
+          example: 3600
+        permissions:
+          $ref: '#/components/schemas/Permission'
+        clientInfo:
+          type: object
+          nullable: true
+          description: Additional client information
+        identityServiceMetadata:
+          type: object
+          nullable: true
+          description: Additional identity service metadata
+
+    Permission:
+      type: object
+      properties:
+        read:
+          $ref: '#/components/schemas/PermissionRules'
+        write:
+          $ref: '#/components/schemas/PermissionRules'
+        remoteQuery:
+          type: boolean
+          description: Whether remote queries are allowed
+          example: false
+
+    PermissionRules:
+      type: object
+      properties:
+        everything:
+          type: boolean
+          description: Whether full access is granted
+          example: false
+        queriesByCollection:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Collection-specific query rules
+          example:
+            Ledgers:
+              - "_id = 'ledger-123'"
+            Accounts:
+              - "_id.ledgerId = 'ledger-123'"

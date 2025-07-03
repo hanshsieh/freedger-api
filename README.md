@@ -2,6 +2,8 @@
 
 This is an Azure Functions project that handles authentication for Freedger applications.
 
+OpenAPI spec: [api.yml](src/main/resources/api.yml).
+
 ## Features
 
 - Validates Auth0 JWT Tokens
