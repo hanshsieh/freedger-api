@@ -1,49 +1,31 @@
 package org.freedger;
 
-import com.azure.core.credential.TokenCredential;
-import com.azure.identity.DefaultAzureCredentialBuilder;
-import com.azure.security.keyvault.secrets.SecretClient;
-import com.azure.security.keyvault.secrets.SecretClientBuilder;
-
 public class EnvConfig implements Config {
+    private final String keyVaultUrl;
     private final String authIssuer;
     private final String authAudience;
     private final String authJwks;
     private final String dittoAppId;
-    private String dittoApiKey;
     private final String dittoApiBaseUrl;
     private final String dittoProviderName;
     private final int dittoTokenExpireSec;
-    private final SecretClient secretClient;
+    private final String dittoApiKeySecretName;
 
     public EnvConfig() {
-        this(new DefaultAzureCredentialBuilder().build());
-    }
-
-    public EnvConfig(TokenCredential credential) {
-        this(createSecretClient(credential));
-    }
-
-    public EnvConfig(SecretClient secretClient) {
-        this.secretClient = secretClient;
+        this.keyVaultUrl = getRequiredEnv("KEY_VAULT_URL");
         this.authIssuer = getRequiredEnv("AUTH_ISSUER");
         this.authAudience = getRequiredEnv("AUTH_AUDIENCE");
         this.authJwks = getRequiredEnv("AUTH_JWKS");
         this.dittoAppId = getRequiredEnv("DITTO_APP_ID");
         this.dittoApiBaseUrl = getRequiredEnv("DITTO_API_BASE_URL");
-        
-        String dittoApiKeyName = getRequiredEnv("DITTO_API_KEY_SECRET_NAME");
-        this.dittoApiKey = this.secretClient.getSecret(dittoApiKeyName).getValue();
+        this.dittoApiKeySecretName = getRequiredEnv("DITTO_API_KEY_SECRET_NAME");
         this.dittoProviderName = getRequiredEnv("DITTO_PROVIDER_NAME");
         this.dittoTokenExpireSec = getRequiredIntEnv("DITTO_TOKEN_EXPIRE_SEC");
     }
 
-    private static SecretClient createSecretClient(TokenCredential credential) {
-        String keyVaultUrl = getRequiredEnv("KEY_VAULT_URL");
-        return new SecretClientBuilder()
-            .vaultUrl(keyVaultUrl)
-            .credential(credential)
-            .buildClient();
+    @Override
+    public String keyVaultUrl() {
+        return this.keyVaultUrl;
     }
 
     @Override
@@ -67,11 +49,6 @@ public class EnvConfig implements Config {
     }
     
     @Override
-    public String dittoApiKey() {
-        return this.dittoApiKey;
-    }
-    
-    @Override
     public String dittoApiBaseUrl() {
         return this.dittoApiBaseUrl;
     }
@@ -84,6 +61,11 @@ public class EnvConfig implements Config {
     @Override
     public int dittoTokenExpireSec() {
         return this.dittoTokenExpireSec;
+    }
+
+    @Override
+    public String dittoApiKeySecretName() {
+        return this.dittoApiKeySecretName;
     }
 
     private static String getRequiredEnv(String name) {

@@ -1,6 +1,14 @@
 package org.freedger;
 
 public interface Config {
+
+    /**
+     * The Key Vault URL.
+     * 
+     * @return The Key Vault URL
+     */
+    String keyVaultUrl();
+
     /**
      * The issuer of the authentication provider.
      * E.g. https://yourtenant.jp.auth0.com
@@ -33,13 +41,6 @@ public interface Config {
     String dittoAppId();
 
     /**
-     * The Ditto API Key for authentication.
-     * 
-     * @return The Ditto API Key
-     */
-    String dittoApiKey();
-
-    /**
      * The Ditto API Base URL for authentication.
      * 
      * @return The Ditto API Base URL
@@ -59,4 +60,11 @@ public interface Config {
      * @return The expiration time of the token in seconds
      */
     int dittoTokenExpireSec();
+
+    /**
+     * The name of the secret in Key Vault that contains the Ditto API Key.
+     * 
+     * @return The name of the secret in Key Vault
+     */
+    String dittoApiKeySecretName();
 }

@@ -12,10 +12,11 @@ This is an Azure Functions project that handles authentication for Freedger appl
 
 ### Prerequisites
 
-- JDK 23 or later
+- JDK 21 or later
 - Maven 3.6 or later
 - [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
 - [Azure CLI (for deployment)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- Login to `az` CLI with an account that can read the Key Vault secrets. See `KEY_VAULT_URL` in `local.settings.example.json`.
 
 ### Local settings
 
@@ -34,6 +35,13 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
    mvn clean package
    mvn azure-functions:run
    ```
+
+   <details>
+   <summary>IDE reports "XXX cannot be resolved to a type" in `target/generated-sources`</summary>
+   This project use Dagger for dependency injection. The generated code is stored in `target/generated-sources`.  
+   IDE may incorrectly report errors in generated code even though the project can build successfully. 
+   You can ignore these errors.
+   </details>
 
 3. Test the API:
    (Unix/Bash)
@@ -104,49 +112,5 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
 
 ## Deployment to Azure
 
-1. Log in to Azure:
-   ```bash
-   az login
-   ```
-
-1. Create a resource group (if not exists):
-   ```bash
-   az group create --name freedger-api --location eastasia
-   ```
-
-1. Create Storage Account
-   ```bash
-   az storage account create --name <storage_name> --location eastasia --resource-group freedger-api --sku Standard_LRS
-   ```
-
-1. Create Function App:
-   ```bash
-   az functionapp create --resource-group freedger-api --consumption-plan-location eastasia \
-     --runtime java --runtime-version 23 --functions-version 4 \
-     --name <app_name> --storage-account <storage_name>
-   ```
-
-1. Configure environment variables:
-   ```bash
-   az functionapp config appsettings set --name <app_name> --resource-group freedger-api \
-     --settings "AUTH0_DOMAIN=your-tenant.auth0.com"
-   az functionapp config appsettings set --name <app_name> --resource-group freedger-api \
-     --settings "AUTH0_AUDIENCE=your-audience"
-   az functionapp config appsettings set --name <app_name> --resource-group freedger-api \
-     --settings "DITTO_APP_ID=com.example.freedger"
-   az functionapp config appsettings set --name <app_name> --resource-group freedger-api \
-     --settings "DITTO_TOKEN_SECRET=your-very-secret-key"
-   ```
-
-1. Deploy the code:
-   ```bash
-   mvn clean package
-   mvn azure-functions:deploy
-   ```
-
-## Security Considerations
-
-1. Keep `DITTO_TOKEN_SECRET` confidential and never commit it to version control
-2. Enable HTTPS in production
-3. Consider implementing rate limiting
-4. Rotate secrets periodically
+When a new commit is pushed to the `main` branch, Github Actions will automatically deploy the code to Azure.
+See `.github\workflows\main_freedger-api.yml` for the workflow definition.

@@ -20,7 +20,8 @@ import java.net.URISyntaxException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
+
+import javax.inject.Inject;
 
 import org.freedger.ditto.DittoHttpClient;
 import org.freedger.ditto.DittoLedger;
@@ -38,17 +39,8 @@ public class DittoApi {
     private final Config config;
     private final ScopePredicate scopePredicate;
 
-    public DittoApi() throws URISyntaxException, MalformedURLException {
-        this(new EnvConfig());
-    }
-
-    protected DittoApi(Config config) throws URISyntaxException, MalformedURLException {
-        this(config, 
-            createJwkProvider(config.authJwks()), 
-            new DittoHttpClient(config.dittoApiBaseUrl(), config.dittoApiKey()));
-    }
-
-    protected DittoApi(
+    @Inject
+    public DittoApi(
         Config config, 
         JwkProvider jwkProvider,
         DittoHttpClient dittoClient) {
@@ -56,17 +48,6 @@ public class DittoApi {
         this.authProviderJwks = jwkProvider;
         this.dittoClient = dittoClient;
         this.scopePredicate = new ScopePredicate(new String[] { Scope.READ_DITTO_AUTH.getValue() });
-    }
-
-    private static JwkProvider createJwkProvider(String url) {
-        try {
-            return new JwkProviderBuilder(new URI(url).toURL())
-                .cached(10, 24, TimeUnit.HOURS)
-                .timeouts(5000, 5000)
-                .build();
-        } catch (URISyntaxException | MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid JWKS URL: " + url, e);
-        }
     }
 
     /**
