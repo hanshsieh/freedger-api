@@ -3,16 +3,17 @@
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "java",
 
+    "AZURE_CLIENT_ID": "fc2ea029-4e30-44e6-8a91-ee77b0d1b222",
     "KEY_VAULT_URL": "https://freedger-dev.vault.azure.net/",
     
     "AUTH_ISSUER": "https://freedger-dev.jp.auth0.com/",
     "AUTH_AUDIENCE": "https://api.freedger.org/",
     "AUTH_JWKS": "https://freedger-dev.jp.auth0.com/.well-known/jwks.json",
 
-    "DITTO_APP_ID": "bfaf1c4d-ee83-4215-9022-ac9c129364ea",
-    "DITTO_API_KEY_SECRET_NAME": "DITTO_API_KEY",
-    "DITTO_API_BASE_URL": "https://bfaf1c4d-ee83-4215-9022-ac9c129364ea.cloud.ditto.live/api/v5",
-    "DITTO_PROVIDER_NAME": "freedger_api",
+    "DITTO_APP_ID": "46190b14-5d64-477c-b5b6-ba2d15e998be",
+    "DITTO_API_KEY_SECRET_NAME": "DITTO-API-KEY",
+    "DITTO_API_BASE_URL": "https://i83inp.cloud.dittolive.app/46190b14-5d64-477c-b5b6-ba2d15e998be/api/v5/",
+    "DITTO_PROVIDER_NAME": "freedger-api",
     "DITTO_TOKEN_EXPIRE_SEC": "86400"
   },
   "Host": {

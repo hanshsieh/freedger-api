@@ -1,5 +1,6 @@
 package org.freedger;
 
+import com.azure.core.credential.TokenCredential;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.SecretClientBuilder;
@@ -16,7 +17,11 @@ public class EnvConfig implements Config {
     private final SecretClient secretClient;
 
     public EnvConfig() {
-        this(createSecretClient());
+        this(new DefaultAzureCredentialBuilder().build());
+    }
+
+    public EnvConfig(TokenCredential credential) {
+        this(createSecretClient(credential));
     }
 
     public EnvConfig(SecretClient secretClient) {
@@ -33,11 +38,11 @@ public class EnvConfig implements Config {
         this.dittoTokenExpireSec = getRequiredIntEnv("DITTO_TOKEN_EXPIRE_SEC");
     }
 
-    private static SecretClient createSecretClient() {
+    private static SecretClient createSecretClient(TokenCredential credential) {
         String keyVaultUrl = getRequiredEnv("KEY_VAULT_URL");
         return new SecretClientBuilder()
             .vaultUrl(keyVaultUrl)
-            .credential(new DefaultAzureCredentialBuilder().build())
+            .credential(credential)
             .buildClient();
     }
 
