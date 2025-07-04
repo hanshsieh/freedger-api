@@ -68,7 +68,7 @@ components:
     AuthorizeRequest:
       type: object
       required:
-        - appId
+        - appID
         - provider
         - token
       properties:

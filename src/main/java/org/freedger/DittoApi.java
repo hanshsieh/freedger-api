@@ -198,6 +198,7 @@ public class DittoApi {
             .write(writeRules);
         return new AuthorizeResponse()
             .authenticated(true)
+            .userID(userId)
             .expirationSeconds(config.dittoTokenExpireSec())
             .permissions(permissions);
     }
