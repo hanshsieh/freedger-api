@@ -2,7 +2,6 @@ package org.freedger;
 
 import com.auth0.jwk.Jwk;
 import com.auth0.jwk.JwkProvider;
-import com.auth0.jwk.JwkProviderBuilder;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -14,12 +13,9 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -34,6 +30,59 @@ import org.freedger.openapi.model.PermissionRules;
  * Azure Functions with HTTP Trigger for Ditto APIs.
  */
 public class DittoApi {
+
+    private static class CollectionQuery {
+        public final String name;
+
+        public CollectionQuery(String name) {
+            this.name = name;
+        }
+
+        public Optional<String> forReader(String ledgerId) {
+            return Optional.of(String.format("_id.ledgerId = '%s'", ledgerId));
+        }
+        public Optional<String> forWriter(String ledgerId) {
+            return Optional.of(String.format("_id.ledgerId = '%s'", ledgerId));
+        }
+    }
+
+    private static final List<CollectionQuery> collections = List.of(
+        new CollectionQuery("AccountGroups"),
+        new CollectionQuery("Accounts"),
+        new CollectionQuery("Categories"),
+        new CollectionQuery("CategoryGroups"),
+        // For custom currencies
+        new CollectionQuery("Currencies"),
+        // For system defined currencies
+        new CollectionQuery("Currencies") {
+            @Override
+            public Optional<String> forReader(String ledgerId) {
+                return Optional.of("_id.ledgerId IS MISSING");
+            }
+            @Override
+            public Optional<String> forWriter(String ledgerId) {
+                return Optional.empty();
+            }
+        },
+        new CollectionQuery("JournalEntries"),
+        new CollectionQuery("Ledgers") {
+            @Override
+            public Optional<String> forReader(String ledgerId) {
+                return Optional.of(String.format("_id = '%s'", ledgerId));
+            }
+            @Override
+            public Optional<String> forWriter(String ledgerId) {
+                return Optional.empty();
+            }
+        },
+        new CollectionQuery("Platforms"),
+        new CollectionQuery("Projects"),
+        new CollectionQuery("Symbols"),
+        new CollectionQuery("Tags"),
+        new CollectionQuery("Transactions"),
+        new CollectionQuery("Users")
+    );
+
     private final DittoHttpClient dittoClient;
     private final JwkProvider authProviderJwks;
     private final Config config;
@@ -165,35 +214,47 @@ public class DittoApi {
      * @return DittoWebhookResponse with the appropriate permissions
      */
     private AuthorizeResponse buildAuthResponse(String userId, List<DittoLedger> ledgers) {
-        // Create permission rules for read and write
-        PermissionRules readRules = new PermissionRules().everything(false);
-        PermissionRules writeRules = new PermissionRules().everything(false);
-        Map<String, List<String>> readQueries = new HashMap<>();
-        Map<String, List<String>> writeQueries = new HashMap<>();
-        
-        // For each ledger, add read/write permissions for the Accounts collection
-        for (DittoLedger ledger : ledgers) {
-            String ledgerId = ledger.getId();
-            
-            // Check if user is a reader or writer
-            boolean isReader = ledger.getReaderIds() != null && ledger.getReaderIds().contains(userId);
-            boolean isWriter = ledger.getWriterIds() != null && ledger.getWriterIds().contains(userId);
-            
-            if (isReader || isWriter) {
-                readQueries.computeIfAbsent("Ledgers", k -> new ArrayList<>())
-                    .add(String.format("_id = '%s'", ledgerId));
-                String childQuery = String.format("_id.ledgerId = '%s'", ledgerId);
-                readQueries.computeIfAbsent("Accounts", k -> new ArrayList<>())
-                    .add(childQuery);
+        Map<String, Set<String>> readQueries = new HashMap<>();
+        Map<String, Set<String>> writeQueries = new HashMap<>();
+
+        for (var collection : collections) {
+            final var collectionReads = readQueries.computeIfAbsent(collection.name, k -> new HashSet<>());
+            final var collectionWrites = writeQueries.computeIfAbsent(collection.name, k -> new HashSet<>());
+
+            for (DittoLedger ledger : ledgers) {
+                String ledgerId = ledger.getId();
                 
+                // Check if user is a reader or writer
+                boolean isWriter = ledger.getWriterIds() != null && ledger.getWriterIds().contains(userId);
+                boolean isReader = isWriter || ledger.getReaderIds() != null && ledger.getReaderIds().contains(userId);
+
+                if (isReader) {
+                    collection.forReader(ledgerId).ifPresent(collectionReads::add);
+                }
+
                 if (isWriter) {
-                    writeQueries.computeIfAbsent("Accounts", k -> new ArrayList<>())
-                        .add(childQuery);
+                    collection.forWriter(ledgerId).ifPresent(collectionWrites::add);
                 }
             }
         }
-        
-        Permission permissions = new Permission()
+
+        // Create permission rules for read and write
+        var readRules = new PermissionRules()
+            .everything(false)
+            .queriesByCollection(readQueries.entrySet().stream()
+                .filter(e -> !e.getValue().isEmpty())
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey, 
+                    e -> e.getValue().stream().sorted().collect(Collectors.toList()))));
+        var writeRules = new PermissionRules()
+            .everything(false)
+            .queriesByCollection(writeQueries.entrySet().stream()
+                .filter(e -> !e.getValue().isEmpty())
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey, 
+                    e -> e.getValue().stream().sorted().collect(Collectors.toList()))));
+
+        var permissions = new Permission()
             .read(readRules)
             .write(writeRules);
         return new AuthorizeResponse()
