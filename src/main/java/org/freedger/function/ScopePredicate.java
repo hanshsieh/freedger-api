@@ -1,4 +1,4 @@
-package org.freedger;
+package org.freedger.function;
 
 import java.util.Arrays;
 import java.util.Collections;

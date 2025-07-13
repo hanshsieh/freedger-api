@@ -1,4 +1,4 @@
-package org.freedger;
+package org.freedger.config;
 
 public interface Config {
 

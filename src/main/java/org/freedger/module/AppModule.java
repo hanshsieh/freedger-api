@@ -7,8 +7,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
 
-import org.freedger.Config;
-import org.freedger.EnvConfig;
+import org.freedger.config.Config;
+import org.freedger.config.EnvConfig;
 import org.freedger.ditto.DittoHttpClient;
 
 import com.auth0.jwk.JwkProvider;

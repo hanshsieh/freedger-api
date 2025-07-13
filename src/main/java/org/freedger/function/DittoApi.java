@@ -1,4 +1,4 @@
-package org.freedger;
+package org.freedger.function;
 
 import com.auth0.jwk.Jwk;
 import com.auth0.jwk.JwkProvider;
@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.freedger.config.Config;
 import org.freedger.ditto.DittoHttpClient;
 import org.freedger.ditto.DittoLedger;
 import org.freedger.openapi.model.AuthorizeRequest;

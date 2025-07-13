@@ -1,7 +1,7 @@
 package org.freedger.dihook;
 
-import org.freedger.DittoApi;
 import org.freedger.component.DaggerAppComponent;
+import org.freedger.function.DittoApi;
 
 import com.microsoft.azure.functions.spi.inject.FunctionInstanceInjector;
 

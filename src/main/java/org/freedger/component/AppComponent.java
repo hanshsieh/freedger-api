@@ -2,7 +2,7 @@ package org.freedger.component;
 
 import javax.inject.Singleton;
 
-import org.freedger.DittoApi;
+import org.freedger.function.DittoApi;
 import org.freedger.module.AppModule;
 
 import dagger.Component;

@@ -1,4 +1,4 @@
-package org.freedger;
+package org.freedger.config;
 
 public class EnvConfig implements Config {
     private final String keyVaultUrl;
