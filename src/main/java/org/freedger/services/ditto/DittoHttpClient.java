@@ -1,4 +1,4 @@
-package org.freedger.ditto;
+package org.freedger.services.ditto;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,10 +14,10 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.Timeout;
-import org.freedger.ditto.models.Ledger;
-import org.freedger.ditto.models.QueryRequest;
-import org.freedger.ditto.models.LedgerConfig;
-import org.freedger.ditto.models.QueryResponse;
+import org.freedger.services.ditto.models.Ledger;
+import org.freedger.services.ditto.models.LedgerConfig;
+import org.freedger.services.ditto.models.QueryRequest;
+import org.freedger.services.ditto.models.QueryResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

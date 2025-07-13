@@ -22,12 +22,12 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.freedger.config.Config;
-import org.freedger.ditto.DittoHttpClient;
-import org.freedger.ditto.models.Ledger;
 import org.freedger.openapi.model.AuthorizeRequest;
 import org.freedger.openapi.model.AuthorizeResponse;
 import org.freedger.openapi.model.Permission;
 import org.freedger.openapi.model.PermissionRules;
+import org.freedger.services.ditto.DittoHttpClient;
+import org.freedger.services.ditto.models.Ledger;
 
 /**
  * Azure Functions with HTTP Trigger for Ditto APIs.

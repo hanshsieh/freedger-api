@@ -1,4 +1,4 @@
-package org.freedger.ditto.models;
+package org.freedger.services.ditto.models;
 
 import jakarta.validation.constraints.NotNull;
 

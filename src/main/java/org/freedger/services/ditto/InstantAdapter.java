@@ -1,4 +1,4 @@
-package org.freedger.ditto;
+package org.freedger.services.ditto;
 
 import com.google.gson.*;
 import java.lang.reflect.Type;
