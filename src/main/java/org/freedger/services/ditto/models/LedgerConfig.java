@@ -1,11 +1,10 @@
 package org.freedger.services.ditto.models;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotNull;
 
 public class LedgerConfig {
-    @NotNull
-    private String id;
-
     @NotNull
     private String name;
 
@@ -16,15 +15,13 @@ public class LedgerConfig {
     private String currencyId;
 
     @NotNull
+    private List<String> writerIds;
+
+    private List<String> readerIds;
+
     private String externalAccountName;
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
+    private String externalAccountId;
 
     public String getName() {
         return name;
@@ -50,11 +47,35 @@ public class LedgerConfig {
         this.currencyId = currencyId;
     }
 
+    public List<String> getWriterIds() {
+        return writerIds;
+    }
+
+    public void setWriterIds(List<String> writerIds) {
+        this.writerIds = writerIds;
+    }
+
+    public List<String> getReaderIds() {
+        return readerIds;
+    }
+
+    public void setReaderIds(List<String> readerIds) {
+        this.readerIds = readerIds;
+    }
+
     public String getExternalAccountName() {
         return externalAccountName;
     }
 
     public void setExternalAccountName(String externalAccountName) {
         this.externalAccountName = externalAccountName;
+    }
+
+    public String getExternalAccountId() {
+        return externalAccountId;
+    }
+
+    public void setExternalAccountId(String externalAccountId) {
+        this.externalAccountId = externalAccountId;
     }
 }

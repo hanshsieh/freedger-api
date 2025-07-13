@@ -4,6 +4,8 @@ import java.util.Map;
 import java.time.Instant;
 import com.google.gson.annotations.SerializedName;
 
+import jakarta.validation.constraints.NotNull;
+
 public class Account {
     public static final int SCHEMA_VERSION = 1;
     
@@ -11,33 +13,40 @@ public class Account {
     private int schemaVersion = SCHEMA_VERSION;
 
     @SerializedName("_id")
+    @NotNull
     private String id;
 
     @SerializedName("createdAt")
+    @NotNull
     private Instant createdAt;
 
     @SerializedName("updatedAt")
+    @NotNull
     private Instant updatedAt;
 
     @SerializedName("type")
+    @NotNull
     private String type;
 
     @SerializedName("name")
+    @NotNull
     private String name;
 
     @SerializedName("isArchived")
-    private boolean isArchived;
+    private boolean archived;
 
     @SerializedName("groupId")
     private String groupId;
 
     @SerializedName("currencyId")
+    @NotNull
     private String currencyId;
 
     @SerializedName("isAutoClear")
-    private boolean isAutoClear;
+    private boolean autoClear;
 
     @SerializedName("channels")
+    @NotNull
     private Map<String, AccountChannel> channels;
 
     public int getSchemaVersion() {
@@ -89,11 +98,11 @@ public class Account {
     }
 
     public boolean isArchived() {
-        return isArchived;
+        return archived;
     }
 
-    public void setArchived(boolean isArchived) {
-        this.isArchived = isArchived;
+    public void setArchived(boolean archived) {
+        this.archived = archived;
     }
 
     public String getGroupId() {
@@ -113,11 +122,11 @@ public class Account {
     }
 
     public boolean isAutoClear() {
-        return isAutoClear;
+        return autoClear;
     }
 
     public void setAutoClear(boolean isAutoClear) {
-        this.isAutoClear = isAutoClear;
+        this.autoClear = isAutoClear;
     }
 
     public Map<String, AccountChannel> getChannels() {

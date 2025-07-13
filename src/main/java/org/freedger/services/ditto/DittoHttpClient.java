@@ -15,6 +15,8 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.Timeout;
+import org.freedger.services.ditto.models.Account;
+import org.freedger.services.ditto.models.AccountConfig;
 import org.freedger.services.ditto.models.Ledger;
 import org.freedger.services.ditto.models.LedgerConfig;
 import org.freedger.services.ditto.models.QueryRequest;
@@ -24,8 +26,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Client for interacting with Ditto's HTTP API.
@@ -88,7 +92,7 @@ public class DittoHttpClient {
         }
     }
 
-    public void createLedger(LedgerConfig config) throws IOException {
+    public Ledger createLedger(LedgerConfig config) throws IOException {
         // TODO Create account, and then ledger. Use the DQL API because legacy /store/write request doesn't support
         // MAP field, which is needed for channels.
         try {
@@ -96,11 +100,46 @@ public class DittoHttpClient {
             final String query = "INSERT INTO Ledgers VALUES (:ledger)";
             
             // Create JSON request body
-            JsonElement jsonElement = gson.toJsonTree(config);
-            QueryRequest requestBody = new QueryRequest(query, Map.of("ledger", jsonElement));
+            final Ledger ledger = new Ledger();
+            ledger.setId(generateId());
+            ledger.setCreatedAt(Instant.now());
+            ledger.setUpdatedAt(Instant.now());
+            ledger.setName(config.getName());
+            ledger.setReaderIds(config.getReaderIds());
+            ledger.setWriterIds(config.getWriterIds());
+            ledger.setNote(config.getNote());
+            ledger.setExternalAccountId(config.getExternalAccountId());
+            ledger.setCurrencyId(config.getCurrencyId());
+            QueryRequest requestBody = new QueryRequest(query, Map.of("ledger", ledger));
             sendQueryRequest(requestBody, Ledger.class, String.class);
+            return ledger;
         } catch (Exception e) {
             throw new IOException("Failed to create ledger: " + e.getMessage(), e);
+        }
+    }
+
+    public Account createAccount(AccountConfig config) throws IOException {
+        try {
+            // Build the DQL query with parameters
+            final String query = "INSERT INTO Accounts VALUES (:account)";
+            
+            // Create JSON request body
+            final Account account = new Account();
+            account.setId(generateId());
+            account.setCreatedAt(Instant.now());
+            account.setUpdatedAt(Instant.now());
+            account.setName(config.getName());
+            account.setType(config.getType());
+            account.setArchived(config.isArchived());
+            account.setGroupId(config.getGroupId());
+            account.setCurrencyId(config.getCurrencyId());
+            account.setAutoClear(config.isAutoClear());
+            account.setChannels(config.getChannels());
+            QueryRequest requestBody = new QueryRequest(query, Map.of("account", account));
+            sendQueryRequest(requestBody, Account.class, String.class);
+            return account;
+        } catch (Exception e) {
+            throw new IOException("Failed to create account: " + e.getMessage(), e);
         }
     }
 
@@ -143,5 +182,9 @@ public class DittoHttpClient {
         } catch (Exception e) {
             throw new IOException("Failed to send execute request: " + e.getMessage(), e);
         }
+    }
+
+    private String generateId() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 }

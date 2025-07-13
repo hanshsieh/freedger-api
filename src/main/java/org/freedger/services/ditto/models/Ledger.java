@@ -1,6 +1,9 @@
 package org.freedger.services.ditto.models;
 
 import com.google.gson.annotations.SerializedName;
+
+import jakarta.validation.constraints.NotNull;
+
 import java.util.List;
 import java.time.Instant;
 
@@ -11,33 +14,42 @@ public class Ledger {
     public static final int SCHEMA_VERSION = 1;
     
     @SerializedName("_id")
+    @NotNull
     private String id;
     
     @SerializedName("schemaVersion")
     private int schemaVersion = SCHEMA_VERSION;
 
     @SerializedName("createdAt")
+    @NotNull
     private Instant createdAt;
 
     @SerializedName("updatedAt")
+    @NotNull
     private Instant updatedAt;
 
     @SerializedName("name")
+    @NotNull
     private String name;
     
     @SerializedName("readerIds")
+    @NotNull
     private List<String> readerIds;
     
     @SerializedName("writerIds")
+    @NotNull
     private List<String> writerIds;
 
     @SerializedName("note")
+    @NotNull
     private String note;
 
     @SerializedName("externalAccountId")
+    @NotNull
     private String externalAccountId;
 
     @SerializedName("currencyId")
+    @NotNull
     private String currencyId;
 
     public int getSchemaVersion() {
