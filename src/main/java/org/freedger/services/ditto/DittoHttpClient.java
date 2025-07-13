@@ -8,6 +8,7 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -72,7 +73,7 @@ public class DittoHttpClient {
             // Build the DQL query with parameters
             String query = String.format(
                 "SELECT * FROM %s WHERE array_contains(readerIds, :userId) OR array_contains(writerIds, :userId)",
-                Ledger.COLLECTION
+                Collection.LEDGERS.getName()
             );
             
             // Create JSON request body
@@ -88,6 +89,8 @@ public class DittoHttpClient {
     }
 
     public void createLedger(LedgerConfig config) throws IOException {
+        // TODO Create account, and then ledger. Use the DQL API because legacy /store/write request doesn't support
+        // MAP field, which is needed for channels.
         try {
             // Build the DQL query with parameters
             final String query = "INSERT INTO Ledgers VALUES (:ledger)";
@@ -112,14 +115,7 @@ public class DittoHttpClient {
             httpPost.setEntity(new StringEntity(jsonRequestBody, ContentType.APPLICATION_JSON));
             
             // Execute the request
-            String responseBody = httpClient.execute(httpPost, response -> {
-                int statusCode = response.getCode();
-                if (statusCode >= 200 && statusCode < 300) {
-                    return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-                } else {
-                    throw new IOException("Request failed with status code " + statusCode);
-                }
-            });
+            String responseBody = sendRequest(httpPost);
 
             // Parse and return response
             QueryResponse<Item, ItemId> queryResponse = gson.fromJson(
@@ -127,6 +123,23 @@ public class DittoHttpClient {
                 TypeToken.getParameterized(QueryResponse.class, itemClass, itemIdClass).getType()
             );
             return queryResponse;
+        } catch (Exception e) {
+            throw new IOException("Failed to send execute request: " + e.getMessage(), e);
+        }
+    }
+
+    private String sendRequest(ClassicHttpRequest request) throws IOException {
+        try {
+            // Execute the request
+            String responseBody = httpClient.execute(request, response -> {
+                int statusCode = response.getCode();
+                if (statusCode >= 200 && statusCode < 300) {
+                    return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                } else {
+                    throw new IOException("Request failed with status code " + statusCode);
+                }
+            });
+            return responseBody;
         } catch (Exception e) {
             throw new IOException("Failed to send execute request: " + e.getMessage(), e);
         }

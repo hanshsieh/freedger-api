@@ -16,7 +16,7 @@ public class LedgerConfig {
     private String currencyId;
 
     @NotNull
-    private String externalAccountId;
+    private String externalAccountName;
 
     public String getId() {
         return id;
@@ -50,11 +50,11 @@ public class LedgerConfig {
         this.currencyId = currencyId;
     }
 
-    public String getExternalAccountId() {
-        return externalAccountId;
+    public String getExternalAccountName() {
+        return externalAccountName;
     }
 
-    public void setExternalAccountId(String externalAccountId) {
-        this.externalAccountId = externalAccountId;
+    public void setExternalAccountName(String externalAccountName) {
+        this.externalAccountName = externalAccountName;
     }
 }
