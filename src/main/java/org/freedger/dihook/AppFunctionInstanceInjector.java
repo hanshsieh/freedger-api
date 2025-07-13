@@ -2,6 +2,7 @@ package org.freedger.dihook;
 
 import org.freedger.component.DaggerAppComponent;
 import org.freedger.function.DittoApi;
+import org.freedger.function.LedgersApi;
 
 import com.microsoft.azure.functions.spi.inject.FunctionInstanceInjector;
 
@@ -15,6 +16,9 @@ public class AppFunctionInstanceInjector implements FunctionInstanceInjector {
     public <T> T getInstance(Class<T> aClass) throws Exception {
         if (aClass == DittoApi.class) {
             return (T) DaggerAppComponent.create().buildDittoApi();
+        }
+        if (aClass == LedgersApi.class) {
+            return (T) DaggerAppComponent.create().buildLedgersApi();
         }
         throw new IllegalArgumentException("Unsupported class: " + aClass.getName());
     }

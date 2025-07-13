@@ -10,6 +10,7 @@ import javax.inject.Singleton;
 import org.freedger.config.Config;
 import org.freedger.config.EnvConfig;
 import org.freedger.ditto.DittoHttpClient;
+import org.freedger.function.AppValidator;
 
 import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.JwkProviderBuilder;
@@ -63,5 +64,11 @@ public class AppModule {
             .vaultUrl(keyVaultUrl)
             .credential(credential)
             .buildClient();
+    }
+
+    @Provides
+    @Singleton
+    public AppValidator provideAppValidator() {
+        return new AppValidator();
     }
 }

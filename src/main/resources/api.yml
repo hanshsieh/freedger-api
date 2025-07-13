@@ -104,6 +104,22 @@ paths:
 
 components:
   schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+          description: The error code
+        message:
+          type: string
+          description: The error message
+          example: "Invalid scope"
+    ErrorCode:
+      type: string
+      enum:
+        - invalid_request
+        - unauthorized
+        - server_error
     LedgerConfig:
       type: object
       description: |
@@ -190,17 +206,6 @@ components:
             The ID of the default external account. 
             The external account will be used as the default external account when creating a transaction.
           example: "0123456789"
-    ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-          description: The error code
-          example: "invalid_scope"
-        message:
-          type: string
-          description: The error message
-          example: "Invalid scope"
     AuthorizeRequest:
       type: object
       required:

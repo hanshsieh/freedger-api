@@ -13,6 +13,8 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 
+import jakarta.validation.ValidationException;
+
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -84,6 +86,7 @@ public class DittoApi {
         new CollectionQuery("Users")
     );
 
+    private final AppValidator validator;
     private final DittoHttpClient dittoClient;
     private final JwkProvider authProviderJwks;
     private final Config config;
@@ -91,9 +94,11 @@ public class DittoApi {
 
     @Inject
     public DittoApi(
+        AppValidator validator,
         Config config, 
         JwkProvider jwkProvider,
         DittoHttpClient dittoClient) {
+        this.validator = validator;
         this.config = config;
         this.authProviderJwks = jwkProvider;
         this.dittoClient = dittoClient;
@@ -140,7 +145,7 @@ public class DittoApi {
             return request.createResponseBuilder(HttpStatus.OK)
                 .body(response)
                 .build();
-        } catch (IllegalArgumentException e) {
+        } catch (ValidationException e) {
             context.getLogger().fine("Invalid request: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                 .body(new AuthorizeResponse().authenticated(false))
@@ -160,21 +165,24 @@ public class DittoApi {
 
     private void validateRequest(ExecutionContext context, HttpRequestMessage<AuthorizeRequest> request) {
         AuthorizeRequest webhookRequest = request.getBody();
+
+        validator.validate(webhookRequest);
+
         // Validate request
         if (webhookRequest == null || webhookRequest.getToken() == null) {
             context.getLogger().fine("Invalid request: token is required");
-            throw new IllegalArgumentException("Invalid request: token is required");
+            throw new ValidationException("Invalid request: token is required");
         }
 
         // Validate appID and provider
         if (!config.dittoAppId().equals(webhookRequest.getAppID())) {
             context.getLogger().fine("Invalid appID: " + webhookRequest.getAppID());
-            throw new IllegalArgumentException("Invalid appID: " + webhookRequest.getAppID());
+            throw new ValidationException("Invalid appID: " + webhookRequest.getAppID());
         }
         
         if (!config.dittoProvider().equals(webhookRequest.getProvider())) {
             context.getLogger().fine("Invalid provider: " + webhookRequest.getProvider());
-            throw new IllegalArgumentException("Invalid provider: " + webhookRequest.getProvider());
+            throw new ValidationException("Invalid provider: " + webhookRequest.getProvider());
         }
     }
 
