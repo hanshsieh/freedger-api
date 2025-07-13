@@ -26,17 +26,21 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
 
 ### Running the Local Development Server
 
-1. Set up environment variables:
+1. Set up environment variables
    ```bash
    cp local.settings.example.json local.settings.json
    # Edit local.settings.json with your configuration
    ```
 
-2. Start the local development server:
+2. Start the local development server
+  From command line:
    ```bash
    mvn clean package
    mvn azure-functions:run
    ```
+  From VS Code:
+  - Go to "Run and Debug"
+  - Run with the "Run locally" launch configuration
 
    <details>
    <summary>IDE reports "XXX cannot be resolved to a type" in `target/generated-sources`</summary>
@@ -60,57 +64,6 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
      -Headers @{ "Content-Type" = "application/json" } `
      -Body '{"appID": "bfaf1c4d-ee83-4215-9022-ac9c129364ea", "provider": "freedger_api", "token": "{TOKEN}"}'
    ```
-## API Endpoints
-
-### Get Ditto Permissions
-
-- **URL**: `/api/ditto/authorize`
-- **Method**: `POST`
-- **Headers**: 
-  - `Content-Type: application/json`
-- **Request Body**:
-  ```json
-  {
-    "appID": "{APP_ID}",
-    "provider": "{PROVIDER}",
-    "token": "{JWT_TOKEN}"
-  }
-  ```
-- **Success Response (200 OK)**:
-  ```json
-  {
-    "authenticated": true,
-    "userID": "auth0|685e35fe029584349202c39d",
-    "expirationSeconds": 86400,
-    "permissions": {
-      "read": {
-        "everything": false,
-        "queriesByCollection": {
-          "Accounts": [
-            "_id.ledgerId = 'f343ccac1ffe40f48dd0bca175076a62'"
-          ],
-          "Ledgers": [
-            "_id = 'f343ccac1ffe40f48dd0bca175076a62'"
-          ]
-        }
-      },
-      "write": {
-        "everything": false,
-        "queriesByCollection": {
-          "Accounts": [
-            "_id.ledgerId = 'f343ccac1ffe40f48dd0bca175076a62'"
-          ]
-        }
-      }
-    }
-  }
-  ```
-- **Error Response (4xx/5xx)**:
-  ```json
-  {
-    "authenticated": false
-  }
-  ```
 
 ## Deployment to Azure
 

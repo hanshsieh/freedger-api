@@ -7,7 +7,6 @@ import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.microsoft.azure.functions.*;
 
-import org.freedger.dto.TokenExchangeRequest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
@@ -50,12 +49,6 @@ class DittoApiTest {
     private JWTCreator.Builder jwtBuilder;
 
     @Mock
-    private HttpRequestMessage<TokenExchangeRequest> tokenExchangeRequestMsg;
-
-    @Mock
-    private TokenExchangeRequest tokenExchangeRequest;
-
-    @Mock
     private HttpResponseMessage response;
 
     private Map<String, String> requestHeaders;
@@ -80,14 +73,6 @@ class DittoApiTest {
 
         lenient().when(jwkProvider.get(anyString())).thenReturn(jwk);
         lenient().when(jwk.getPublicKey()).thenReturn(authProviderPublicKey);
-
-        // Mock response builder
-        lenient().when(tokenExchangeRequestMsg.createResponseBuilder(any()))
-            .thenAnswer(invocation -> new HttpResponseMessageMock.Builder().status(invocation.getArgument(0)));
-        
-        tokenExchangeRequest = new TokenExchangeRequest();
-        lenient().when(tokenExchangeRequestMsg.getBody()).thenReturn(tokenExchangeRequest);
-
         lenient().when(context.getLogger()).thenReturn(logger);
     }
 
