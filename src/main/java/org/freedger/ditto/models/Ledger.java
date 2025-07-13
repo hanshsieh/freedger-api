@@ -1,4 +1,4 @@
-package org.freedger.ditto;
+package org.freedger.ditto.models;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Represents a Ledger document from Ditto.
  */
-public class DittoLedger {
+public class Ledger {
     public static final String COLLECTION = "Ledgers";
 
     @SerializedName("_id")
@@ -17,6 +17,15 @@ public class DittoLedger {
     
     @SerializedName("writerIds")
     private List<String> writerIds;
+
+    @SerializedName("note")
+    private String note;
+
+    @SerializedName("currencyId")
+    private String currencyId;
+
+    @SerializedName("externalAccountId")
+    private String externalAccountId;
 
     // Getters and Setters
     public String getId() {
@@ -41,5 +50,29 @@ public class DittoLedger {
 
     public void setWriterIds(List<String> writerIds) {
         this.writerIds = writerIds;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public String getCurrencyId() {
+        return currencyId;
+    }
+
+    public void setCurrencyId(String currencyId) {
+        this.currencyId = currencyId;
+    }
+
+    public String getExternalAccountId() {
+        return externalAccountId;
+    }
+
+    public void setExternalAccountId(String externalAccountId) {
+        this.externalAccountId = externalAccountId;
     }
 }

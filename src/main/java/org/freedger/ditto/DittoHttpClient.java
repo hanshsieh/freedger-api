@@ -2,6 +2,7 @@ package org.freedger.ditto;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -13,13 +14,14 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.Timeout;
-
-import org.freedger.ditto.DittoLedger;
-import org.freedger.ditto.ExecuteRequest;
-import org.freedger.ditto.QueryResponse;
+import org.freedger.ditto.models.Ledger;
+import org.freedger.ditto.models.QueryRequest;
+import org.freedger.ditto.models.LedgerConfig;
+import org.freedger.ditto.models.QueryResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +44,9 @@ public class DittoHttpClient {
     public DittoHttpClient(String baseUrl, String apiKey) {
         // Ensure the base URL ends with a slash for proper path concatenation
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-        this.gson = new GsonBuilder().create();
+        this.gson = new GsonBuilder()
+            .registerTypeAdapter(Instant.class, new InstantAdapter())
+            .create();
         
         // Create a reusable HttpClient with connection pooling and timeouts
         RequestConfig config = RequestConfig.custom()
@@ -63,17 +67,45 @@ public class DittoHttpClient {
      * @param userId The user ID to check access for
      * @return List of ledgers the user can access
      */
-    public List<DittoLedger> findAccessibleLedgers(String userId) throws IOException {
+    public List<Ledger> findAccessibleLedgers(String userId) throws IOException {
         try {
             // Build the DQL query with parameters
             String query = String.format(
                 "SELECT * FROM %s WHERE array_contains(readerIds, :userId) OR array_contains(writerIds, :userId)",
-                DittoLedger.COLLECTION
+                Ledger.COLLECTION
             );
             
             // Create JSON request body
-            ExecuteRequest requestBody = new ExecuteRequest(query, Map.of("userId", userId));
-            String jsonRequestBody = gson.toJson(requestBody);
+            QueryRequest requestBody = new QueryRequest(query, Map.of("userId", userId));
+            QueryResponse<Ledger, String> queryResponse = 
+                sendQueryRequest(requestBody, Ledger.class, String.class);
+            
+            return queryResponse.getItems();
+            
+        } catch (Exception e) {
+            throw new IOException("Failed to query Ditto API: " + e.getMessage(), e);
+        }
+    }
+
+    public void createLedger(LedgerConfig config) throws IOException {
+        try {
+            // Build the DQL query with parameters
+            final String query = "INSERT INTO Ledgers VALUES (:ledger)";
+            
+            // Create JSON request body
+            JsonElement jsonElement = gson.toJsonTree(config);
+            QueryRequest requestBody = new QueryRequest(query, Map.of("ledger", jsonElement));
+            sendQueryRequest(requestBody, Ledger.class, String.class);
+        } catch (Exception e) {
+            throw new IOException("Failed to create ledger: " + e.getMessage(), e);
+        }
+    }
+
+    private <Item, ItemId> QueryResponse<Item, ItemId> sendQueryRequest(
+        QueryRequest request, Class<Item> itemClass, Class<ItemId> itemIdClass) throws IOException {
+        try {
+            // Create JSON request body
+            String jsonRequestBody = gson.toJson(request);
             
             // Create and execute the request
             HttpPost httpPost = new HttpPost(baseUrl + "store/execute");
@@ -88,17 +120,15 @@ public class DittoHttpClient {
                     throw new IOException("Request failed with status code " + statusCode);
                 }
             });
-            
+
             // Parse and return response
-            QueryResponse<DittoLedger, Object> queryResponse = gson.fromJson(
+            QueryResponse<Item, ItemId> queryResponse = gson.fromJson(
                 responseBody,
-                TypeToken.getParameterized(QueryResponse.class, DittoLedger.class, Object.class).getType()
+                TypeToken.getParameterized(QueryResponse.class, itemClass, itemIdClass).getType()
             );
-            
-            return queryResponse.getItems();
-            
+            return queryResponse;
         } catch (Exception e) {
-            throw new IOException("Failed to query Ditto API: " + e.getMessage(), e);
+            throw new IOException("Failed to send execute request: " + e.getMessage(), e);
         }
     }
 }

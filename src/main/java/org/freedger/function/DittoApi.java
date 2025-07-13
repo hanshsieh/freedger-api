@@ -23,7 +23,7 @@ import javax.inject.Inject;
 
 import org.freedger.config.Config;
 import org.freedger.ditto.DittoHttpClient;
-import org.freedger.ditto.DittoLedger;
+import org.freedger.ditto.models.Ledger;
 import org.freedger.openapi.model.AuthorizeRequest;
 import org.freedger.openapi.model.AuthorizeResponse;
 import org.freedger.openapi.model.Permission;
@@ -138,7 +138,7 @@ public class DittoApi {
                 throw new SecurityException("Invalid token: missing subject");
             }
             
-            List<DittoLedger> accessibleLedgers = dittoClient.findAccessibleLedgers(userId);
+            List<Ledger> accessibleLedgers = dittoClient.findAccessibleLedgers(userId);
 
             AuthorizeResponse response = buildAuthResponse(userId, accessibleLedgers);
             
@@ -222,7 +222,7 @@ public class DittoApi {
      * @param ledgers List of ledgers the user has access to
      * @return DittoWebhookResponse with the appropriate permissions
      */
-    private AuthorizeResponse buildAuthResponse(String userId, List<DittoLedger> ledgers) {
+    private AuthorizeResponse buildAuthResponse(String userId, List<Ledger> ledgers) {
         Map<String, Set<String>> readQueries = new HashMap<>();
         Map<String, Set<String>> writeQueries = new HashMap<>();
 
@@ -230,7 +230,7 @@ public class DittoApi {
             final var collectionReads = readQueries.computeIfAbsent(collection.name, k -> new HashSet<>());
             final var collectionWrites = writeQueries.computeIfAbsent(collection.name, k -> new HashSet<>());
 
-            for (DittoLedger ledger : ledgers) {
+            for (Ledger ledger : ledgers) {
                 String ledgerId = ledger.getId();
                 
                 // Check if user is a reader or writer

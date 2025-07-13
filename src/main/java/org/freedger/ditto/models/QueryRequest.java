@@ -1,4 +1,4 @@
-package org.freedger.ditto;
+package org.freedger.ditto.models;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
@@ -6,17 +6,17 @@ import java.util.Map;
 /**
  * Represents a query request to Ditto's query API.
  */
-public class ExecuteRequest {
+public class QueryRequest {
     @SerializedName("statement")
     private String statement;
 
     @SerializedName("args")
     private Map<String, Object> args;
 
-    public ExecuteRequest() {
+    public QueryRequest() {
     }
 
-    public ExecuteRequest(String statement, Map<String, Object> args) {
+    public QueryRequest(String statement, Map<String, Object> args) {
         this.statement = statement;
         this.args = args;
     }

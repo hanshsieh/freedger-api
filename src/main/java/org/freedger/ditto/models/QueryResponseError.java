@@ -1,4 +1,4 @@
-package org.freedger.ditto;
+package org.freedger.ditto.models;
 
 import com.google.gson.annotations.SerializedName;
 
