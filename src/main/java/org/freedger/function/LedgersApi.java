@@ -9,9 +9,9 @@ import jakarta.validation.ValidationException;
 
 import javax.inject.Inject;
 
-import org.freedger.openapi.model.ErrorCode;
-import org.freedger.openapi.model.ErrorResponse;
-import org.freedger.openapi.model.LedgerConfig;
+import org.freedger.openapi.models.ErrorCode;
+import org.freedger.openapi.models.ErrorResponse;
+import org.freedger.openapi.models.LedgerConfig;
 
 public class LedgersApi {
     private final AppValidator validator;

@@ -228,7 +228,7 @@
                             <generatorName>java</generatorName>
                             <output>${project.build.directory}/generated-sources/openapi</output>
                             <apiPackage>org.freedger.openapi.api</apiPackage>
-                            <modelPackage>org.freedger.openapi.model</modelPackage>
+                            <modelPackage>org.freedger.openapi.models</modelPackage>
                             <invokerPackage>org.freedger.openapi.invoker</invokerPackage>
                             <configOptions>
                                 <openApiNullable>false</openApiNullable>

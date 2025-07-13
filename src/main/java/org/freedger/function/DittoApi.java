@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.freedger.config.Config;
-import org.freedger.openapi.model.AuthorizeRequest;
-import org.freedger.openapi.model.AuthorizeResponse;
-import org.freedger.openapi.model.Permission;
-import org.freedger.openapi.model.PermissionRules;
+import org.freedger.openapi.models.AuthorizeRequest;
+import org.freedger.openapi.models.AuthorizeResponse;
+import org.freedger.openapi.models.Permission;
+import org.freedger.openapi.models.PermissionRules;
 import org.freedger.services.ditto.DittoHttpClient;
 import org.freedger.services.ditto.models.Ledger;
 
