@@ -130,8 +130,17 @@ public class DittoApi {
         
         try {
             
-            context.getLogger().severe("Authorizing ditto (with Azure Functions)");
-            logger.error("Authorizing ditto (with SLF4J)");
+            context.getLogger().severe("[SEVERE] Authorizing ditto (with Azure Functions)");
+            context.getLogger().info("[INFO] Authorizing ditto (with Azure Functions)");
+            context.getLogger().fine("[FINE] Authorizing ditto (with Azure Functions)");
+            context.getLogger().finer("[FINER] Authorizing ditto (with Azure Functions)");
+            context.getLogger().finest("[FINEST] Authorizing ditto (with Azure Functions)");
+            logger.error("[ERROR] Authorizing ditto (with SLF4J)");
+            logger.warn("[WARN] Authorizing ditto (with SLF4J)");
+            logger.info("[INFO] Authorizing ditto (with SLF4J)");
+            logger.debug("[DEBUG] Authorizing ditto (with SLF4J)");
+            logger.trace("[TRACE] Authorizing ditto (with SLF4J)");
+            
             // Validate request
             validateRequest(context, request);
 

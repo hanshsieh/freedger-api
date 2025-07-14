@@ -55,8 +55,6 @@ public class LedgersApi {
             HttpRequestMessage<LedgerCreate> request,
             final ExecutionContext context) {
         try {
-            context.getLogger().severe("Creating ledger (with Azure Functions)");
-            logger.error("Creating ledger (with SLF4J)");
             requestValidator.validate(request.getBody());
             final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
             final var reqLedgerCreate = request.getBody();
