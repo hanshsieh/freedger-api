@@ -129,6 +129,9 @@ public class DittoApi {
             final ExecutionContext context) {
         
         try {
+            
+            context.getLogger().severe("Authorizing ditto (with Azure Functions)");
+            logger.error("Authorizing ditto (with SLF4J)");
             // Validate request
             validateRequest(context, request);
 
