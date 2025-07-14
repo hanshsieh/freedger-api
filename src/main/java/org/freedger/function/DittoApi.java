@@ -59,17 +59,15 @@ public class DittoApi {
         new CollectionQuery("Accounts"),
         new CollectionQuery("Categories"),
         new CollectionQuery("CategoryGroups"),
-        // For custom currencies
-        new CollectionQuery("Currencies"),
-        // For system defined currencies
         new CollectionQuery("Currencies") {
             @Override
             public Optional<String> forReader(String ledgerId) {
-                return Optional.of("_id.ledgerId IS MISSING");
+                return Optional.of(String.format(
+                    "_id.ledgerId IS MISSING OR _id.ledgerId = '%s'", ledgerId));
             }
             @Override
             public Optional<String> forWriter(String ledgerId) {
-                return Optional.empty();
+                return Optional.of(String.format("_id.ledgerId = '%s'", ledgerId));
             }
         },
         new CollectionQuery("JournalEntries"),
@@ -85,10 +83,18 @@ public class DittoApi {
         },
         new CollectionQuery("Platforms"),
         new CollectionQuery("Projects"),
-        new CollectionQuery("Symbols"),
+        new CollectionQuery("Symbols") {
+            @Override
+            public Optional<String> forReader(String ledgerId) {
+                return Optional.of("_id.ledgerId IS MISSING");
+            }
+            @Override
+            public Optional<String> forWriter(String ledgerId) {
+                return Optional.empty();
+            }
+        },
         new CollectionQuery("Tags"),
-        new CollectionQuery("Transactions"),
-        new CollectionQuery("Users")
+        new CollectionQuery("Transactions")
     );
 
     private final RequestValidator requestValidator;
