@@ -45,7 +45,7 @@ public class LedgersApi {
         this.dittoClient = dittoClient;
     }
     
-    @FunctionName("createLedger")
+    @FunctionName("CreateLedger")
     public HttpResponseMessage run(
             @HttpTrigger(
                 name = "req",
@@ -55,6 +55,8 @@ public class LedgersApi {
             HttpRequestMessage<LedgerCreate> request,
             final ExecutionContext context) {
         try {
+            context.getLogger().severe("Creating ledger (with Azure Functions)");
+            logger.error("Creating ledger (with SLF4J)");
             requestValidator.validate(request.getBody());
             final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
             final var reqLedgerCreate = request.getBody();
@@ -91,7 +93,7 @@ public class LedgersApi {
                 .body(new ErrorResponse().code(ErrorCode.UNAUTHORIZED).message(e.getMessage()))
                 .build();
         } catch (Exception ex) {
-            logger.error("Error processing create ledger request: {}", ex);
+            logger.error("Error processing create ledger request: {}", ex.getMessage());
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse().code(ErrorCode.SERVER_ERROR).message(ex.getMessage()))
                 .build();
