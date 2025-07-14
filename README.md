@@ -74,10 +74,11 @@ See `.github\workflows\main_freedger-api.yml` for the workflow definition.
 This project uses `slf4j-jdk14` for logging. It doesn't use `logback` so that the severity level of Application Insights 
 can be correctly populated.  
 When deployed to Azure Functions, both the logs sent via `ExecutionContext#getLogger()` and `SLF4J` are automatically sent to Application Insights. But only the logs sent via `ExecutionContext#getLogger()` will have the `operation_Id` set.  
-Therefore, when possible, use `ExecutionContext#getLogger()` to send logs.
+Therefore, when possible, use `ExecutionContext#getLogger()` to send logs.  
+Notice that `host.json` enables "OpenTelemetry" mode so that the logs sent via `ExecutionContext#getLogger()` will be sent to Application Insights.  
 See
 - [Upgrading from Application Insights Java 2.x SDK](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-standalone-upgrade-from-2x)
 - [Configuration options: Azure Monitor Application Insights for Java](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-standalone-config)
 - [Use OpenTelemetry with Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=app-insights&pivots=programming-language-java)
 
-To configure the log level to send to Application Insights, use `host.json`.  
+To configure the log level to send to Application Insights, use `host.json`. But it only affects the logs sent via SLF4J. The logs sent via `ExecutionContext#getLogger()` will always be sent.    
