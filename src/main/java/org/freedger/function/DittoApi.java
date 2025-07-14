@@ -1,13 +1,6 @@
 package org.freedger.function;
 
-import com.auth0.jwk.Jwk;
-import com.auth0.jwk.JwkProvider;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwk.JwkException;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
@@ -15,14 +8,12 @@ import com.microsoft.azure.functions.annotation.HttpTrigger;
 
 import jakarta.validation.ValidationException;
 
-import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import org.freedger.config.Config;
-import org.freedger.function.utils.ExceptionUtil;
 import org.freedger.function.utils.RequestValidator;
 import org.freedger.function.utils.Scope;
 import org.freedger.function.utils.ScopePredicate;
@@ -33,11 +24,14 @@ import org.freedger.openapi.models.Permission;
 import org.freedger.openapi.models.PermissionRules;
 import org.freedger.services.ditto.DittoHttpClient;
 import org.freedger.services.ditto.models.Ledger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Azure Functions with HTTP Trigger for Ditto APIs.
  */
 public class DittoApi {
+    private static final Logger logger = LoggerFactory.getLogger(DittoApi.class);
 
     private static class CollectionQuery {
         public final String name;
@@ -157,17 +151,17 @@ public class DittoApi {
                 .body(response)
                 .build();
         } catch (ValidationException e) {
-            context.getLogger().fine("Invalid request: " + e.getMessage());
+            logger.debug("Invalid request: {}", e.getMessage());
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                 .body(new AuthorizeResponse().authenticated(false))
                 .build();
         } catch (SecurityException e) {
-            context.getLogger().warning("Token validation failed: " + e.getMessage());
+            logger.info("Token validation failed: {}", e.getMessage());
             return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
                 .body(new AuthorizeResponse().authenticated(false))
                 .build();
         } catch (Exception e) {
-            context.getLogger().severe("Error processing Ditto permissions request: " + ExceptionUtil.getPrettyStackTrace(e));
+            logger.error("Error processing Ditto permissions request: {}", e);
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new AuthorizeResponse().authenticated(false))
                 .build();

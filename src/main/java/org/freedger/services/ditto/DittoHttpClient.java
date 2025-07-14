@@ -14,6 +14,8 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.freedger.services.ditto.models.Account;
 import org.freedger.services.ditto.models.AccountType;
 import org.freedger.services.ditto.models.Ledger;
@@ -39,6 +41,7 @@ import java.util.UUID;
  * Client for interacting with Ditto's HTTP API.
  */
 public class DittoHttpClient {
+    private static final Logger logger = LoggerFactory.getLogger(DittoHttpClient.class);
     private static final Timeout REQUEST_TIMEOUT = Timeout.ofSeconds(10);
     private static final Timeout RESPONSE_TIMEOUT = Timeout.ofSeconds(10);
     
@@ -151,6 +154,7 @@ public class DittoHttpClient {
             commands.add(createLedgerCommand);
 
             sendWriteRequest(request);
+            logger.info("Created ledger. Ledger ID: {}, Account ID: {}", ledgerId, accountId);
             // For the /store/write request, ID mustn't be set in the "value", so we need to set it
             // after sending the request.
             ledger.setId(ledgerId);

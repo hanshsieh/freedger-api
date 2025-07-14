@@ -12,7 +12,6 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 
-import org.freedger.function.utils.ExceptionUtil;
 import org.freedger.function.utils.HttpMessageSerializer;
 import org.freedger.function.utils.RequestValidator;
 import org.freedger.function.utils.Scope;
@@ -23,8 +22,11 @@ import org.freedger.openapi.models.ErrorResponse;
 import org.freedger.openapi.models.Ledger;
 import org.freedger.openapi.models.LedgerCreate;
 import org.freedger.services.ditto.DittoHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LedgersApi {
+    private static final Logger logger = LoggerFactory.getLogger(LedgersApi.class);
     private final RequestValidator requestValidator;
     private final TokenValidator tokenValidator;
     private final ScopePredicate writeLedgersPredicate;
@@ -79,18 +81,17 @@ public class LedgersApi {
                     request.createResponseBuilder(HttpStatus.CREATED), respLedger)
                 .build();
         } catch (ValidationException e) {
-            context.getLogger().fine("Invalid request: " + e.getMessage());
+            logger.debug("Invalid request: {}", e.getMessage());
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse().code(ErrorCode.INVALID_REQUEST).message(e.getMessage()))
                 .build();
         } catch (SecurityException e) {
-            context.getLogger().warning("Token validation failed: " + e.getMessage());
+            logger.info("Token validation failed: {}", e.getMessage());
             return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse().code(ErrorCode.UNAUTHORIZED).message(e.getMessage()))
                 .build();
         } catch (Exception ex) {
-            context.getLogger().severe(
-                "Error processing create ledger request: " + ExceptionUtil.getPrettyStackTrace(ex));
+            logger.error("Error processing create ledger request: {}", ex);
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse().code(ErrorCode.SERVER_ERROR).message(ex.getMessage()))
                 .build();
