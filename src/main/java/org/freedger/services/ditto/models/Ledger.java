@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 import jakarta.validation.constraints.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.time.Instant;
 
@@ -34,15 +35,15 @@ public class Ledger {
     
     @SerializedName("readerIds")
     @NotNull
-    private List<String> readerIds;
+    private List<String> readerIds = Collections.emptyList();
     
     @SerializedName("writerIds")
     @NotNull
-    private List<String> writerIds;
+    private List<String> writerIds = Collections.emptyList();
 
     @SerializedName("note")
     @NotNull
-    private String note;
+    private String note = "";
 
     @SerializedName("externalAccountId")
     @NotNull

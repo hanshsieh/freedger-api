@@ -2,12 +2,9 @@ package org.freedger.services.ditto.models;
 
 import com.google.gson.annotations.SerializedName;
 
-public class UpsertCommand<Value> extends WriteCommand {
+public class UpsertCommand<Id, Value> extends WriteCommand {
     @SerializedName("id")
-    private String id;
-
-    @SerializedName("ledgerId")
-    private String ledgerId;
+    private Id id;
 
     @SerializedName("value")
     private Value value;
@@ -16,22 +13,18 @@ public class UpsertCommand<Value> extends WriteCommand {
         super("upsert");
     }
 
-    public String getId() {
+    public Id getId() {
         return id;
     }
-    public void setId(String id) {
+    public UpsertCommand<Id, Value> setId(Id id) {
         this.id = id;
-    }
-    public String getLedgerId() {
-        return ledgerId;
-    }
-    public void setLedgerId(String ledgerId) {
-        this.ledgerId = ledgerId;
+        return this;
     }
     public Value getValue() {
         return value;
     }
-    public void setValue(Value value) {
+    public UpsertCommand<Id, Value> setValue(Value value) {
         this.value = value;
+        return this;
     }
 }

@@ -2,7 +2,6 @@ package org.freedger.services.ditto;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -16,17 +15,22 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.Timeout;
 import org.freedger.services.ditto.models.Account;
-import org.freedger.services.ditto.models.AccountConfig;
+import org.freedger.services.ditto.models.AccountType;
 import org.freedger.services.ditto.models.Ledger;
-import org.freedger.services.ditto.models.LedgerConfig;
+import org.freedger.services.ditto.models.LedgerChildId;
+import org.freedger.services.ditto.models.LedgerCreate;
 import org.freedger.services.ditto.models.QueryRequest;
 import org.freedger.services.ditto.models.QueryResponse;
+import org.freedger.services.ditto.models.UpsertCommand;
+import org.freedger.services.ditto.models.WriteRequest;
+import org.freedger.services.ditto.models.WriteResponse;
+import org.freedger.services.ditto.models.WriteCommand;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -92,54 +96,66 @@ public class DittoHttpClient {
         }
     }
 
-    public Ledger createLedger(LedgerConfig config) throws IOException {
-        // TODO Create account, and then ledger. Use the DQL API because legacy /store/write request doesn't support
-        // MAP field, which is needed for channels.
+    /**
+     * Creates a new ledger.
+     * A default external account will also be created for the ledger.
+     * The ledger and the account are created atomically.
+     * 
+     * @param config The ledger configuration
+     * @return The created ledger
+     * @throws IOException If an error occurs while creating the ledger
+     */
+    public Ledger createLedger(LedgerCreate config) throws IOException {
         try {
-            // Build the DQL query with parameters
-            final String query = "INSERT INTO Ledgers VALUES (:ledger)";
-            
-            // Create JSON request body
-            final Ledger ledger = new Ledger();
-            ledger.setId(generateId());
-            ledger.setCreatedAt(Instant.now());
-            ledger.setUpdatedAt(Instant.now());
+            final var now = Instant.now();
+            WriteRequest request = new WriteRequest();
+            List<WriteCommand> commands = new ArrayList<>();
+            request.setCommands(commands);
+
+            final var ledgerId = generateId();
+            final var accountId = generateId();
+
+            var account = new Account();
+            account.setCreatedAt(now);
+            account.setUpdatedAt(now);
+            account.setName(config.getExternalAccountName());
+            account.setType(AccountType.COUNTERPARTY);
+            account.setArchived(false);
+            account.setGroupId(null);
+            account.setCurrencyId(config.getCurrencyId());
+            account.setAutoClear(true);
+            account.setOrder(1.0);
+
+            var createAccountCommand = new UpsertCommand<LedgerChildId, Account>();
+            createAccountCommand.setCollection(Collection.ACCOUNTS.getName());
+            var accountCompositeId = new LedgerChildId().setId(accountId).setLedgerId(ledgerId);
+            createAccountCommand.setId(accountCompositeId);
+            createAccountCommand.setValue(account);
+            commands.add(createAccountCommand);
+
+            var ledger = new Ledger();
+            ledger.setCreatedAt(now);
+            ledger.setUpdatedAt(now);
             ledger.setName(config.getName());
             ledger.setReaderIds(config.getReaderIds());
             ledger.setWriterIds(config.getWriterIds());
             ledger.setNote(config.getNote());
-            ledger.setExternalAccountId(config.getExternalAccountId());
+            ledger.setExternalAccountId(accountId);
             ledger.setCurrencyId(config.getCurrencyId());
-            QueryRequest requestBody = new QueryRequest(query, Map.of("ledger", ledger));
-            sendQueryRequest(requestBody, Ledger.class, String.class);
+            
+            var createLedgerCommand = new UpsertCommand<String, Ledger>();
+            createLedgerCommand.setCollection(Collection.LEDGERS.getName());
+            createLedgerCommand.setId(ledgerId);
+            createLedgerCommand.setValue(ledger);
+            commands.add(createLedgerCommand);
+
+            sendWriteRequest(request);
+            // For the /store/write request, ID mustn't be set in the "value", so we need to set it
+            // after sending the request.
+            ledger.setId(ledgerId);
             return ledger;
         } catch (Exception e) {
             throw new IOException("Failed to create ledger: " + e.getMessage(), e);
-        }
-    }
-
-    public Account createAccount(AccountConfig config) throws IOException {
-        try {
-            // Build the DQL query with parameters
-            final String query = "INSERT INTO Accounts VALUES (:account)";
-            
-            // Create JSON request body
-            final Account account = new Account();
-            account.setId(generateId());
-            account.setCreatedAt(Instant.now());
-            account.setUpdatedAt(Instant.now());
-            account.setName(config.getName());
-            account.setType(config.getType());
-            account.setArchived(config.isArchived());
-            account.setGroupId(config.getGroupId());
-            account.setCurrencyId(config.getCurrencyId());
-            account.setAutoClear(config.isAutoClear());
-            account.setChannels(config.getChannels());
-            QueryRequest requestBody = new QueryRequest(query, Map.of("account", account));
-            sendQueryRequest(requestBody, Account.class, String.class);
-            return account;
-        } catch (Exception e) {
-            throw new IOException("Failed to create account: " + e.getMessage(), e);
         }
     }
 
@@ -164,6 +180,29 @@ public class DittoHttpClient {
             return queryResponse;
         } catch (Exception e) {
             throw new IOException("Failed to send execute request: " + e.getMessage(), e);
+        }
+    }
+
+    private WriteResponse sendWriteRequest(WriteRequest request) throws IOException {
+        try {
+            // Create JSON request body
+            String jsonRequestBody = gson.toJson(request);
+            
+            // Create and execute the request
+            HttpPost httpPost = new HttpPost(baseUrl + "store/write");
+            httpPost.setEntity(new StringEntity(jsonRequestBody, ContentType.APPLICATION_JSON));
+            
+            // Execute the request
+            String responseBody = sendRequest(httpPost);
+
+            // Parse and return response
+            WriteResponse writeResponse = gson.fromJson(
+                responseBody,
+                WriteResponse.class
+            );
+            return writeResponse;
+        } catch (Exception e) {
+            throw new IOException("Failed to send write request: " + e.getMessage(), e);
         }
     }
 

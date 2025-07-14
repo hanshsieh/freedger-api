@@ -2,7 +2,7 @@ package org.freedger.services.ditto.models;
 
 import com.google.gson.annotations.SerializedName;
 
-abstract class WriteCommand {
+public abstract class WriteCommand {
     @SerializedName("method")
     private String method;
 
@@ -20,7 +20,8 @@ abstract class WriteCommand {
     public String getCollection() {
         return collection;
     }
-    public void setCollection(String collection) {
+    public WriteCommand setCollection(String collection) {
         this.collection = collection;
+        return this;
     }
 }

@@ -1,6 +1,5 @@
 package org.freedger.services.ditto.models;
 
-import java.util.Map;
 import java.time.Instant;
 import com.google.gson.annotations.SerializedName;
 
@@ -14,7 +13,7 @@ public class Account {
 
     @SerializedName("_id")
     @NotNull
-    private String id;
+    private LedgerChildId id;
 
     @SerializedName("createdAt")
     @NotNull
@@ -26,14 +25,14 @@ public class Account {
 
     @SerializedName("type")
     @NotNull
-    private String type;
+    private AccountType type;
 
     @SerializedName("name")
     @NotNull
     private String name;
 
     @SerializedName("isArchived")
-    private boolean archived;
+    private boolean archived = false;
 
     @SerializedName("groupId")
     private String groupId;
@@ -43,11 +42,10 @@ public class Account {
     private String currencyId;
 
     @SerializedName("isAutoClear")
-    private boolean autoClear;
+    private boolean autoClear = true;
 
-    @SerializedName("channels")
-    @NotNull
-    private Map<String, AccountChannel> channels;
+    @SerializedName("order")
+    private double order = 1.0;
 
     public int getSchemaVersion() {
         return schemaVersion;
@@ -57,11 +55,11 @@ public class Account {
         this.schemaVersion = schemaVersion;
     }
 
-    public String getId() {
+    public LedgerChildId getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(LedgerChildId id) {
         this.id = id;
     }
 
@@ -81,11 +79,11 @@ public class Account {
         this.updatedAt = updatedAt;
     }
 
-    public String getType() {
+    public AccountType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(AccountType type) {
         this.type = type;
     }
 
@@ -129,12 +127,11 @@ public class Account {
         this.autoClear = isAutoClear;
     }
 
-    public Map<String, AccountChannel> getChannels() {
-        return channels;
+    public double getOrder() {
+        return order;
     }
 
-    public void setChannels(Map<String, AccountChannel> channels) {
-        this.channels = channels;
+    public void setOrder(double order) {
+        this.order = order;
     }
-
 }
