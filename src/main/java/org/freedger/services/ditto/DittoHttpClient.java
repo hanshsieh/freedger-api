@@ -39,7 +39,8 @@ import java.util.UUID;
  * Client for interacting with Ditto's HTTP API.
  */
 public class DittoHttpClient {
-    private static final int REQUEST_TIMEOUT_SECONDS = 10;
+    private static final Timeout REQUEST_TIMEOUT = Timeout.ofSeconds(10);
+    private static final Timeout RESPONSE_TIMEOUT = Timeout.ofSeconds(10);
     
     private final String baseUrl;
     private final Gson gson;
@@ -59,8 +60,8 @@ public class DittoHttpClient {
         
         // Create a reusable HttpClient with connection pooling and timeouts
         RequestConfig config = RequestConfig.custom()
-            .setConnectionRequestTimeout(Timeout.ofSeconds(REQUEST_TIMEOUT_SECONDS))
-            .setResponseTimeout(Timeout.ofSeconds(REQUEST_TIMEOUT_SECONDS))
+            .setConnectionRequestTimeout(REQUEST_TIMEOUT)
+            .setResponseTimeout(RESPONSE_TIMEOUT)
             .build();
             
         this.httpClient = HttpClients.custom()
@@ -155,7 +156,7 @@ public class DittoHttpClient {
             ledger.setId(ledgerId);
             return ledger;
         } catch (Exception e) {
-            throw new IOException("Failed to create ledger: " + e.getMessage(), e);
+            throw new IOException("Failed to create ledger", e);
         }
     }
 

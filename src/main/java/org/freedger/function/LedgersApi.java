@@ -78,7 +78,8 @@ public class LedgersApi {
                 .body(new ErrorResponse().code(ErrorCode.UNAUTHORIZED).message(e.getMessage()))
                 .build();
         } catch (Exception ex) {
-            context.getLogger().severe("Error processing create ledger request: " + ex.getMessage());
+            context.getLogger().severe(
+                "Error processing create ledger request: " + ExceptionUtil.getPrettyStackTrace(ex));
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse().code(ErrorCode.SERVER_ERROR).message(ex.getMessage()))
                 .build();

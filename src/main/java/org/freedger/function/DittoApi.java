@@ -156,7 +156,7 @@ public class DittoApi {
                 .body(new AuthorizeResponse().authenticated(false))
                 .build();
         } catch (Exception e) {
-            context.getLogger().severe("Error processing Ditto permissions request: " + e.getMessage());
+            context.getLogger().severe("Error processing Ditto permissions request: " + ExceptionUtil.getPrettyStackTrace(e));
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new AuthorizeResponse().authenticated(false))
                 .build();

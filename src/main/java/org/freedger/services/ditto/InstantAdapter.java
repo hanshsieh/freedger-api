@@ -3,7 +3,7 @@ package org.freedger.services.ditto;
 import com.google.gson.*;
 import java.lang.reflect.Type;
 import java.time.Instant;
-
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -21,7 +21,8 @@ public class InstantAdapter implements JsonDeserializer<Instant>, JsonSerializer
     }
 
     @Override
-    public JsonElement serialize(Instant src, Type typeOfSrc, JsonSerializationContext context) {
-        return new JsonPrimitive(FORMATTER.format(src));
+    public JsonElement serialize(Instant instant, Type typeOfSrc, JsonSerializationContext context) {
+        final var offsetDateTime = instant.atOffset(ZoneOffset.UTC);
+        return new JsonPrimitive(FORMATTER.format(offsetDateTime));
     }
 }
