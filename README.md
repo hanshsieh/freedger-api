@@ -1,14 +1,14 @@
-# Freedger Auth Server
+# Freedger API Server
 
-This is an Azure Functions project that handles authentication for Freedger applications.
+This is an Azure Functions project that provides API endpoints for Freedger applications.
 
 OpenAPI spec: [api.yml](src/main/resources/api.yml).
 
 ## Features
 
-- Validates Auth0 JWT Tokens
-- Generates Ditto Exchange Token for exchanging Auth0 Tokens to Ditto Tokens
-- Provides RESTful API endpoints for token exchange
+- Uses Auth0 JWT Tokens for authentication
+- Provides Ditto webhook for authorizing Ditto clients.
+- Provides an API to create ledgers.
 
 ## Local Development
 
@@ -69,3 +69,9 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
 
 When a new commit is pushed to the `main` branch, Github Actions will automatically deploy the code to Azure.
 See `.github\workflows\main_freedger-api.yml` for the workflow definition.
+
+## Logging
+This project uses Logback for logging.  
+When running locally, the log level can be configured in `src/main/resources/logback.xml`.  
+When deployed to Azure Functions, the logs are automatically sent to Application Insights. 
+See [Upgrading from Application Insights Java 2.x SDK](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-standalone-upgrade-from-2x), and [Configuration options: Azure Monitor Application Insights for Java](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-standalone-config). The log level can be configured in `host.json`.
