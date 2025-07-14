@@ -9,7 +9,8 @@ import javax.inject.Singleton;
 
 import org.freedger.config.Config;
 import org.freedger.config.EnvConfig;
-import org.freedger.function.AppValidator;
+import org.freedger.function.RequestValidator;
+import org.freedger.function.TokenValidator;
 import org.freedger.services.ditto.DittoHttpClient;
 
 import com.auth0.jwk.JwkProvider;
@@ -68,7 +69,13 @@ public class AppModule {
 
     @Provides
     @Singleton
-    public AppValidator provideAppValidator() {
-        return new AppValidator();
+    public RequestValidator provideRequestValidator() {
+        return new RequestValidator();
+    }
+
+    @Provides
+    @Singleton
+    public TokenValidator provideTokenValidator(JwkProvider authProviderJwks, Config config) {
+        return new TokenValidator(authProviderJwks, config);
     }
 }

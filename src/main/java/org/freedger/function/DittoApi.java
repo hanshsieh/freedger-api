@@ -86,22 +86,22 @@ public class DittoApi {
         new CollectionQuery("Users")
     );
 
-    private final AppValidator validator;
+    private final RequestValidator requestValidator;
     private final DittoHttpClient dittoClient;
-    private final JwkProvider authProviderJwks;
     private final Config config;
+    private final TokenValidator tokenValidator;
     private final ScopePredicate scopePredicate;
 
     @Inject
     public DittoApi(
-        AppValidator validator,
+        RequestValidator validator,
         Config config, 
-        JwkProvider jwkProvider,
-        DittoHttpClient dittoClient) {
-        this.validator = validator;
+        DittoHttpClient dittoClient,
+        TokenValidator tokenValidator) {
+        this.requestValidator = validator;
         this.config = config;
-        this.authProviderJwks = jwkProvider;
         this.dittoClient = dittoClient;
+        this.tokenValidator = tokenValidator;
         this.scopePredicate = new ScopePredicate(new String[] { Scope.READ_DITTO_AUTH.getValue() });
     }
 
@@ -131,7 +131,7 @@ public class DittoApi {
             AuthorizeRequest webhookRequest = request.getBody();
             
             // Validate JWT token with specific audience and scope
-            DecodedJWT jwt = validateToken(webhookRequest.getToken());
+            DecodedJWT jwt = tokenValidator.validate(webhookRequest.getToken(), scopePredicate);
             String userId = jwt.getSubject();
             
             if (userId == null) {
@@ -166,7 +166,7 @@ public class DittoApi {
     private void validateRequest(ExecutionContext context, HttpRequestMessage<AuthorizeRequest> request) {
         AuthorizeRequest webhookRequest = request.getBody();
 
-        validator.validate(webhookRequest);
+        requestValidator.validate(webhookRequest);
 
         // Validate request
         if (webhookRequest == null || webhookRequest.getToken() == null) {
@@ -186,36 +186,6 @@ public class DittoApi {
         }
     }
 
-    /**
-     * Validates the auth provider JWT token and returns the decoded JWT.
-     * @param token The JWT token to validate
-     * @return The decoded JWT
-     * @throws SecurityException if the token is invalid
-     */
-    private DecodedJWT validateToken(String token) throws SecurityException {
-        try {
-            // Verify token signature and basic claims
-            DecodedJWT jwt = JWT.decode(token);
-            
-            // Get the key from the JWKS endpoint
-            Jwk jwk = authProviderJwks.get(jwt.getKeyId());
-            Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
-            
-            // Verify the token
-            JWTVerifier verifier = JWT.require(algorithm)
-                .withIssuer(config.authIssuer())
-                .withAudience(config.authAudience())
-                .withClaim(ScopePredicate.CLAIM_NAME, scopePredicate)
-                .acceptLeeway(10)
-                .build();
-                
-            DecodedJWT decodedJWT = verifier.verify(token);
-            return decodedJWT;
-        } catch (JWTVerificationException | JwkException e) {
-            throw new SecurityException("Invalid token: " + e.getMessage(), e);
-        }
-    }
-    
     /**
      * Builds the permissions response for accessible ledgers.
      * @param userId The user ID

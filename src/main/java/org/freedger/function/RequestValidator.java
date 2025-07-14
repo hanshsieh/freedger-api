@@ -9,14 +9,14 @@ import jakarta.validation.Validation;
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
 
-public class AppValidator {
+public class RequestValidator {
     private final Validator validator;
 
-    public AppValidator() {
+    public RequestValidator() {
         this(Validation.buildDefaultValidatorFactory().getValidator());
     }
 
-    public AppValidator(Validator validator) {
+    public RequestValidator(Validator validator) {
         this.validator = validator;
     }
     

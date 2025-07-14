@@ -64,11 +64,21 @@ paths:
                     authenticated: false
   /ledgers:
     post:
+      security:
+        - bearerAuth: []
       tags:
         - Ledgers
       summary: Create a new ledger
       description: |
         Creates a new ledger for the authenticated user.
+        
+        ### Authentication
+        This endpoint requires a valid JWT token in the Authorization header.
+        
+        **Example:**
+        ```
+        Authorization: Bearer <your_jwt_token>
+        ```
       operationId: createLedger
       requestBody:
         required: true
@@ -77,7 +87,7 @@ paths:
             schema:
               $ref: '#/components/schemas/LedgerCreate'
       responses:
-        '200':
+        '201':
           description: Ledger created successfully
           content:
             application/json:
@@ -103,6 +113,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Authorization header using the Bearer scheme
+
   schemas:
     ErrorResponse:
       type: object
@@ -164,6 +181,10 @@ components:
         - currencyId
         - externalAccountId
       properties:
+        id:
+          type: string
+          description: The ID of the ledger
+          example: "0123456789"
         createdAt:
           type: string
           format: date-time
