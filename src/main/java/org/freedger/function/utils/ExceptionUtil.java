@@ -1,4 +1,4 @@
-package org.freedger.function;
+package org.freedger.function.utils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

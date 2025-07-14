@@ -1,4 +1,4 @@
-package org.freedger.function;
+package org.freedger.function.utils;
 
 import java.util.ArrayList;
 import java.util.List;

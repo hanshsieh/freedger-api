@@ -1,4 +1,4 @@
-package org.freedger.function;
+package org.freedger.function.utils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
-class ScopePredicate implements BiPredicate<Claim, DecodedJWT> {
+public class ScopePredicate implements BiPredicate<Claim, DecodedJWT> {
     public static final String CLAIM_NAME = "scope";
     private final Pattern SPACE = Pattern.compile(" +");
     private final List<String> scopes;

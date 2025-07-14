@@ -12,6 +12,12 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 
+import org.freedger.function.utils.ExceptionUtil;
+import org.freedger.function.utils.HttpMessageSerializer;
+import org.freedger.function.utils.RequestValidator;
+import org.freedger.function.utils.Scope;
+import org.freedger.function.utils.ScopePredicate;
+import org.freedger.function.utils.TokenValidator;
 import org.freedger.openapi.models.ErrorCode;
 import org.freedger.openapi.models.ErrorResponse;
 import org.freedger.openapi.models.Ledger;
@@ -22,13 +28,18 @@ public class LedgersApi {
     private final RequestValidator requestValidator;
     private final TokenValidator tokenValidator;
     private final ScopePredicate writeLedgersPredicate;
+    private final HttpMessageSerializer httpMessageSerializer;
     private final DittoHttpClient dittoClient;
 
     @Inject
-    public LedgersApi(RequestValidator requestValidator, TokenValidator tokenValidator, DittoHttpClient dittoClient) {
+    public LedgersApi(RequestValidator requestValidator, 
+        TokenValidator tokenValidator, 
+        HttpMessageSerializer httpMessageSerializer, 
+        DittoHttpClient dittoClient) {
         this.requestValidator = requestValidator;
         this.tokenValidator = tokenValidator;
         this.writeLedgersPredicate = new ScopePredicate(new String[] { Scope.WRITE_LEDGERS.getValue() });
+        this.httpMessageSerializer = httpMessageSerializer;
         this.dittoClient = dittoClient;
     }
     
@@ -64,8 +75,8 @@ public class LedgersApi {
             respLedger.setNote(dittoLedger.getNote());
             respLedger.setCurrencyId(dittoLedger.getCurrencyId());
             respLedger.setExternalAccountId(dittoLedger.getExternalAccountId());
-            return request.createResponseBuilder(HttpStatus.CREATED)
-                .body(respLedger)
+            return httpMessageSerializer.serializeResponse(
+                    request.createResponseBuilder(HttpStatus.CREATED), respLedger)
                 .build();
         } catch (ValidationException e) {
             context.getLogger().fine("Invalid request: " + e.getMessage());

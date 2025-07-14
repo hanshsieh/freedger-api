@@ -1,4 +1,4 @@
-package org.freedger.function;
+package org.freedger.function.utils;
 
 public enum Scope {
     // Can read the Ditto authorization config of the user.
