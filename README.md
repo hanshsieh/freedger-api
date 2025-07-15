@@ -71,8 +71,8 @@ When a new commit is pushed to the `main` branch, Github Actions will automatica
 See `.github\workflows\main_freedger-api.yml` for the workflow definition.
 
 ## Logging
-This project uses `slf4j-jdk14` for logging. It doesn't use `logback` so that the severity level of Application Insights 
-can be correctly populated.  
+This project uses `slf4j-jdk14` for logging. (It was observed that the severity level of Application Insights won't be 
+correctly populated when using `logback`.)
 When deployed to Azure Functions, both the logs sent via `ExecutionContext#getLogger()` and `SLF4J` are automatically sent to Application Insights. But only the logs sent via `ExecutionContext#getLogger()` will have the `operation_Id` set.  
 Therefore, when possible, use `ExecutionContext#getLogger()` to send logs.  
 Notice that `host.json` enables "OpenTelemetry" mode so that the logs sent via `ExecutionContext#getLogger()` will be sent to Application Insights.  

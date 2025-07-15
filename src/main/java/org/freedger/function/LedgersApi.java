@@ -9,6 +9,7 @@ import jakarta.validation.ValidationException;
 
 import java.time.ZoneOffset;
 import java.util.Collections;
+import java.util.logging.Level;
 
 import javax.inject.Inject;
 
@@ -26,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LedgersApi {
-    private static final Logger logger = LoggerFactory.getLogger(LedgersApi.class);
     private final RequestValidator requestValidator;
     private final TokenValidator tokenValidator;
     private final ScopePredicate writeLedgersPredicate;
@@ -54,6 +54,7 @@ public class LedgersApi {
                 route = "ledgers") 
             HttpRequestMessage<LedgerCreate> request,
             final ExecutionContext context) {
+        final var logger = context.getLogger();
         try {
             requestValidator.validate(request.getBody());
             final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
@@ -81,17 +82,17 @@ public class LedgersApi {
                     request.createResponseBuilder(HttpStatus.CREATED), respLedger)
                 .build();
         } catch (ValidationException e) {
-            logger.debug("Invalid request: {}", e.getMessage());
+            logger.fine("Invalid request: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse().code(ErrorCode.INVALID_REQUEST).message(e.getMessage()))
                 .build();
         } catch (SecurityException e) {
-            logger.info("Token validation failed: {}", e.getMessage());
+            logger.info("Token validation failed: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse().code(ErrorCode.UNAUTHORIZED).message(e.getMessage()))
                 .build();
         } catch (Exception ex) {
-            logger.error("Error processing create ledger request: {}", ex.getMessage());
+            logger.log(Level.SEVERE, "Error processing create ledger request", ex);
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse().code(ErrorCode.SERVER_ERROR).message(ex.getMessage()))
                 .build();

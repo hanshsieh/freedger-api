@@ -1,6 +1,7 @@
 package org.freedger.function;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.azure.core.util.logging.LogLevel;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
@@ -9,6 +10,7 @@ import com.microsoft.azure.functions.annotation.HttpTrigger;
 import jakarta.validation.ValidationException;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -127,20 +129,8 @@ public class DittoApi {
                 route = "ditto/authorize") 
             HttpRequestMessage<AuthorizeRequest> request,
             final ExecutionContext context) {
-        
-        try {
-            
-            context.getLogger().severe("[SEVERE] Authorizing ditto (with Azure Functions)");
-            context.getLogger().info("[INFO] Authorizing ditto (with Azure Functions)");
-            context.getLogger().fine("[FINE] Authorizing ditto (with Azure Functions)");
-            context.getLogger().finer("[FINER] Authorizing ditto (with Azure Functions)");
-            context.getLogger().finest("[FINEST] Authorizing ditto (with Azure Functions)");
-            logger.error("[ERROR] Authorizing ditto (with SLF4J)");
-            logger.warn("[WARN] Authorizing ditto (with SLF4J)");
-            logger.info("[INFO] Authorizing ditto (with SLF4J)");
-            logger.debug("[DEBUG] Authorizing ditto (with SLF4J)");
-            logger.trace("[TRACE] Authorizing ditto (with SLF4J)");
-            
+        final var logger = context.getLogger();
+        try {            
             // Validate request
             validateRequest(context, request);
 
@@ -163,17 +153,17 @@ public class DittoApi {
                 .body(response)
                 .build();
         } catch (ValidationException e) {
-            logger.debug("Invalid request: {}", e.getMessage());
+            logger.fine("Invalid request: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                 .body(new AuthorizeResponse().authenticated(false))
                 .build();
         } catch (SecurityException e) {
-            logger.info("Token validation failed: {}", e.getMessage());
+            logger.info("Token validation failed: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
                 .body(new AuthorizeResponse().authenticated(false))
                 .build();
         } catch (Exception e) {
-            logger.error("Error processing Ditto permissions request: {}", e);
+            logger.log(Level.SEVERE, "Error processing Ditto permissions request", e);
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new AuthorizeResponse().authenticated(false))
                 .build();
