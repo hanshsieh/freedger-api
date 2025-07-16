@@ -255,8 +255,9 @@ components:
           example: "auth0"
         token:
           type: string
-          description: JWT token for authentication
-          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          description: |
+            A JSON string for the token. The schema is described by `DittoAuthToken`.
+          example: "{\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\", \"transactionId\": \"0123456789\"}"
     AuthorizeResponse:
       type: object
       properties:
@@ -314,3 +315,14 @@ components:
               - "_id = 'ledger-123'"
             Accounts:
               - "_id.ledgerId = 'ledger-123'"
+    DittoAuthToken:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token for authentication
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        transactionId: 
+          type: string
+          description: Transaction ID that should be used for retrieving the data.
+          example: "0123456789"

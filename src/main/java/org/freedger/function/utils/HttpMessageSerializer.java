@@ -23,11 +23,19 @@ public class HttpMessageSerializer {
     }
 
     public <T> T deserialize(String json, Class<T> clazz) {
-        return gson.fromJson(json, clazz);
+        try {
+            return gson.fromJson(json, clazz);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to deserialize JSON", e);
+        }
     }
 
     public String serialize(Object object) {
-        return gson.toJson(object);
+        try {
+            return gson.toJson(object);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to serialize JSON", e);
+        }
     }
 
     public HttpResponseMessage.Builder serializeResponse(HttpResponseMessage.Builder builder, Object object) {

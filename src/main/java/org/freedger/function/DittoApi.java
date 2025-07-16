@@ -16,12 +16,14 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.freedger.config.Config;
+import org.freedger.function.utils.HttpMessageSerializer;
 import org.freedger.function.utils.RequestValidator;
 import org.freedger.function.utils.Scope;
 import org.freedger.function.utils.ScopePredicate;
 import org.freedger.function.utils.TokenValidator;
 import org.freedger.openapi.models.AuthorizeRequest;
 import org.freedger.openapi.models.AuthorizeResponse;
+import org.freedger.openapi.models.DittoAuthToken;
 import org.freedger.openapi.models.Permission;
 import org.freedger.openapi.models.PermissionRules;
 import org.freedger.services.ditto.DittoHttpClient;
@@ -98,18 +100,21 @@ public class DittoApi {
     private final Config config;
     private final TokenValidator tokenValidator;
     private final ScopePredicate scopePredicate;
+    private final HttpMessageSerializer serializer;
 
     @Inject
     public DittoApi(
         RequestValidator validator,
         Config config, 
         DittoHttpClient dittoClient,
-        TokenValidator tokenValidator) {
+        TokenValidator tokenValidator,
+        HttpMessageSerializer serializer) {
         this.requestValidator = validator;
         this.config = config;
         this.dittoClient = dittoClient;
         this.tokenValidator = tokenValidator;
         this.scopePredicate = new ScopePredicate(new String[] { Scope.READ_DITTO_AUTH.getValue() });
+        this.serializer = serializer;
     }
 
     /**
@@ -135,24 +140,25 @@ public class DittoApi {
             validateRequest(context, request);
 
             // Get request body
-            AuthorizeRequest webhookRequest = request.getBody();
+            AuthorizeRequest requestBody = request.getBody();
+            DittoAuthToken dittoAuthToken = serializer.deserialize(requestBody.getToken(), DittoAuthToken.class);
             
             // Validate JWT token with specific audience and scope
-            DecodedJWT jwt = tokenValidator.validate(webhookRequest.getToken(), scopePredicate);
+            DecodedJWT jwt = tokenValidator.validate(dittoAuthToken.getToken(), scopePredicate);
             String userId = jwt.getSubject();
             
             if (userId == null) {
                 throw new SecurityException("Invalid token: missing subject");
             }
             
-            List<Ledger> accessibleLedgers = dittoClient.findAccessibleLedgers(userId);
+            List<Ledger> accessibleLedgers = dittoClient.findAccessibleLedgers(userId, dittoAuthToken.getTransactionId());
 
             AuthorizeResponse response = buildAuthResponse(userId, accessibleLedgers);
             
             return request.createResponseBuilder(HttpStatus.OK)
                 .body(response)
                 .build();
-        } catch (ValidationException e) {
+        } catch (ValidationException | IllegalArgumentException e) {
             logger.fine("Invalid request: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                 .body(new AuthorizeResponse().authenticated(false))

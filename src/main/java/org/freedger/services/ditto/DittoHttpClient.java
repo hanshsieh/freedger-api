@@ -44,6 +44,7 @@ import java.util.UUID;
  * Client for interacting with Ditto's HTTP API.
  */
 public class DittoHttpClient {
+    private static final String HEADER_TXN_ID = "X-DITTO-TXN-ID";
     private static final Logger logger = LoggerFactory.getLogger(DittoHttpClient.class);
     private static final Timeout REQUEST_TIMEOUT = Timeout.ofSeconds(10);
     private static final Timeout RESPONSE_TIMEOUT = Timeout.ofSeconds(10);
@@ -83,7 +84,7 @@ public class DittoHttpClient {
      * @param userId The user ID to check access for
      * @return List of ledgers the user can access
      */
-    public List<Ledger> findAccessibleLedgers(String userId) throws IOException {
+    public List<Ledger> findAccessibleLedgers(String userId, String transactionId) throws IOException {
         try {
             // Build the DQL query with parameters
             String query = String.format(
@@ -94,7 +95,7 @@ public class DittoHttpClient {
             // Create JSON request body
             QueryRequest requestBody = new QueryRequest(query, Map.of("userId", userId));
             QueryResponse<Ledger, String> queryResponse = 
-                sendQueryRequest(requestBody, Ledger.class, String.class);
+                sendQueryRequest(requestBody, Ledger.class, String.class, transactionId);
             
             return queryResponse.getItems();
             
@@ -174,7 +175,7 @@ public class DittoHttpClient {
     }
 
     private <Item, ItemId> QueryResponse<Item, ItemId> sendQueryRequest(
-        QueryRequest request, Class<Item> itemClass, Class<ItemId> itemIdClass) throws IOException {
+        QueryRequest request, Class<Item> itemClass, Class<ItemId> itemIdClass, String transactionId) throws IOException {
         try {
             // Create JSON request body
             String jsonRequestBody = gson.toJson(request);
@@ -182,6 +183,9 @@ public class DittoHttpClient {
             // Create and execute the request
             HttpPost httpPost = new HttpPost(baseUrl + "store/execute");
             httpPost.setEntity(new StringEntity(jsonRequestBody, ContentType.APPLICATION_JSON));
+            if (transactionId != null) {
+                httpPost.setHeader(HEADER_TXN_ID, transactionId);
+            }
             
             // Execute the request
             String responseBody = sendRequest(httpPost);
