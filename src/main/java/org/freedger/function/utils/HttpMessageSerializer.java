@@ -31,8 +31,18 @@ public class HttpMessageSerializer {
     }
 
     public HttpResponseMessage.Builder serializeResponse(HttpResponseMessage.Builder builder, Object object) {
-        builder.body(serialize(object))
+        return builder.body(serialize(object))
             .header("Content-Type", "application/json");
+    }
+
+    public HttpResponseMessage.Builder serializeResponse(
+        HttpResponseMessage.Builder builder, 
+        Object object, 
+        String transactionId) {
+        serializeResponse(builder, object);
+        if (transactionId != null) {
+            builder.header("X-TXN-ID", transactionId);
+        }
         return builder;
     }
 }

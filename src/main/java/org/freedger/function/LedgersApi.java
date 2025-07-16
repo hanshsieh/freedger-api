@@ -67,7 +67,8 @@ public class LedgersApi {
             dittoLedgerCreate.setReaderIds(Collections.emptyList());
             dittoLedgerCreate.setWriterIds(Collections.singletonList(jwtToken.getSubject()));
             
-            final var dittoLedger = dittoClient.createLedger(dittoLedgerCreate);
+            final var dittoResp = dittoClient.createLedger(dittoLedgerCreate);
+            final var dittoLedger = dittoResp.getData();
             final var respLedger = new Ledger();
             respLedger.setId(dittoLedger.getId());
             respLedger.setCreatedAt(dittoLedger.getCreatedAt().atOffset(ZoneOffset.UTC));
@@ -79,7 +80,7 @@ public class LedgersApi {
             respLedger.setCurrencyId(dittoLedger.getCurrencyId());
             respLedger.setExternalAccountId(dittoLedger.getExternalAccountId());
             return httpMessageSerializer.serializeResponse(
-                    request.createResponseBuilder(HttpStatus.CREATED), respLedger)
+                    request.createResponseBuilder(HttpStatus.CREATED), respLedger, dittoResp.getTransactionId())
                 .build();
         } catch (ValidationException e) {
             logger.fine("Invalid request: " + e.getMessage());

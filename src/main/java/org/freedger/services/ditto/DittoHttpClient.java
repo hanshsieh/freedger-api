@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.freedger.services.ditto.models.Account;
 import org.freedger.services.ditto.models.AccountType;
+import org.freedger.services.ditto.models.DittoResponse;
 import org.freedger.services.ditto.models.Ledger;
 import org.freedger.services.ditto.models.LedgerChildId;
 import org.freedger.services.ditto.models.LedgerCreate;
@@ -27,6 +28,7 @@ import org.freedger.services.ditto.models.UpsertCommand;
 import org.freedger.services.ditto.models.WriteRequest;
 import org.freedger.services.ditto.models.WriteResponse;
 import org.freedger.services.ditto.models.WriteCommand;
+import org.freedger.services.ditto.models.WriteCommandResult;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -35,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -109,7 +112,7 @@ public class DittoHttpClient {
      * @return The created ledger
      * @throws IOException If an error occurs while creating the ledger
      */
-    public Ledger createLedger(LedgerCreate config) throws IOException {
+    public DittoResponse<Ledger> createLedger(LedgerCreate config) throws IOException {
         try {
             final var now = Instant.now();
             WriteRequest request = new WriteRequest();
@@ -153,15 +156,21 @@ public class DittoHttpClient {
             createLedgerCommand.setValue(ledger);
             commands.add(createLedgerCommand);
 
-            sendWriteRequest(request);
+            final var writeResponse = sendWriteRequest(request);
             logger.info("Created ledger. Ledger ID: {}, Account ID: {}", ledgerId, accountId);
             // For the /store/write request, ID mustn't be set in the "value", so we need to set it
             // after sending the request.
             ledger.setId(ledgerId);
-            return ledger;
+            final var transactionId = getTransactionId(writeResponse);
+            return new DittoResponse<>(transactionId.orElse(null), ledger);
         } catch (Exception e) {
             throw new IOException("Failed to create ledger", e);
         }
+    }
+
+    private Optional<String> getTransactionId(WriteResponse writeResponse) {
+        final var transactionId = writeResponse.getResults().stream().mapToLong(WriteCommandResult::getTransactionId).max();
+        return Optional.ofNullable(transactionId.isPresent() ? String.valueOf(transactionId.getAsLong()) : null);
     }
 
     private <Item, ItemId> QueryResponse<Item, ItemId> sendQueryRequest(

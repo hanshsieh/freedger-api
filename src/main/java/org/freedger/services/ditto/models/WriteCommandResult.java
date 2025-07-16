@@ -7,7 +7,7 @@ public class WriteCommandResult {
     private String method;
 
     @SerializedName("transactionId")
-    private String transactionId;
+    private long transactionId;
 
     public String getMethod() {
         return method;
@@ -17,11 +17,11 @@ public class WriteCommandResult {
         this.method = method;
     }
 
-    public String getTransactionId() {
+    public long getTransactionId() {
         return transactionId;
     }
 
-    public void setTransactionId(String transactionId) {
+    public void setTransactionId(long transactionId) {
         this.transactionId = transactionId;
     }
 }

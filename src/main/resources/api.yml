@@ -89,6 +89,10 @@ paths:
       responses:
         '201':
           description: Ledger created successfully
+          headers:
+            X-TXN-ID:
+              schema:
+                $ref: '#/components/schemas/TransactionId'
           content:
             application/json:
               schema:
@@ -121,6 +125,13 @@ components:
       description: JWT Authorization header using the Bearer scheme
 
   schemas:
+    TransactionId:
+      description: |
+        Transaction ID for an update or create operation.  
+        When doing an update or create operation, a transaction ID will be returned in the response. 
+        If you want to retrieve the data while ensuring that the data is consistent with the transaction, 
+        you can use the transaction ID in the request for retrieval.
+      type: string
     ErrorResponse:
       type: object
       properties:
