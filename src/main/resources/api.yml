@@ -318,9 +318,10 @@ components:
     DittoAuthToken:
       type: object
       properties:
-        token:
+        accessToken:
           type: string
-          description: JWT token for authentication
+          description: |
+            Freedger access token. It should include the scope "read:ditto_auth".
           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         transactionId: 
           type: string

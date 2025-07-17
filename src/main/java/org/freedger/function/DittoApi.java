@@ -144,7 +144,7 @@ public class DittoApi {
             DittoAuthToken dittoAuthToken = serializer.deserialize(requestBody.getToken(), DittoAuthToken.class);
             
             // Validate JWT token with specific audience and scope
-            DecodedJWT jwt = tokenValidator.validate(dittoAuthToken.getToken(), scopePredicate);
+            DecodedJWT jwt = tokenValidator.validate(dittoAuthToken.getAccessToken(), scopePredicate);
             String userId = jwt.getSubject();
             
             if (userId == null) {
