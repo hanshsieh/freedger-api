@@ -151,7 +151,7 @@ public class DittoApi {
                         .read(new PermissionRules()
                             .everything(false)
                             .queriesByCollection(Map.of(
-                                "Ledgers", List.of("_id.ledgerId = '2c3101921095453fb0bdd5f924377fc9'"))))
+                                "Ledgers", List.of("_id = '2c3101921095453fb0bdd5f924377fc9'"))))
                         .write(new PermissionRules()
                             .everything(false)
                             .queriesByCollection(Collections.emptyMap())));
