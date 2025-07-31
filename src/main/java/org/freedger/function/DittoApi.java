@@ -131,25 +131,6 @@ public class DittoApi {
 
             // Get request body
             AuthorizeRequest requestBody = request.getBody();
-            // TODO: For debugging only
-            if (requestBody.getToken().equals("cA6F3CWWSdAODu5nOaiffiDH7WasDI")) {
-                logger.info("Receiving test request. Body: " + new Gson().toJson(requestBody));
-                AuthorizeResponse response = new AuthorizeResponse()
-                    .authenticate(true)
-                    .userID("testuser")
-                    .expirationSeconds(86400)
-                    .permissions(new Permission()
-                        .read(new PermissionRules()
-                            .everything(false)
-                            .queriesByCollection(Map.of(
-                                "Ledgers", List.of("_id == '2c3101921095453fb0bdd5f924377fc9'"))))
-                        .write(new PermissionRules()
-                            .everything(false)
-                            .queriesByCollection(Collections.emptyMap())));
-                return request.createResponseBuilder(HttpStatus.OK)
-                    .body(response)
-                    .build();
-            }
             DittoAuthToken dittoAuthToken = serializer.deserialize(requestBody.getToken(), DittoAuthToken.class);
             
             // Validate JWT token with specific audience and scope
