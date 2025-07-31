@@ -41,7 +41,7 @@ paths:
               examples:
                 errorResponse:
                   value:
-                    authenticated: false
+                    authenticate: false
         '401':
           description: Unauthorized - Invalid or expired token
           content:
@@ -51,7 +51,7 @@ paths:
               examples:
                 errorResponse:
                   value:
-                    authenticated: false
+                    authenticate: false
         '500':
           description: Internal server error
           content:
@@ -61,7 +61,7 @@ paths:
               examples:
                 errorResponse:
                   value:
-                    authenticated: false
+                    authenticate: false
   /ledgers:
     post:
       security:
@@ -261,7 +261,7 @@ components:
     AuthorizeResponse:
       type: object
       properties:
-        authenticated:
+        authenticate:
           type: boolean
           description: Whether the authentication was successful
           example: true

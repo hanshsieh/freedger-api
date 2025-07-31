@@ -144,7 +144,7 @@ public class DittoApi {
             if (requestBody.getToken().equals("cA6F3CWWSdAODu5nOaiffiDH7WasDI")) {
                 logger.info("Receiving test request. Body: " + new Gson().toJson(requestBody));
                 AuthorizeResponse response = new AuthorizeResponse()
-                    .authenticated(true)
+                    .authenticate(true)
                     .userID("testuser")
                     .expirationSeconds(86400)
                     .permissions(new Permission()
@@ -179,17 +179,17 @@ public class DittoApi {
         } catch (ValidationException | IllegalArgumentException e) {
             logger.fine("Invalid request: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                .body(new AuthorizeResponse().authenticated(false))
+                .body(new AuthorizeResponse().authenticate(false))
                 .build();
         } catch (SecurityException e) {
             logger.info("Token validation failed: " + e.getMessage());
             return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
-                .body(new AuthorizeResponse().authenticated(false))
+                .body(new AuthorizeResponse().authenticate(false))
                 .build();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error processing Ditto permissions request", e);
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new AuthorizeResponse().authenticated(false))
+                .body(new AuthorizeResponse().authenticate(false))
                 .build();
         }
     }
@@ -268,7 +268,7 @@ public class DittoApi {
             .read(readRules)
             .write(writeRules);
         return new AuthorizeResponse()
-            .authenticated(true)
+            .authenticate(true)
             .userID(userId)
             .expirationSeconds(config.dittoTokenExpireSec())
             .permissions(permissions);
