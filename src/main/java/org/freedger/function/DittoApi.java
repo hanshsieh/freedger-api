@@ -29,8 +29,6 @@ import org.freedger.openapi.models.Permission;
 import org.freedger.openapi.models.PermissionRules;
 import org.freedger.services.ditto.DittoHttpClient;
 import org.freedger.services.ditto.models.Ledger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Azure Functions with HTTP Trigger for Ditto APIs.
@@ -44,10 +42,10 @@ public class DittoApi {
         }
 
         public Optional<String> forReader(String ledgerId) {
-            return Optional.of(String.format("_id.ledgerId = '%s'", ledgerId));
+            return Optional.of(String.format("_id.ledgerId == '%s'", ledgerId));
         }
         public Optional<String> forWriter(String ledgerId) {
-            return Optional.of(String.format("_id.ledgerId = '%s'", ledgerId));
+            return Optional.of(String.format("_id.ledgerId == '%s'", ledgerId));
         }
     }
 
@@ -60,18 +58,18 @@ public class DittoApi {
             @Override
             public Optional<String> forReader(String ledgerId) {
                 return Optional.of(String.format(
-                    "_id.ledgerId IS MISSING OR _id.ledgerId = '%s'", ledgerId));
+                    "_id.ledgerId IS MISSING OR _id.ledgerId == '%s'", ledgerId));
             }
             @Override
             public Optional<String> forWriter(String ledgerId) {
-                return Optional.of(String.format("_id.ledgerId = '%s'", ledgerId));
+                return Optional.of(String.format("_id.ledgerId == '%s'", ledgerId));
             }
         },
         new CollectionQuery("JournalEntries"),
         new CollectionQuery("Ledgers") {
             @Override
             public Optional<String> forReader(String ledgerId) {
-                return Optional.of(String.format("_id = '%s'", ledgerId));
+                return Optional.of(String.format("_id == '%s'", ledgerId));
             }
             @Override
             public Optional<String> forWriter(String ledgerId) {
@@ -151,7 +149,7 @@ public class DittoApi {
                         .read(new PermissionRules()
                             .everything(false)
                             .queriesByCollection(Map.of(
-                                "Ledgers", List.of("_id = '2c3101921095453fb0bdd5f924377fc9'"))))
+                                "Ledgers", List.of("_id == '2c3101921095453fb0bdd5f924377fc9'"))))
                         .write(new PermissionRules()
                             .everything(false)
                             .queriesByCollection(Collections.emptyMap())));
