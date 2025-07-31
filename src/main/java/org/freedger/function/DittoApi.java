@@ -2,6 +2,7 @@ package org.freedger.function;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.azure.core.util.logging.LogLevel;
+import com.google.gson.Gson;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
@@ -35,8 +36,6 @@ import org.slf4j.LoggerFactory;
  * Azure Functions with HTTP Trigger for Ditto APIs.
  */
 public class DittoApi {
-    private static final Logger logger = LoggerFactory.getLogger(DittoApi.class);
-
     private static class CollectionQuery {
         public final String name;
 
@@ -143,6 +142,7 @@ public class DittoApi {
             AuthorizeRequest requestBody = request.getBody();
             // TODO: For debugging only
             if (requestBody.getToken().equals("cA6F3CWWSdAODu5nOaiffiDH7WasDI")) {
+                logger.info("Receiving test request. Body: " + new Gson().toJson(requestBody));
                 AuthorizeResponse response = new AuthorizeResponse()
                     .authenticated(true)
                     .userID("testuser")
