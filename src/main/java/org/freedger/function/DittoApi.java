@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.freedger.config.Config;
+import org.freedger.function.utils.CollectionQuery;
 import org.freedger.function.utils.HttpMessageSerializer;
 import org.freedger.function.utils.RequestValidator;
 import org.freedger.function.utils.Scope;
@@ -32,31 +33,6 @@ import org.freedger.services.ditto.models.Ledger;
  * Azure Functions with HTTP Trigger for Ditto APIs.
  */
 public class DittoApi {
-    private static class CollectionQuery {
-        public final String name;
-
-        public CollectionQuery(String name) {
-            this.name = name;
-        }
-
-        public Optional<String> forReader(List<String> ledgerIds) {
-            return buildQueryForLedgers(ledgerIds);
-        }
-        public Optional<String> forWriter(List<String> ledgerIds) {
-            return buildQueryForLedgers(ledgerIds);
-        }
-
-        private Optional<String> buildQueryForLedgers(List<String> ledgerIds) {
-            if (ledgerIds.isEmpty()) {
-                return Optional.empty();
-            }
-            final var clauses = ledgerIds.stream()
-                .map(id -> String.format("_id['ledgerId'] == '%s'", id))
-                .collect(Collectors.toList());
-            return Optional.of(String.join(" || ", clauses));
-        }
-    }
-
     private static final List<CollectionQuery> collections = List.of(
         new CollectionQuery("AccountGroups"),
         new CollectionQuery("Accounts"),
@@ -64,30 +40,30 @@ public class DittoApi {
         new CollectionQuery("CategoryGroups"),
         new CollectionQuery("Currencies") {
             @Override
-            public Optional<String> forReader(List<String> ledgerIds) {
+            public List<String> forReader(List<String> ledgerIds) {
                 // FIXME: It looks like there's no way to check if a field is missing using legacy
                 // QL. Need to confirm. As a temporary solution, allow to read all the currencies.
                 // https://support.ditto.live/hc/en-us/requests/2215
                 //return Optional.of(String.format(
                 //    "_id['ledgerId'] == null || _id['ledgerId'] == '%s'", ledgerId));
-                return Optional.of("_id != ''");
+                return List.of("_id != ''");
             }
         },
         new CollectionQuery("JournalEntries"),
         new CollectionQuery("Ledgers") {
             @Override
-            public Optional<String> forReader(List<String> ledgerIds) {
+            public List<String> forReader(List<String> ledgerIds) {
                 if (ledgerIds.isEmpty()) {
-                    return Optional.empty();
+                    return List.of();
                 }
                 final var clauses = ledgerIds.stream()
                     .map(id -> String.format("_id == '%s'", id))
                     .collect(Collectors.toList());
-                return Optional.of(String.join(" || ", clauses));
+                return List.of(String.join(" || ", clauses));
             }
             @Override
-            public Optional<String> forWriter(List<String> ledgerIds) {
-                return Optional.empty();
+            public List<String> forWriter(List<String> ledgerIds) {
+                return List.of();
             }
         },
         new CollectionQuery("Platforms"),
@@ -207,27 +183,24 @@ public class DittoApi {
      * @return DittoWebhookResponse with the appropriate permissions
      */
     private AuthorizeResponse buildAuthResponse(String userId, List<Ledger> ledgers) {
-        Map<String, List<String>> readQueries = new HashMap<>();
-        Map<String, List<String>> writeQueries = new HashMap<>();
+        final var readQueries = new HashMap<String, List<String>>();
+        final var writeQueries = new HashMap<String, List<String>>();
         final var ledgerIds = ledgers.stream().map(Ledger::getId).collect(Collectors.toList());
 
         for (var collection : collections) {
-            final var collectionReads = readQueries.computeIfAbsent(collection.name, k -> new ArrayList<>());
-            final var collectionWrites = writeQueries.computeIfAbsent(collection.name, k -> new ArrayList<>());
-
-            collection.forReader(ledgerIds).ifPresent(collectionReads::add);
-            collection.forWriter(ledgerIds).ifPresent(collectionWrites::add);
+            readQueries.put(collection.name, collection.forReader(ledgerIds));
+            writeQueries.put(collection.name, collection.forWriter(ledgerIds));
         }
 
         // Create permission rules for read and write
-        var readRules = new PermissionRules()
+        final var readRules = new PermissionRules()
             .everything(false)
             .queriesByCollection(readQueries.entrySet().stream()
                 .filter(e -> !e.getValue().isEmpty())
                 .collect(Collectors.toMap(
                     Map.Entry::getKey, 
                     e -> e.getValue().stream().sorted().collect(Collectors.toList()))));
-        var writeRules = new PermissionRules()
+        final var writeRules = new PermissionRules()
             .everything(false)
             .queriesByCollection(writeQueries.entrySet().stream()
                 .filter(e -> !e.getValue().isEmpty())
@@ -235,7 +208,7 @@ public class DittoApi {
                     Map.Entry::getKey, 
                     e -> e.getValue().stream().sorted().collect(Collectors.toList()))));
 
-        var permissions = new Permission()
+        final var permissions = new Permission()
             .read(readRules)
             .write(writeRules);
         return new AuthorizeResponse()
