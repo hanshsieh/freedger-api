@@ -1,5 +1,6 @@
 package org.freedger.function.utils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,7 +20,7 @@ public class CollectionQuery {
 
     private List<String> buildQueryForLedgers(List<String> ledgerIds) {
         if (ledgerIds.isEmpty()) {
-            return List.of();
+            return Collections.emptyList();
         }
         final var clauses = ledgerIds.stream()
             .map(id -> String.format("_id['ledgerId'] == '%s'", id))

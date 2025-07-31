@@ -41,12 +41,14 @@ public class DittoApi {
         new CollectionQuery("Currencies") {
             @Override
             public List<String> forReader(List<String> ledgerIds) {
-                // FIXME: It looks like there's no way to check if a field is missing using legacy
-                // QL. Need to confirm. As a temporary solution, allow to read all the currencies.
+                // TODO: Need to confirm whether legacy QL supports querying docs with a missing field
                 // https://support.ditto.live/hc/en-us/requests/2215
-                //return Optional.of(String.format(
-                //    "_id['ledgerId'] == null || _id['ledgerId'] == '%s'", ledgerId));
-                return List.of("_id != ''");
+                final var clauses = new ArrayList<String>();
+                clauses.add("_id['ledgerId'] == null");
+                clauses.addAll(ledgerIds.stream()
+                    .map(id -> String.format("_id['ledgerId'] == '%s'", id))
+                    .collect(Collectors.toList()));
+                return List.of(String.join(" || ", clauses));
             }
         },
         new CollectionQuery("JournalEntries"),
@@ -54,7 +56,7 @@ public class DittoApi {
             @Override
             public List<String> forReader(List<String> ledgerIds) {
                 if (ledgerIds.isEmpty()) {
-                    return List.of();
+                    return Collections.emptyList();
                 }
                 final var clauses = ledgerIds.stream()
                     .map(id -> String.format("_id == '%s'", id))
@@ -63,7 +65,7 @@ public class DittoApi {
             }
             @Override
             public List<String> forWriter(List<String> ledgerIds) {
-                return List.of();
+                return Collections.emptyList();
             }
         },
         new CollectionQuery("Platforms"),
