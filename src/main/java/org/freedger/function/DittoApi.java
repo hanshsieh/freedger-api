@@ -1,7 +1,6 @@
 package org.freedger.function;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.google.gson.Gson;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
@@ -40,11 +39,21 @@ public class DittoApi {
             this.name = name;
         }
 
-        public Optional<String> forReader(String ledgerId) {
-            return Optional.of(String.format("_id['ledgerId'] == '%s'", ledgerId));
+        public Optional<String> forReader(List<String> ledgerIds) {
+            return buildQueryForLedgers(ledgerIds);
         }
-        public Optional<String> forWriter(String ledgerId) {
-            return Optional.of(String.format("_id['ledgerId'] == '%s'", ledgerId));
+        public Optional<String> forWriter(List<String> ledgerIds) {
+            return buildQueryForLedgers(ledgerIds);
+        }
+
+        private Optional<String> buildQueryForLedgers(List<String> ledgerIds) {
+            if (ledgerIds.isEmpty()) {
+                return Optional.empty();
+            }
+            final var clauses = ledgerIds.stream()
+                .map(id -> String.format("_id['ledgerId'] == '%s'", id))
+                .collect(Collectors.toList());
+            return Optional.of(String.join(" || ", clauses));
         }
     }
 
@@ -55,7 +64,7 @@ public class DittoApi {
         new CollectionQuery("CategoryGroups"),
         new CollectionQuery("Currencies") {
             @Override
-            public Optional<String> forReader(String ledgerId) {
+            public Optional<String> forReader(List<String> ledgerIds) {
                 // FIXME: It looks like there's no way to check if a field is missing using legacy
                 // QL. Need to confirm. As a temporary solution, allow to read all the currencies.
                 // https://support.ditto.live/hc/en-us/requests/2215
@@ -63,19 +72,21 @@ public class DittoApi {
                 //    "_id['ledgerId'] == null || _id['ledgerId'] == '%s'", ledgerId));
                 return Optional.of("_id != ''");
             }
-            @Override
-            public Optional<String> forWriter(String ledgerId) {
-                return Optional.of(String.format("_id['ledgerId'] == '%s'", ledgerId));
-            }
         },
         new CollectionQuery("JournalEntries"),
         new CollectionQuery("Ledgers") {
             @Override
-            public Optional<String> forReader(String ledgerId) {
-                return Optional.of(String.format("_id == '%s'", ledgerId));
+            public Optional<String> forReader(List<String> ledgerIds) {
+                if (ledgerIds.isEmpty()) {
+                    return Optional.empty();
+                }
+                final var clauses = ledgerIds.stream()
+                    .map(id -> String.format("_id == '%s'", id))
+                    .collect(Collectors.toList());
+                return Optional.of(String.join(" || ", clauses));
             }
             @Override
-            public Optional<String> forWriter(String ledgerId) {
+            public Optional<String> forWriter(List<String> ledgerIds) {
                 return Optional.empty();
             }
         },
@@ -196,28 +207,16 @@ public class DittoApi {
      * @return DittoWebhookResponse with the appropriate permissions
      */
     private AuthorizeResponse buildAuthResponse(String userId, List<Ledger> ledgers) {
-        Map<String, Set<String>> readQueries = new HashMap<>();
-        Map<String, Set<String>> writeQueries = new HashMap<>();
+        Map<String, List<String>> readQueries = new HashMap<>();
+        Map<String, List<String>> writeQueries = new HashMap<>();
+        final var ledgerIds = ledgers.stream().map(Ledger::getId).collect(Collectors.toList());
 
         for (var collection : collections) {
-            final var collectionReads = readQueries.computeIfAbsent(collection.name, k -> new HashSet<>());
-            final var collectionWrites = writeQueries.computeIfAbsent(collection.name, k -> new HashSet<>());
+            final var collectionReads = readQueries.computeIfAbsent(collection.name, k -> new ArrayList<>());
+            final var collectionWrites = writeQueries.computeIfAbsent(collection.name, k -> new ArrayList<>());
 
-            for (Ledger ledger : ledgers) {
-                String ledgerId = ledger.getId();
-                
-                // Check if user is a reader or writer
-                boolean isWriter = ledger.getWriterIds() != null && ledger.getWriterIds().contains(userId);
-                boolean isReader = isWriter || ledger.getReaderIds() != null && ledger.getReaderIds().contains(userId);
-
-                if (isReader) {
-                    collection.forReader(ledgerId).ifPresent(collectionReads::add);
-                }
-
-                if (isWriter) {
-                    collection.forWriter(ledgerId).ifPresent(collectionWrites::add);
-                }
-            }
+            collection.forReader(ledgerIds).ifPresent(collectionReads::add);
+            collection.forWriter(ledgerIds).ifPresent(collectionWrites::add);
         }
 
         // Create permission rules for read and write
