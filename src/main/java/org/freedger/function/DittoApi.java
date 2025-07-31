@@ -1,7 +1,6 @@
 package org.freedger.function;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.azure.core.util.logging.LogLevel;
 import com.google.gson.Gson;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
@@ -42,10 +41,10 @@ public class DittoApi {
         }
 
         public Optional<String> forReader(String ledgerId) {
-            return Optional.of(String.format("_id.ledgerId == '%s'", ledgerId));
+            return Optional.of(String.format("_id['ledgerId'] == '%s'", ledgerId));
         }
         public Optional<String> forWriter(String ledgerId) {
-            return Optional.of(String.format("_id.ledgerId == '%s'", ledgerId));
+            return Optional.of(String.format("_id['ledgerId'] == '%s'", ledgerId));
         }
     }
 
@@ -57,12 +56,16 @@ public class DittoApi {
         new CollectionQuery("Currencies") {
             @Override
             public Optional<String> forReader(String ledgerId) {
-                return Optional.of(String.format(
-                    "_id.ledgerId IS MISSING OR _id.ledgerId == '%s'", ledgerId));
+                // FIXME: It looks like there's no way to check if a field is missing using legacy
+                // QL. Need to confirm. As a temporary solution, allow to read all the currencies.
+                // https://support.ditto.live/hc/en-us/requests/2215
+                //return Optional.of(String.format(
+                //    "_id['ledgerId'] == null || _id['ledgerId'] == '%s'", ledgerId));
+                return Optional.of("_id != ''");
             }
             @Override
             public Optional<String> forWriter(String ledgerId) {
-                return Optional.of(String.format("_id.ledgerId == '%s'", ledgerId));
+                return Optional.of(String.format("_id['ledgerId'] == '%s'", ledgerId));
             }
         },
         new CollectionQuery("JournalEntries"),
@@ -78,16 +81,6 @@ public class DittoApi {
         },
         new CollectionQuery("Platforms"),
         new CollectionQuery("Projects"),
-        new CollectionQuery("Symbols") {
-            @Override
-            public Optional<String> forReader(String ledgerId) {
-                return Optional.of("_id.ledgerId IS MISSING");
-            }
-            @Override
-            public Optional<String> forWriter(String ledgerId) {
-                return Optional.empty();
-            }
-        },
         new CollectionQuery("Tags"),
         new CollectionQuery("Transactions")
     );
