@@ -44,8 +44,12 @@ public class Account {
     @SerializedName("isAutoClear")
     private boolean autoClear = true;
 
+    @SerializedName("note")
+    @NotNull
+    private String note = "";
+
     @SerializedName("order")
-    private double order = 1.0;
+    private double order = 0.0;
 
     public int getSchemaVersion() {
         return schemaVersion;
@@ -125,6 +129,14 @@ public class Account {
 
     public void setAutoClear(boolean isAutoClear) {
         this.autoClear = isAutoClear;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     public double getOrder() {

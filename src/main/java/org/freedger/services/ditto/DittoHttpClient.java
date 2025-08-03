@@ -132,7 +132,8 @@ public class DittoHttpClient {
             account.setGroupId(null);
             account.setCurrencyId(config.getCurrencyId());
             account.setAutoClear(true);
-            account.setOrder(1.0);
+            account.setNote("");
+            account.setOrder(0.0);
 
             var createAccountCommand = new UpsertCommand<LedgerChildId, Account>();
             createAccountCommand.setCollection(Collection.ACCOUNTS.getName());
