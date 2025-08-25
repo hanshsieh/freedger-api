@@ -16,7 +16,9 @@ import javax.inject.Inject;
 
 import org.freedger.config.Config;
 import org.freedger.function.utils.CollectionQuery;
+import org.freedger.function.utils.LedgerChildOrGlobalQuery;
 import org.freedger.function.utils.HttpMessageSerializer;
+import org.freedger.function.utils.LedgerChildQuery;
 import org.freedger.function.utils.RequestValidator;
 import org.freedger.function.utils.Scope;
 import org.freedger.function.utils.ScopePredicate;
@@ -34,44 +36,30 @@ import org.freedger.services.ditto.models.Ledger;
  */
 public class DittoApi {
     private static final List<CollectionQuery> collections = List.of(
-        new CollectionQuery("AccountGroups"),
-        new CollectionQuery("Accounts"),
-        new CollectionQuery("Categories"),
-        new CollectionQuery("CategoryGroups"),
-        new CollectionQuery("Currencies") {
-            @Override
-            public List<String> forReader(List<String> ledgerIds) {
-                // TODO: Need to confirm whether legacy QL supports querying docs with a missing field
-                // https://support.ditto.live/hc/en-us/requests/2215
-                final var clauses = new ArrayList<String>();
-                clauses.add("_id['ledgerId'] == null");
-                clauses.addAll(ledgerIds.stream()
-                    .map(id -> String.format("_id['ledgerId'] == '%s'", id))
-                    .collect(Collectors.toList()));
-                return List.of(String.join(" || ", clauses));
-            }
-        },
-        new CollectionQuery("JournalEntries"),
+        new LedgerChildQuery("AccountGroups"),
+        new LedgerChildQuery("Accounts"),
+        new LedgerChildQuery("Categories"),
+        new LedgerChildQuery("CategoryGroups"),
+        new LedgerChildOrGlobalQuery("Currencies"),
+        new LedgerChildQuery("JournalEntries"),
         new CollectionQuery("Ledgers") {
             @Override
             public List<String> forReader(List<String> ledgerIds) {
-                if (ledgerIds.isEmpty()) {
-                    return Collections.emptyList();
-                }
-                final var clauses = ledgerIds.stream()
+                return ledgerIds.stream()
                     .map(id -> String.format("_id == '%s'", id))
                     .collect(Collectors.toList());
-                return List.of(String.join(" || ", clauses));
             }
             @Override
             public List<String> forWriter(List<String> ledgerIds) {
                 return Collections.emptyList();
             }
         },
-        new CollectionQuery("Platforms"),
-        new CollectionQuery("Projects"),
-        new CollectionQuery("Tags"),
-        new CollectionQuery("Transactions")
+        new LedgerChildQuery("Platforms"),
+        new LedgerChildQuery("Projects"),
+        new LedgerChildQuery("Tags"),
+        new LedgerChildQuery("Transactions"),
+        new LedgerChildOrGlobalQuery("Instruments"),
+        new LedgerChildOrGlobalQuery("Quotes")
     );
 
     private final RequestValidator requestValidator;

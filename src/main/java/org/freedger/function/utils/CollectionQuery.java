@@ -4,27 +4,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CollectionQuery {
+public abstract class CollectionQuery {
     public final String name;
 
     public CollectionQuery(String name) {
         this.name = name;
     }
 
-    public List<String> forReader(List<String> ledgerIds) {
-        return buildQueryForLedgers(ledgerIds);
-    }
-    public List<String> forWriter(List<String> ledgerIds) {
-        return buildQueryForLedgers(ledgerIds);
-    }
-
-    private List<String> buildQueryForLedgers(List<String> ledgerIds) {
-        if (ledgerIds.isEmpty()) {
-            return Collections.emptyList();
-        }
-        final var clauses = ledgerIds.stream()
-            .map(id -> String.format("_id['ledgerId'] == '%s'", id))
-            .collect(Collectors.toList());
-        return List.of(String.join(" || ", clauses));
-    }
+    public abstract List<String> forReader(List<String> ledgerIds);
+    public abstract List<String> forWriter(List<String> ledgerIds);
 }
