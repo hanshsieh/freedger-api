@@ -36,11 +36,13 @@ import org.freedger.services.ditto.models.Ledger;
  */
 public class DittoApi {
     private static final List<CollectionQuery> collections = List.of(
+        new LedgerChildQuery("AccountChannels"),
         new LedgerChildQuery("AccountGroups"),
         new LedgerChildQuery("Accounts"),
         new LedgerChildQuery("Categories"),
         new LedgerChildQuery("CategoryGroups"),
         new LedgerChildOrGlobalQuery("Currencies"),
+        new LedgerChildOrGlobalQuery("Instruments"),
         new LedgerChildQuery("JournalEntries"),
         new CollectionQuery("Ledgers") {
             @Override
@@ -55,11 +57,11 @@ public class DittoApi {
             }
         },
         new LedgerChildQuery("Platforms"),
+        new LedgerChildQuery("ProjectGroups"),
         new LedgerChildQuery("Projects"),
+        new LedgerChildOrGlobalQuery("Quotes"),
         new LedgerChildQuery("Tags"),
-        new LedgerChildQuery("Transactions"),
-        new LedgerChildOrGlobalQuery("Instruments"),
-        new LedgerChildOrGlobalQuery("Quotes")
+        new LedgerChildQuery("Transactions")
     );
 
     private final RequestValidator requestValidator;
