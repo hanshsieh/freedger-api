@@ -1,0 +1,180 @@
+{
+  "transaction": {
+    "type": "payment",
+    "credits": [],
+    "debits": [
+      {
+        "accountId": "61819007ba4647539f4340f94e1c54d4",
+        "accountChannelId": null,
+        "platformId": null,
+        "amount": "0",
+        "currencyId": "67fb6c93007e33a200b9963d@g",
+        "time": "2025-01-01T09:00:00+08:00",
+        "inBalance": false
+      }
+    ],
+    "tags": [],
+    "note": ""
+  },
+  "currencies": [
+    {
+      "id": "67fb6c93007e33a200b9963d@g",
+      "type": "fiat",
+      "code": "TWD",
+      "name": "Taiwan Dollar",
+      "custom": false
+    },
+    {
+      "id": "01986eb9d6c2784aa3a2f9ad2b461011",
+      "type": "other",
+      "code": "LNP",
+      "name": "Line Point",
+      "custom": true
+    }
+  ],
+  "accounts": [
+    {
+      "id": "01986eb9d6c2784aa3a2f9ad2b46100c",
+      "name": "台幣",
+      "groupName": "現金",
+      "type": "cash",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "01986eb9d6c2784aa3a2f9ad2b46100d",
+      "name": "玉山信用卡",
+      "groupName": "信用卡",
+      "type": "credit",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": [
+        {
+          "id": "01986eb9d6c2784aa3a2f9ad2b46100e",
+          "name": "U Bear"
+        },
+        {
+          "id": "01986eb9d6c2784aa3a2f9ad2b46100f",
+          "name": "PI錢包"
+        }
+      ]
+    },
+    {
+      "id": "01986eb9d6c2784aa3a2f9ad2b461010",
+      "name": "Line Point",
+      "groupName": "點數",
+      "type": "loadable",
+      "category": "personal",
+      "currencyId": "01986eb9d6c2784aa3a2f9ad2b461011",
+      "channels": []
+    },
+    {
+      "id": "01986eb9d6c2784aa3a2f9ad2b461012",
+      "name": "台新台幣",
+      "groupName": "銀行",
+      "type": "bank",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "01986eb9d6c2784aa3a2f9ad2b461013",
+      "name": "五十嵐手搖飲",
+      "groupName": null,
+      "type": "counterparty",
+      "category": "external",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "61819007ba4647539f4340f94e1c54d4",
+      "name": "未指定",
+      "groupName": null,
+      "type": "counterparty",
+      "category": "external",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    }
+  ],
+  "categories": [
+    {
+      "id": "01986eb9d19679bc912ebafd355cf410",
+      "name": "點心",
+      "groupName": "飲食",
+      "transactionType": "payment"
+    },
+    {
+      "id": "01986eb9d179744d8033956432ad1133",
+      "name": "正餐",
+      "groupName": "飲食",
+      "transactionType": "payment"
+    },
+    {
+      "id": "01986eb9d1de770cb56bd232cd097fa8",
+      "name": "交通費",
+      "groupName": "交通",
+      "transactionType": "payment"
+    },
+    {
+      "id": "01986eb9d1ee7b66aa9ed642e680398e",
+      "name": "薪資",
+      "groupName": null,
+      "transactionType": "receive"
+    },
+    {
+      "id": "01986eb9d1ee7b66aa9ed642e680398f",
+      "name": "退款",
+      "groupName": null,
+      "transactionType": "receive"
+    },
+    {
+      "id": "01986eb9d1ee7b66aa9ed642e6803991",
+      "name": "轉帳",
+      "groupName": null,
+      "transactionType": "transfer"
+    },
+    {
+      "id": "01986eb9d1ee7b66aa9ed642e6803992",
+      "name": "提款",
+      "groupName": null,
+      "transactionType": "transfer"
+    },
+    {
+      "id": "01986eb9d1ee7b66aa9ed642e6803993",
+      "name": "存款",
+      "groupName": null,
+      "transactionType": "transfer"
+    }
+  ],
+  "platforms": [
+    {
+      "id": "01986eb9d6c2784aa3a2f9ad2b461014",
+      "name": "街口支付",
+      "items": [
+        {
+          "accountId": "01986eb9d6c2784aa3a2f9ad2b46100d",
+          "accountChannelId": "01986eb9d6c2784aa3a2f9ad2b46100e"
+        },
+        {
+          "accountId": "01986eb9d6c2784aa3a2f9ad2b461012",
+          "accountChannelId": null
+        }
+      ]
+    },
+    {
+      "id": "01986eb9d6c2784aa3a2f9ad2b461018",
+      "name": "Line Pay",
+      "items": [
+        {
+          "accountId": "01986eb9d6c2784aa3a2f9ad2b461012",
+          "accountChannelId": null
+        },
+        {
+          "accountId": "01986eb9d6c2784aa3a2f9ad2b461010",
+          "accountChannelId": null
+        }
+      ]
+    }
+  ]
+}
