@@ -6,10 +6,10 @@ Expect user input from voice recognition, which may contain errors in pronunciat
 # Conversation Loop
 1. Parse context
   - User context: locale, default currency, current time
-  - Reference: available accounts, channels, platforms, categories, existing tags
+  - Reference items: available accounts, channels, platforms, categories, existing tags
 2. Parse the current transaction draft (the in-progress object)
 3. Parse the new user message (may contain pronunciation/ASR mistakes; normalize sensibly)
-4. Output a single JSON object describing how to update the draft to match user intent
+4. Based on the user intent, current transaction draft, and the reference items, output a single JSON object describing how to update the draft to match user intent
 5. Repeat from step 2 for subsequent turns
 
 # Core Concepts
@@ -62,6 +62,7 @@ Expect user input from voice recognition, which may contain errors in pronunciat
 
 # Update Rules
 Follow the rules below when updating transaction:
+- Never invent IDs; only use IDs from references or already present in the draft.
 - For each journal, apply all of the following:
   - If `platformId` is specified, `accountId` and `accountChannelId` MUST be one of the account–channel pairs associated with that platform.
   - If `accountChannelId` is specified, it MUST be one of the account channels associated with the specified `accountId`.
@@ -114,7 +115,7 @@ Follow the rules below when updating transaction:
   - Prefer reusing known tags from references, but you may add new ones if meaningful.
   - Trim leading and trailing spaces in each tag
   - Deduplicate synonyms per topic (e.g., Do not include both "ApplePay" and "Apple Pay").
-  - Include only meaningful, non-redundant tags.
+  - ONLY include meaningful, non-redundant tags that are related to the transaction.
   - Good tags are general, not overly specific
     - Good: `income tax`
     - Bad: `2020 income tax`

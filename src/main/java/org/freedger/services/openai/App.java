@@ -3,9 +3,8 @@ package org.freedger.services.openai;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.freedger.services.openai.tools.GetDraftReference;
-import org.freedger.services.openai.tools.UpdateTransactionDraft;
 import org.freedger.services.openai.models.DraftState;
+import org.freedger.services.openai.models.UpdateTransactionDraft;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,15 +15,11 @@ import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.ChatModel;
 import com.openai.models.Reasoning;
 import com.openai.models.ReasoningEffort;
-import com.openai.models.responses.Response;
 import com.openai.models.responses.ResponseCreateParams;
-import com.openai.models.responses.ResponseFunctionToolCall;
 import com.openai.models.responses.ResponseInputItem;
 import com.openai.models.responses.ResponseTextConfig;
-import com.openai.models.responses.ToolChoiceOptions;
 
 public class App {
-  private final StorageService storageService;
   private final List<ResponseInputItem> inputs = new ArrayList<>();
   private ResponseCreateParams.Builder paramsBuilder;
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -33,17 +28,12 @@ public class App {
     new App().run();
   }
 
-  public App() throws Exception {
-    storageService = StorageService.createFromFile("prompts/2_rounds_rag/storage.json");
-  }
-
   public void run() throws Exception {
     client = OpenAIOkHttpClient.fromEnv();
     try {
       paramsBuilder = createParamsBuilder();
       inputs.clear();
       collectDraftReference();
-      updateTransactionDraft();
     } finally {
       client.close();
     }
@@ -62,64 +52,38 @@ public class App {
 
   private void collectDraftReference() throws IOException {    
     addInitialInputs();
-    addUserInput("prompts/2_rounds_rag/request1/message3_1.md");
-    setInstructions("prompts/2_rounds_rag/request1/instructions.md");
-    ResponseCreateParams params = paramsBuilder
+    addUserInput("prompts/1_round/message3_4.md");
+    final var params = paramsBuilder
       .input(ResponseCreateParams.Input.ofResponse(inputs))
-      .addTool(GetDraftReference.class)
-      .toolChoice(ResponseCreateParams.ToolChoice.ofOptions(ToolChoiceOptions.REQUIRED))
+      .text(UpdateTransactionDraft.class)
       .build();
     OpenAIUtils.printRequest(params);
-    Response response = client.responses().create(params);
+    final var response = client.responses().create(params);
     OpenAIUtils.printResponse(response);
     inputs.clear();
     paramsBuilder = createParamsBuilder()
       .previousResponseId(response.id());
-    for (var output : response.output()) {
-      if (output.isFunctionCall()) {
-        final var functionCall = output.asFunctionCall();
-        handlFunctionCall(functionCall);
-      }
-    }
-  }
-
-  private void updateTransactionDraft() throws IOException {
-    setInstructions("prompts/2_rounds_rag/request2/instructions.md");
-    ResponseCreateParams params = paramsBuilder
-      .input(ResponseCreateParams.Input.ofResponse(inputs))
-      .addTool(UpdateTransactionDraft.class)
-      .toolChoice(ResponseCreateParams.ToolChoice.ofOptions(ToolChoiceOptions.REQUIRED))
-      .build();
-
-    OpenAIUtils.printRequest(params);
-
-    Response response = client.responses().create(params);
-    OpenAIUtils.printResponse(response);
-    inputs.clear();
-    paramsBuilder = createParamsBuilder()
-      .previousResponseId(response.id());
-    for (var output : response.output()) {
-      if (output.isFunctionCall()) {
-        final var functionCall = output.asFunctionCall();
-        handlFunctionCall(functionCall);
-      }
-    }
   }
 
   private void addInitialInputs() throws IOException {
     inputs.add(ResponseInputItem.ofMessage(
       ResponseInputItem.Message.builder()
         .role(ResponseInputItem.Message.Role.DEVELOPER)
-        .addInputTextContent(loadResourceAsString("prompts/2_rounds_rag/request1/message1.md"))
+        .addInputTextContent(loadResourceAsString("prompts/1_round/message1.md"))
         .build()));
-    var contextStr = loadResourceAsString("prompts/2_rounds_rag/request1/message2.md");
+    var contextStr = loadResourceAsString("prompts/1_round/message2.md");
     final var draftState = objectMapper.readValue(
-      loadResourceAsString("prompts/2_rounds_rag/request1/draft_state.json"), DraftState.class);
+      loadResourceAsString("prompts/1_round/draft_state.json"), DraftState.class);
+    contextStr = contextStr.replace("{{currentTime}}", draftState.currentTime);
+    contextStr = contextStr.replace("{{timeZone}}", draftState.timeZone);
+    contextStr = contextStr.replace("{{locale}}", draftState.locale);
+    contextStr = contextStr.replace("{{defaultCurrencyId}}", draftState.defaultCurrencyId);
     contextStr = contextStr.replace("{{transaction}}", objectMapper.writeValueAsString(draftState.transaction));
     contextStr = contextStr.replace("{{currencies}}", objectMapper.writeValueAsString(draftState.currencies));
     contextStr = contextStr.replace("{{accounts}}", objectMapper.writeValueAsString(draftState.accounts));
     contextStr = contextStr.replace("{{categories}}", objectMapper.writeValueAsString(draftState.categories));
     contextStr = contextStr.replace("{{platforms}}", objectMapper.writeValueAsString(draftState.platforms));
+    contextStr = contextStr.replace("{{tags}}", objectMapper.writeValueAsString(draftState.tags));
     inputs.add(ResponseInputItem.ofMessage(
       ResponseInputItem.Message.builder()
         .role(ResponseInputItem.Message.Role.DEVELOPER)
@@ -136,27 +100,6 @@ public class App {
           .build()));
   }
 
-  private Object callFunction(ResponseFunctionToolCall functionCall) {
-    switch (functionCall.name()) {
-      case "GetDraftReference":
-        return functionCall.arguments(GetDraftReference.class).execute(storageService);
-      case "UpdateTransactionDraft":
-        return functionCall.arguments(UpdateTransactionDraft.class).execute();
-      default:
-        throw new IllegalArgumentException("Unknown function: " + functionCall.name());
-    }
-  }
-
-  private void handlFunctionCall(ResponseFunctionToolCall functionCall) throws IOException {
-    final var result = callFunction(functionCall);
-    final var jsonResult = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
-    inputs.add(ResponseInputItem.ofFunctionCallOutput(
-      ResponseInputItem.FunctionCallOutput.builder()
-        .callId(functionCall.callId())
-        .output(jsonResult)
-        .build()));
-  }
-
   private ResponseCreateParams.Builder createParamsBuilder() {
     return ResponseCreateParams.builder()
       .model(ChatModel.GPT_5_NANO_2025_08_07)
@@ -166,10 +109,5 @@ public class App {
       .reasoning(Reasoning.builder()
         .effort(ReasoningEffort.MINIMAL)
         .build());
-  }
-
-  private void setInstructions(String filePath) {
-    final var content = loadResourceAsString(filePath);
-    paramsBuilder.instructions(content);
   }
 }

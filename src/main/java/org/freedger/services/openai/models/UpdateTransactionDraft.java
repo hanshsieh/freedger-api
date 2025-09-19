@@ -1,8 +1,6 @@
-package org.freedger.services.openai.tools;
+package org.freedger.services.openai.models;
 
 import java.util.List;
-
-import org.freedger.services.openai.models.Journal;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

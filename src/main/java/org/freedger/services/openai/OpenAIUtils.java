@@ -8,6 +8,8 @@ import com.openai.models.responses.ResponseInputItem;
 import com.openai.models.responses.ResponseOutputItem;
 import com.openai.models.responses.ResponseOutputMessage;
 import com.openai.models.responses.ResponseTextConfig;
+import com.openai.models.responses.StructuredResponse;
+import com.openai.models.responses.StructuredResponseCreateParams;
 import com.openai.models.responses.Tool;
 
 public class OpenAIUtils {
@@ -36,6 +38,11 @@ public class OpenAIUtils {
     }
   }
 
+  public static <T> void printRequest(StructuredResponseCreateParams<T> params) {
+    final var rawParams = params.rawParams();
+    printRequest(rawParams);
+  }
+
   public static void printResponse(Response response) {
     printHeader("Response");
     System.out.println("ID: " + response.id());
@@ -45,6 +52,11 @@ public class OpenAIUtils {
       System.out.printf("Output %d:\n", i + 1);
       printResponseOutputItem(output.get(i));
     }
+  }
+
+  public static <T> void printResponse(StructuredResponse<T> response) {
+    final var rawResponse = response.rawResponse();
+    printResponse(rawResponse);
   }
 
   private static void printHeader(String title) {

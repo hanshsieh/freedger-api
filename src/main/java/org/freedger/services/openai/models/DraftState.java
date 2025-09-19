@@ -5,6 +5,18 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DraftState {
+  @JsonProperty("currentTime")
+  public String currentTime;
+
+  @JsonProperty("timeZone")
+  public String timeZone;
+
+  @JsonProperty("locale")
+  public String locale;
+
+  @JsonProperty("defaultCurrencyId")
+  public String defaultCurrencyId;
+
   @JsonProperty("transaction")
   public Transaction transaction;
 
@@ -19,4 +31,7 @@ public class DraftState {
 
   @JsonProperty("platforms")
   public List<Platform> platforms;
+
+  @JsonProperty("tags")
+  public List<String> tags;
 }
