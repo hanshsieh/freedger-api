@@ -31,7 +31,8 @@ replay_pid*
 .cursor/
 
 # VSCode
-.vscode/
+.vscode/*
+!.vscode/*.example.json
 
 # Maven
 target/
