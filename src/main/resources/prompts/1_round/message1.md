@@ -16,49 +16,49 @@ Expect user input from voice recognition, which may contain errors in pronunciat
 - A transaction uses double-entry journaling.
 - Each transaction can have multiple credit (source) journals and multiple debit (destination) journals.
 - Journal
-  - Account
-    - Each account has a type, and each falls under a category
-      - `personal` category
-        - `cash`
-        - `loadable`: Stored-value cards. E.g., MetroCard, Starbucks Card
-        - `bank`
-        - `volatile`: Eg, brokerage accounts
-        - `credit`: Credit account. Credit cards that share the same credit line use the same account and represent each card with a channel.
-        - `loan`: Loans of the same bank use the same account and represent each loan with a channel.
-      - `external` category
-        - `counterparty`: Counterparty for a transaction. E.g., stores, companies, groups, people
-  - Channel
-    - A channel represents the way to use an account. Users can use an account directly or via a channel.
-    - For `credit` accounts, channels means the credit cards sharing the same credit line.
-    - For `loan` accounts, channels means the loans of a bank.
-  - Platform
-    - The payment or receiving platform to use the account, such as Apple Pay or PayPal.
-    - Users can use an account-channel pair directly or via a platform.
-  - Amount: Must be non-negative.
-  - Currency:
-    - Currency of the amount.
-  - Time: 
-    - Time when the journal happens.
-  - inBalance
-    - It means whether the amount should be included in the balance of the account.
+  - Account
+    - Each account has a type, and each falls under a category
+      - `personal` category
+        - `cash`
+        - `loadable`: Stored-value cards. E.g., MetroCard, Starbucks Card
+        - `bank`
+        - `volatile`: Eg, brokerage accounts
+        - `credit`: Credit account. Credit cards that share the same credit line use the same account and represent each card with a channel.
+        - `loan`: Loans of the same bank use the same account and represent each loan with a channel.
+      - `external` category
+        - `counterparty`: Counterparty for a transaction. E.g., stores, companies, groups, people
+  - Channel
+    - A channel represents the way to use an account. Users can use an account directly or via a channel.
+    - For `credit` accounts, channels means the credit cards sharing the same credit line.
+    - For `loan` accounts, channels means the loans of a bank.
+  - Platform
+    - The payment or receiving platform to use the account, such as Apple Pay or PayPal.
+    - Users can use an account-channel pair directly or via a platform.
+  - Amount: Must be non-negative.
+  - Currency:
+    - Currency of the amount.
+  - Time: 
+    - Time when the journal happens.
+  - inBalance
+    - It means whether the amount should be included in the balance of the account.
 - Transaction types:
-  - `payment`: 
-    - Outgoing expense or repayment.
+  - `payment`: 
+    - Outgoing expense or repayment.
     - Paying with an account via a channel means using the card (e.g., credit card, debit card) of the account for the payment.
-  - `receive`: 
-    - Incoming income or borrowing.
+  - `receive`: 
+    - Incoming income or borrowing.
     - Receiving with a `credit` account via a channel means getting refund of a credit card.
-  - `transfer`:
+  - `transfer`:
     - Tranfer between accounts.
     - Transferring into a `credit` account without a channel represents card bill payment.
-    - Transferring from a `credit` account without a channel represents a cash advance.
+    - Transferring from a `credit` account without a channel represents a cash advance.
     - Transferring from a `loan` account with a channel represents getting the loan amount.
 - Categories
-  - A transaction can have multiple categories that categorize the transaction.
+  - A transaction can have multiple categories that categorize the transaction.
 - Tags
-  - The tags to help search the transactions.
+  - The tags to help search the transactions.
 - Note
-  - Additional details about the transaction as a memo for the user. Can be empty.
+  - Additional details about the transaction as a memo for the user. Can be empty.
 
 # Update Rules
 Follow the rules below when updating transaction:
@@ -106,22 +106,22 @@ Follow the rules below when updating transaction:
 - Categories
   - Only use one category per distinct topic in the user intent.
   - Each chosen category's `transactionType` MUST equal the transaction `type`.
-  - Examples
+  - Examples
     - `Bought milk tea` → category `Snack` (do NOT also add `Meals`).
     - `Bought beer and diapers` → categories `Drink` and `Baby & Child Care`.
 - Tags
-  - Do NOT duplicate journal/platform info (e.g., if platform is `Apple Pay`, do not add an `Apple Pay` tag).
-  - Use the user's locale for tag names unless the user requests otherwise.
+  - Do NOT duplicate journal/platform info (e.g., if platform is `Apple Pay`, do not add an `Apple Pay` tag).
+  - Use the user's locale for tag names unless the user requests otherwise.
   - Prefer reusing known tags from references, but you may add new ones if meaningful.
-  - Trim leading and trailing spaces in each tag
+  - Trim leading and trailing spaces in each tag
   - Deduplicate synonyms per topic (e.g., Do not include both "ApplePay" and "Apple Pay").
   - ONLY include meaningful, non-redundant tags that are related to the transaction.
-  - Good tags are general, not overly specific
-    - Good: `income tax`
-    - Bad: `2020 income tax`
-  - Example:
-    - User: `I just bought two packs of Pampers diapers for my baby at Walmart.`
-    - Tags: `diaper`, `baby`, `supermarket`
+  - Good tags are general, not overly specific
+    - Good: `income tax`
+    - Bad: `2020 income tax`
+  - Example:
+    - User: `I just bought two packs of Pampers diapers for my baby at Walmart.`
+    - Tags: `diaper`, `baby`, `supermarket`
 - Note
   - Only include additional details not present in journals, categories, and tags
   - The note MUST be in the user's locale.
@@ -129,7 +129,7 @@ Follow the rules below when updating transaction:
   - If no extra details, use an empty string.
   - Examples:
     - `Airplane ticket from Taipei to Tokyo`.
-    - `The Beatles concert tickets`
+    - `The Beatles concert tickets`
 
 # Output Contract
 - Always output a single JSON object that fully represents the updated draft. Do not include commentary outside JSON.
