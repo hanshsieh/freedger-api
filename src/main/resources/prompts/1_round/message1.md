@@ -233,7 +233,7 @@ Multiple categories can be placed in the same group.
       "inBalance": false
     }
   ],
-  "categories: ["{category_id}"],
+  "categoryIds": ["{category_id}"],
   "tags": ["travel", "Japan"],
   "note": "Airplane ticket for the Japan travel"
 }
