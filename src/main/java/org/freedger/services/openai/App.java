@@ -33,7 +33,8 @@ public class App {
     try {
       paramsBuilder = createParamsBuilder();
       inputs.clear();
-      collectDraftReference();
+      updateTransactionDraft();
+      updateTransactionDraft();
     } finally {
       client.close();
     }
@@ -50,7 +51,7 @@ public class App {
     }
   }
 
-  private void collectDraftReference() throws IOException {    
+  private void updateTransactionDraft() throws IOException {    
     addInitialInputs();
     addUserInput("prompts/1_round/message3_4.md");
     final var params = paramsBuilder
@@ -58,7 +59,12 @@ public class App {
       .text(UpdateTransactionDraft.class)
       .build();
     OpenAIUtils.printRequest(params);
+
+    final var startTime = System.currentTimeMillis();
     final var response = client.responses().create(params);
+    final var endTime = System.currentTimeMillis();
+
+    System.out.println("API Latency: " + (endTime - startTime) / 1000.0 + " s");
     OpenAIUtils.printResponse(response);
     inputs.clear();
     paramsBuilder = createParamsBuilder()
@@ -102,7 +108,7 @@ public class App {
 
   private ResponseCreateParams.Builder createParamsBuilder() {
     return ResponseCreateParams.builder()
-      .model(ChatModel.GPT_5_NANO_2025_08_07)
+      .model(ChatModel.GPT_5_MINI_2025_08_07)
       .text(ResponseTextConfig.builder()
         .verbosity(ResponseTextConfig.Verbosity.MEDIUM)
         .build())
