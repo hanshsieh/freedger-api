@@ -1,6 +1,7 @@
 package org.freedger.services.eval;
 
 import org.freedger.services.eval.models.EvalContext;
+import org.freedger.services.openai.models.UpdateTransactionDraft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,11 +14,14 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
+import com.openai.core.JsonField;
 import com.openai.core.JsonValue;
 import com.openai.core.MultipartField;
+import com.openai.models.ResponseFormatJsonSchema.JsonSchema.Schema;
 import com.openai.models.evals.EvalCreateParams;
 import com.openai.models.evals.EvalCreateParams.DataSourceConfig;
 import com.openai.models.evals.EvalCreateParams.DataSourceConfig.Custom.ItemSchema;
@@ -28,12 +32,16 @@ import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalRespons
 import com.openai.models.files.FileCreateParams;
 import com.openai.models.files.FileObject;
 import com.openai.models.files.FilePurpose;
+import com.openai.models.responses.ResponseFormatTextJsonSchemaConfig;
 
 public class UpdateTransactionEval implements Closeable {
   private static final Logger logger = LoggerFactory.getLogger(UpdateTransactionEval.class);
   private static final String CONTEXT_FILE = "prompts/update_transaction/evals/context.json";
   private static final String INPUT_FILE = "prompts/update_transaction/evals/input.jsonl";
   private static final String PYTHON_GRADER_FILE = "prompts/update_transaction/evals/test_criterion.py";
+  private static final String INTRO_PROMPT_FILE = "prompts/update_transaction/inputs/intro.md";
+  private static final String CONTEXT_PROMPT_FILE = "prompts/update_transaction/inputs/context.md";
+  private static final String STATUS_PROMPT_FILE = "prompts/update_transaction/inputs/status.md";
   private static final String DATA_KEY_USER_MESSAGE = "user_message";
   private static final String DATA_KEY_GROUND_TRUTH = "ground_truth";
   private static final Duration FILE_EXPIRE_TIME = Duration.ofHours(1);
@@ -77,12 +85,6 @@ public class UpdateTransactionEval implements Closeable {
         .build())
       .includeSampleSchema(true)
       .build()))
-    //.addTestingCriterion(EvalCreateParams.TestingCriterion.ofStringCheck(StringCheckGrader.builder()
-    //  .name("Match output with ground truth")
-    //  .input("{{sample.output_text}}")
-    //  .operation(StringCheckGrader.Operation.EQ)
-    //  .reference("{{item.%s}}".formatted(DATA_KEY_GROUND_TRUTH))
-    //  .build()))
     .addTestingCriterion(EvalCreateParams.TestingCriterion.ofPython(TestingCriterion.Python.builder()
       .name("Match output with ground truth")
       .source(pythonSource)
@@ -114,17 +116,8 @@ public class UpdateTransactionEval implements Closeable {
     }
   }
 
-  void submitRun(EvalContext context, String evalId, FileObject fileObj) {
-    final var inputTemplate = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
-      .addTemplate(ChatMessage.builder()
-        .role("developer")
-        .content("Please repeat exactly as the user says. Nothing else.")
-        .build())
-      .addTemplate(ChatMessage.builder()
-        .role("user")
-        .content("{{item.%s}}".formatted(DATA_KEY_USER_MESSAGE))
-        .build())
-      .build();
+  void submitRun(EvalContext context, String evalId, FileObject fileObj) throws JsonProcessingException {
+    final var inputTemplate = createInputTemplate(context);
     final var run = client.evals().runs().create(RunCreateParams.builder()
       .name(context.evalRunName)
       .evalId(evalId)
@@ -133,6 +126,9 @@ public class UpdateTransactionEval implements Closeable {
         .samplingParams(CreateEvalResponsesRunDataSource.SamplingParams.builder()
           // SDK doesn't yet support reasoning_effort
           .putAdditionalProperty("reasoning_effort", JsonValue.from("minimal"))
+          .text(CreateEvalResponsesRunDataSource.SamplingParams.Text.builder()
+            .format(createOutputSchema())
+            .build())
           .build())
         .type(CreateEvalResponsesRunDataSource.Type.RESPONSES)
         .fileIdSource(fileObj.id())
@@ -140,6 +136,55 @@ public class UpdateTransactionEval implements Closeable {
         .build())
       .build());
     logger.info("Run ID: {}", run.id());
+  }
+
+  private ResponseFormatTextJsonSchemaConfig createOutputSchema() {
+    return ResponseFormatTextJsonSchemaConfig.builder()
+      .name("UpdateTransactionDraft")
+      .schema(EvalUtils.extractJsonSchema(UpdateTransactionDraft.class))
+      .strict(true)
+      .build();
+  }
+
+  private CreateEvalResponsesRunDataSource.InputMessages.Template createInputTemplate(
+    EvalContext context) throws JsonProcessingException {
+    final var introPrompt = EvalUtils.loadResourceAsString(INTRO_PROMPT_FILE);
+    final var contextPromptTemplate = EvalUtils.loadResourceAsString(CONTEXT_PROMPT_FILE);
+    final var statusPromptTemplate = EvalUtils.loadResourceAsString(STATUS_PROMPT_FILE);
+
+    var contextPrompt = contextPromptTemplate;
+    contextPrompt = contextPrompt.replace("{{currentTime}}", context.currentTime);
+    contextPrompt = contextPrompt.replace("{{timeZone}}", context.timeZone);
+    contextPrompt = contextPrompt.replace("{{locale}}", context.locale);
+    contextPrompt = contextPrompt.replace("{{defaultCurrencyId}}", context.defaultCurrencyId);
+    contextPrompt = contextPrompt.replace("{{currencies}}", objectMapper.writeValueAsString(context.currencies));
+    contextPrompt = contextPrompt.replace("{{accounts}}", objectMapper.writeValueAsString(context.accounts));
+    contextPrompt = contextPrompt.replace("{{categories}}", objectMapper.writeValueAsString(context.categories));
+    contextPrompt = contextPrompt.replace("{{platforms}}", objectMapper.writeValueAsString(context.platforms));
+    contextPrompt = contextPrompt.replace("{{tags}}", objectMapper.writeValueAsString(context.tags));
+
+    var statusPrompt = statusPromptTemplate;
+    statusPrompt = statusPrompt.replace("{{transaction}}", objectMapper.writeValueAsString(context.transaction));
+
+    final var inputTemplate = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
+      .addTemplate(ChatMessage.builder()
+        .role("developer")
+        .content(introPrompt)
+        .build())
+      .addTemplate(ChatMessage.builder()
+        .role("developer")
+        .content(contextPrompt)
+        .build())
+      .addTemplate(ChatMessage.builder()
+        .role("developer")
+        .content(statusPrompt)
+        .build())
+      .addTemplate(ChatMessage.builder()
+        .role("user")
+        .content("{{item.%s}}".formatted(DATA_KEY_USER_MESSAGE))
+        .build())
+      .build();
+    return inputTemplate;
   }
 
   @Override

@@ -3,6 +3,16 @@ package org.freedger.services.eval;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.victools.jsonschema.generator.Option;
+import com.github.victools.jsonschema.generator.OptionPreset;
+import com.github.victools.jsonschema.generator.SchemaGenerator;
+import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
+import com.github.victools.jsonschema.generator.SchemaVersion;
+import com.github.victools.jsonschema.module.jackson.JacksonModule;
+import com.github.victools.jsonschema.module.swagger2.Swagger2Module;
+import com.openai.core.JsonField;
+import com.openai.core.JsonValue;
 import com.openai.models.Reasoning;
 import com.openai.models.responses.Response;
 import com.openai.models.responses.ResponseCreateParams;
@@ -16,6 +26,43 @@ import com.openai.models.responses.StructuredResponseCreateParams;
 import com.openai.models.responses.Tool;
 
 public class EvalUtils {
+
+  /**
+   * Extract the JSON schema from a Java class.
+   * It's useful for the OpenAI SDK classes that not yet support defining the JSON schema with classes.
+   * 
+   * Reference: https://github.com/openai/openai-java/blob/a0a9a1ebff9e442003786caa5b6be45fe34fed9f/openai-java-core/src/main/kotlin/com/openai/core/StructuredOutputs.kt#L199C1-L223C2
+   * 
+   * @param clazz The Java class to extract the JSON schema from.
+   * @return The JSON schema.
+   */
+  @SuppressWarnings("unchecked")
+  public static <T> JsonField<T> extractJsonSchema(Class<?> clazz) {
+    final var configBuilder = new SchemaGeneratorConfigBuilder(
+            SchemaVersion.DRAFT_2020_12,
+            OptionPreset.PLAIN_JSON
+        )
+        // Add `"additionalProperties" : false` to all object schemas (see OpenAI).
+        .with(Option.FORBIDDEN_ADDITIONAL_PROPERTIES_BY_DEFAULT)
+        // Use `JacksonModule` to support the use of Jackson annotations to set property and
+        // class names and descriptions and to mark fields with `@JsonIgnore`.
+        .with(new JacksonModule())
+        // Use `Swagger2Module` to support OpenAPI Swagger 2 `@Schema` annotations to set
+        // property constraints (e.g., a `"pattern"` constraint for a string property).
+        .with(new Swagger2Module());
+
+    configBuilder
+      .forFields()
+      // For OpenAI schemas, _all_ properties _must_ be required. Override the interpretation of
+      // the Jackson `required` parameter to the `@JsonProperty` annotation: it will always be
+      // assumed to be `true`, even if explicitly `false` and even if there is no `@JsonProperty`
+      // annotation present.
+      .withRequiredCheck((fieldScope) -> true);
+
+    final var shema = new SchemaGenerator(configBuilder.build()).generateSchema(clazz);
+    return JsonValue.fromJsonNode(shema);
+  }
+
   public static String loadResourceAsString(String resourcePath) {
     try (var inputStream = loadResourceAsStream(resourcePath)) {
       return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
