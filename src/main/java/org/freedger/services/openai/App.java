@@ -3,7 +3,7 @@ package org.freedger.services.openai;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.freedger.services.openai.models.EvalContext;
+import org.freedger.services.eval.models.EvalContext;
 import org.freedger.services.openai.models.UpdateTransactionDraft;
 
 import java.io.IOException;

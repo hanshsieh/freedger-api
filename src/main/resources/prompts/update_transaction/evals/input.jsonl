@@ -1,1 +1,1 @@
-{ "userMessage": "I just bought two packs of Pampers diapers for my baby at Walmart.", "groundTruth": "diaper, baby, supermarket" }
+{ "item": { "userMessage": "I just bought two packs of Pampers diapers for my baby at Walmart.", "groundTruth": "I just bought two packs of Pampers diapers for my baby at Walmart." } }

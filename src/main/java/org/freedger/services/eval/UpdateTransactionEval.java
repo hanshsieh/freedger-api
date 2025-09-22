@@ -1,5 +1,6 @@
 package org.freedger.services.eval;
 
+import org.freedger.services.eval.models.EvalContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,8 +13,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import org.freedger.services.openai.models.EvalContext;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
@@ -22,7 +21,11 @@ import com.openai.core.MultipartField;
 import com.openai.models.evals.EvalCreateParams;
 import com.openai.models.evals.EvalCreateParams.DataSourceConfig;
 import com.openai.models.evals.EvalCreateParams.DataSourceConfig.Custom.ItemSchema;
+import com.openai.models.evals.runs.RunCreateParams;
+import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource;
+import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource.InputMessages.Template.InnerTemplate.ChatMessage;
 import com.openai.models.files.FileCreateParams;
+import com.openai.models.files.FileObject;
 import com.openai.models.files.FilePurpose;
 import com.openai.models.graders.gradermodels.StringCheckGrader;
 
@@ -51,9 +54,10 @@ public class UpdateTransactionEval implements Closeable {
       logger.info("Eval ID is not set, creating a new eval");
       evalId = createEval();
     }
-    logger.info("Eval ID: {}", evalId);
-    String fileId = uploadFile(INPUT_FILE);
-    logger.info("File ID: {}", fileId);
+    
+    FileObject fileObj = uploadFile(INPUT_FILE);
+
+    submitRun(context, evalId, fileObj);
   }
 
   String createEval() {
@@ -79,10 +83,11 @@ public class UpdateTransactionEval implements Closeable {
       .build()))
     .build();
     final var eval = client.evals().create(params);
+    logger.info("Eval ID: {}", eval.id());
     return eval.id();
   }
 
-  String uploadFile(String resourcePath) throws IOException {
+  FileObject uploadFile(String resourcePath) throws IOException {
     logger.info("Uploading file: {}", resourcePath);
     try (var fileStream = EvalUtils.loadResourceAsStream(resourcePath)) {
       var field = MultipartField.<InputStream>builder()
@@ -97,12 +102,37 @@ public class UpdateTransactionEval implements Closeable {
           .seconds(FILE_EXPIRE_TIME.getSeconds())
           .build())
         .build());
-      return file.id();
+      logger.info("File ID: {}", file.id());
+      return file;
     }
   }
 
-  private <T> List<T> hello() {
-    return null;
+  void submitRun(EvalContext context, String evalId, FileObject fileObj) {
+    final var inputTemplate = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
+      .addTemplate(ChatMessage.builder()
+        .role("developer")
+        .content("Please repeat exactly as the user says. Nothing else.")
+        .build())
+      .addTemplate(ChatMessage.builder()
+        .role("user")
+        .content("{{item.%s}}".formatted(DATA_KEY_USER_MESSAGE))
+        .build())
+      .build();
+    final var run = client.evals().runs().create(RunCreateParams.builder()
+      .name(context.evalRunName)
+      .evalId(evalId)
+      .dataSource(CreateEvalResponsesRunDataSource.builder()
+        .model(context.model)
+        .samplingParams(CreateEvalResponsesRunDataSource.SamplingParams.builder()
+          // SDK doesn't yet support reasoning_effort
+          .putAdditionalProperty("reasoning_effort", JsonValue.from("minimal"))
+          .build())
+        .type(CreateEvalResponsesRunDataSource.Type.RESPONSES)
+        .fileIdSource(fileObj.id())
+        .inputMessages(inputTemplate)
+        .build())
+      .build());
+    logger.info("Run ID: {}", run.id());
   }
 
   @Override
