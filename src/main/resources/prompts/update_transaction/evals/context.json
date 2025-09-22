@@ -3,7 +3,7 @@
   "timeZone": "UTC+08:00",
   "locale": "zh_TW",
   "defaultCurrencyId": "67fb6c93007e33a200b9963d@g",
-  "evalId": "eval_68d0f1b239c481919975ebe3e9c0beab",
+  "evalId": "eval_68d1164bedd0819186ec1c4df42bcd79",
   "evalRunName": "Update Transaction Draft",
   "model": "gpt-5-mini-2025-08-07",
   "transaction": {

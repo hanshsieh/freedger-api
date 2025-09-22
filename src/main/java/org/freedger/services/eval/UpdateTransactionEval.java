@@ -21,20 +21,21 @@ import com.openai.core.MultipartField;
 import com.openai.models.evals.EvalCreateParams;
 import com.openai.models.evals.EvalCreateParams.DataSourceConfig;
 import com.openai.models.evals.EvalCreateParams.DataSourceConfig.Custom.ItemSchema;
+import com.openai.models.evals.EvalCreateParams.TestingCriterion;
 import com.openai.models.evals.runs.RunCreateParams;
 import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource;
 import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource.InputMessages.Template.InnerTemplate.ChatMessage;
 import com.openai.models.files.FileCreateParams;
 import com.openai.models.files.FileObject;
 import com.openai.models.files.FilePurpose;
-import com.openai.models.graders.gradermodels.StringCheckGrader;
 
 public class UpdateTransactionEval implements Closeable {
   private static final Logger logger = LoggerFactory.getLogger(UpdateTransactionEval.class);
   private static final String CONTEXT_FILE = "prompts/update_transaction/evals/context.json";
   private static final String INPUT_FILE = "prompts/update_transaction/evals/input.jsonl";
-  private static final String DATA_KEY_USER_MESSAGE = "userMessage";
-  private static final String DATA_KEY_GROUND_TRUTH = "groundTruth";
+  private static final String PYTHON_GRADER_FILE = "prompts/update_transaction/evals/test_criterion.py";
+  private static final String DATA_KEY_USER_MESSAGE = "user_message";
+  private static final String DATA_KEY_GROUND_TRUTH = "ground_truth";
   private static final Duration FILE_EXPIRE_TIME = Duration.ofHours(1);
   private final ObjectMapper objectMapper = new ObjectMapper();
   private OpenAIClient client = OpenAIOkHttpClient.fromEnv();
@@ -61,6 +62,7 @@ public class UpdateTransactionEval implements Closeable {
   }
 
   String createEval() {
+    final var pythonSource = EvalUtils.loadResourceAsString(PYTHON_GRADER_FILE);
     final var params = EvalCreateParams.builder()
     .name("Update Transaction Draft")
     .dataSourceConfig(DataSourceConfig.ofCustom(DataSourceConfig.Custom.builder()
@@ -75,11 +77,16 @@ public class UpdateTransactionEval implements Closeable {
         .build())
       .includeSampleSchema(true)
       .build()))
-    .addTestingCriterion(EvalCreateParams.TestingCriterion.ofStringCheck(StringCheckGrader.builder()
+    //.addTestingCriterion(EvalCreateParams.TestingCriterion.ofStringCheck(StringCheckGrader.builder()
+    //  .name("Match output with ground truth")
+    //  .input("{{sample.output_text}}")
+    //  .operation(StringCheckGrader.Operation.EQ)
+    //  .reference("{{item.%s}}".formatted(DATA_KEY_GROUND_TRUTH))
+    //  .build()))
+    .addTestingCriterion(EvalCreateParams.TestingCriterion.ofPython(TestingCriterion.Python.builder()
       .name("Match output with ground truth")
-      .input("{{sample.output_text}}")
-      .operation(StringCheckGrader.Operation.EQ)
-      .reference("{{item.%s}}".formatted(DATA_KEY_GROUND_TRUTH))
+      .source(pythonSource)
+      .passThreshold(0.8)
       .build()))
     .build();
     final var eval = client.evals().create(params);
