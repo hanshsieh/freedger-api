@@ -3,7 +3,7 @@ package org.freedger.services.openai;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.freedger.services.openai.models.DraftState;
+import org.freedger.services.openai.models.EvalContext;
 import org.freedger.services.openai.models.UpdateTransactionDraft;
 
 import java.io.IOException;
@@ -78,17 +78,17 @@ public class App {
         .addInputTextContent(loadResourceAsString("prompts/update_transaction/inputs/intro.md"))
         .build()));
     var contextStr = loadResourceAsString("prompts/update_transaction/inputs/context.md");
-    final var draftState = objectMapper.readValue(
-      loadResourceAsString("prompts/update_transaction/evals/draft_state.json"), DraftState.class);
-    contextStr = contextStr.replace("{{currentTime}}", draftState.currentTime);
-    contextStr = contextStr.replace("{{timeZone}}", draftState.timeZone);
-    contextStr = contextStr.replace("{{locale}}", draftState.locale);
-    contextStr = contextStr.replace("{{defaultCurrencyId}}", draftState.defaultCurrencyId);
-    contextStr = contextStr.replace("{{currencies}}", objectMapper.writeValueAsString(draftState.currencies));
-    contextStr = contextStr.replace("{{accounts}}", objectMapper.writeValueAsString(draftState.accounts));
-    contextStr = contextStr.replace("{{categories}}", objectMapper.writeValueAsString(draftState.categories));
-    contextStr = contextStr.replace("{{platforms}}", objectMapper.writeValueAsString(draftState.platforms));
-    contextStr = contextStr.replace("{{tags}}", objectMapper.writeValueAsString(draftState.tags));
+    final var context = objectMapper.readValue(
+      loadResourceAsString("prompts/update_transaction/evals/context.json"), EvalContext.class);
+    contextStr = contextStr.replace("{{currentTime}}", context.currentTime);
+    contextStr = contextStr.replace("{{timeZone}}", context.timeZone);
+    contextStr = contextStr.replace("{{locale}}", context.locale);
+    contextStr = contextStr.replace("{{defaultCurrencyId}}", context.defaultCurrencyId);
+    contextStr = contextStr.replace("{{currencies}}", objectMapper.writeValueAsString(context.currencies));
+    contextStr = contextStr.replace("{{accounts}}", objectMapper.writeValueAsString(context.accounts));
+    contextStr = contextStr.replace("{{categories}}", objectMapper.writeValueAsString(context.categories));
+    contextStr = contextStr.replace("{{platforms}}", objectMapper.writeValueAsString(context.platforms));
+    contextStr = contextStr.replace("{{tags}}", objectMapper.writeValueAsString(context.tags));
     inputs.add(ResponseInputItem.ofMessage(
       ResponseInputItem.Message.builder()
         .role(ResponseInputItem.Message.Role.DEVELOPER)
@@ -96,7 +96,7 @@ public class App {
         .build()));
 
     var currentDraftStr = loadResourceAsString("prompts/update_transaction/inputs/status.md");
-    currentDraftStr = currentDraftStr.replace("{{transaction}}", objectMapper.writeValueAsString(draftState.transaction));
+    currentDraftStr = currentDraftStr.replace("{{transaction}}", objectMapper.writeValueAsString(context.transaction));
     inputs.add(ResponseInputItem.ofMessage(
       ResponseInputItem.Message.builder()
         .role(ResponseInputItem.Message.Role.DEVELOPER)

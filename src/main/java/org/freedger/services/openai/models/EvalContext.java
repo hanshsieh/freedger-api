@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class DraftState {
+public class EvalContext {
   @JsonProperty("currentTime")
   public String currentTime;
 
@@ -16,6 +16,9 @@ public class DraftState {
 
   @JsonProperty("defaultCurrencyId")
   public String defaultCurrencyId;
+
+  @JsonProperty("evalId")
+  public String evalId;
 
   @JsonProperty("transaction")
   public Transaction transaction;
