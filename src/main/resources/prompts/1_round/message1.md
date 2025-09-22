@@ -17,21 +17,10 @@ Expect user input from voice recognition, which may contain errors in pronunciat
 - Each transaction can have multiple credit (source) journals and multiple debit (destination) journals.
 - Journal
   - Account
-    - Each account has a type, and each falls under a category
-      - `personal` category
-        - `cash`
-        - `loadable`: Stored-value cards. E.g., MetroCard, Starbucks Card
-        - `bank`
-        - `volatile`: Eg, brokerage accounts
-        - `credit`: Credit account. Credit cards that share the same credit line use the same account and represent each card with a channel.
-        - `loan`: Loans of the same bank use the same account and represent each loan with a channel.
-      - `external` category
-        - `counterparty`: Counterparty for a transaction. E.g., stores, companies, groups, people
-  - Channel
-    - A channel represents the way to use an account. Users can use an account directly or via a channel.
-    - For `credit` accounts, channels means the credit cards sharing the same credit line.
-    - For `loan` accounts, channels means the loans of a bank.
-  - Platform
+    - The account associated with the journal.
+  - Channel (Optional)
+    - A channel represents the way to use the account. Users can use an account directly or via a channel.
+  - Platform (Optional)
     - The payment or receiving platform to use the account, such as Apple Pay or PayPal.
     - Users can use an account-channel pair directly or via a platform.
   - Amount: Must be non-negative.
@@ -42,12 +31,12 @@ Expect user input from voice recognition, which may contain errors in pronunciat
   - inBalance
     - It means whether the amount should be included in the balance of the account.
 - Transaction types:
-  - `payment`: 
+  - `payment`:
     - Outgoing expense or repayment.
-    - Paying with an account via a channel means using the card (e.g., credit card, debit card) of the account for the payment.
-  - `receive`: 
+    - A `payment` transaction with an account and a channel as the credit journal means using the card (e.g., credit card, debit card) of the account for the payment.
+  - `receive`:
     - Incoming income or borrowing.
-    - Receiving with a `credit` account via a channel means getting refund of a credit card.
+    - A `receive` transaction with a `credit` account and a channel as the debit journal means getting refund of a credit card.
   - `transfer`:
     - Tranfer between accounts.
     - Transferring into a `credit` account without a channel represents card bill payment.
@@ -62,19 +51,22 @@ Expect user input from voice recognition, which may contain errors in pronunciat
 
 # Update Rules
 Follow the rules below when updating transaction:
-- Never invent IDs; only use IDs from references or already present in the draft.
+- Never invent IDs; only use IDs from reference items or already present in the draft.
 - For each journal, apply all of the following:
   - If `platformId` is specified, `accountId` and `accountChannelId` MUST be one of the account–channel pairs associated with that platform.
   - If `accountChannelId` is specified, it MUST be one of the account channels associated with the specified `accountId`.
   - If the user specifies a platform but not an account or channel, choose the first account–channel pair of that platform.
+  - If the user specifies an account channel, but not the account, choose the account of the channel.
+  - If the user doesn't specify any info about the account, channel, or platform, or no matching one can be found in the reference items, keep the journals unchanged.
+    - Example: `I bought a burger at McDonald's` → Debit account is `McDonald's`, but credit journals should be left unchanged.
+  - If the user doesn't specify the amount, use `0`.
+  - If the user doesn't specify the time, use the current time.
 - Use at most one journal for `credits` and at most one for `debits`, unless the user explicitly specifies multiple (e.g., "Paid my dinner with City credit card and cash" → two credit journals).
-- Time: Default to the user's current time for all journals unless the user specifies.
 - Apply type-specific rules:
   - `payment`
     - Credit journal
       - Account MUST have category `personal`.
       - `inBalance` MUST be `true`.
-      - If the user's intent does not imply which credit account to use, keep existing credit journals unchanged.
       - Unless the user explicitly requests, use the account's default currency.
     - Debit journal
       - Account MUST have category `external`.
@@ -90,18 +82,15 @@ Follow the rules below when updating transaction:
     - Debit journal
       - Account MUST have category `personal`.
       - `inBalance` MUST be `true`.
-      - If the user's intent does not imply which debit account to use, keep existing debit journals unchanged.
       - Unless the user explicitly requests, use the account's default currency.
   - `transfer`
     - Credit journal
       - Account MUST have category `personal`.
       - `inBalance` MUST be `true`.
-      - If the user's intent does not imply which credit account to use, keep existing credit journals unchanged.
       - Unless the user explicitly requests, use the account's default currency.
     - Debit journal
       - Account MUST have category `personal`.
       - `inBalance` MUST be `true`.
-      - If the user's intent does not imply which debit account to use, keep existing debit journals unchanged.
       - Unless the user explicitly requests, use the account's default currency.
 - Categories
   - Only use one category per distinct topic in the user intent.
@@ -110,13 +99,16 @@ Follow the rules below when updating transaction:
     - `Bought milk tea` → category `Snack` (do NOT also add `Meals`).
     - `Bought beer and diapers` → categories `Drink` and `Baby & Child Care`.
 - Tags
-  - Do NOT duplicate journal/platform info (e.g., if platform is `Apple Pay`, do not add an `Apple Pay` tag).
+  - Do NOT duplicate journal/category info. For example,
+    - If platform is `Apple Pay`, do not add an `Apple Pay` tag.
+    - If account is `Best Buy`, do not add a `Best Buy` tag.
+    - If category is `Snack`, do not add a `Snack` tag, but `ice cream` is okay because it provides more details of the transaction.
   - Use the user's locale for tag names unless the user requests otherwise.
-  - Prefer reusing known tags from references, but you may add new ones if meaningful.
+  - Prefer reusing known tags from the reference items, but you may add new ones if meaningful.
   - Trim leading and trailing spaces in each tag
   - Deduplicate synonyms per topic (e.g., Do not include both "ApplePay" and "Apple Pay").
   - ONLY include meaningful, non-redundant tags that are related to the transaction.
-  - Good tags are general, not overly specific
+  - Good tags are general and useful for searching, not overly specific
     - Good: `income tax`
     - Bad: `2020 income tax`
   - Example:
@@ -134,7 +126,6 @@ Follow the rules below when updating transaction:
 # Output Contract
 - Always output a single JSON object that fully represents the updated draft. Do not include commentary outside JSON.
 - Preserve existing values unless the user intent requires change.
-- Never invent IDs; only use IDs from references or already present in the draft.
 
 # Object Formats
 
@@ -142,12 +133,12 @@ Follow the rules below when updating transaction:
 ```
 {
   "id": "{currency_id}",
-  // "fiat" | "crypto" | "other"
   "type": "other",
   "code": "USD",
   "name": "US Dollar"
 }
 ```
+- `type`: `fiat` | `crypto` | `other`
 
 ## Account
 ```
@@ -157,7 +148,6 @@ Follow the rules below when updating transaction:
   // Nullable
   "groupName": "Credit Card",
   "type": "credit",
-  // The default currency of the account. `null` for external accounts.
   "currencyId": "{currency_id}",
   "channels": [
     {
@@ -167,6 +157,23 @@ Follow the rules below when updating transaction:
   ]
 }
 ```
+- `type`:
+  - The type of the account. Each type falls under a category
+  - `personal` category
+    - `cash`
+    - `loadable`: Stored-value cards. E.g., MetroCard, Starbucks Card
+    - `bank`
+    - `volatile`: Eg, brokerage accounts
+    - `credit`: Credit account. Credit cards that share the same credit line use the same account and represent each card with a channel.
+    - `loan`: Loans of the same bank use the same account and represent each loan with a channel.
+  - `external` category
+    - `counterparty`: Counterparty for a transaction. E.g., stores, companies, groups, people
+- `currencyId`:
+  - The default currency's ID of the account.
+- `channels`:
+  - The account channels associated with the account. Each account can have 0 or more channels.
+  - For `credit` accounts, channels means the credit cards sharing the same credit line.
+  - For `loan` accounts, channels means the loans of a bank.
 
 ## Platform
 An account can be linked with multiple platforms (many-to-many relationship).
@@ -175,7 +182,6 @@ An account can be linked with multiple platforms (many-to-many relationship).
 {
   "id": "019888aa25db7938ac014d6f63878ba6",
   "name": "Apple Pay",
-  // Account and channel pairs associated with the platform.
   "items": [
     {
       "accountId": "{account_id}",
@@ -185,6 +191,8 @@ An account can be linked with multiple platforms (many-to-many relationship).
   ]
 }
 ```
+- `items`
+  - Account and channel pairs associated with the platform.
 
 ## Category
 Categories are used to classify transactions, such as food and transport.
@@ -196,10 +204,10 @@ Multiple categories can be placed in the same group.
   "name": "Snack",
   // Nullable
   "groupName": "Food",
-  // `payment` | `receive` | `transfer`
   "transactionType": "payment"
 }
 ```
+- `transactionType`: `payment` | `receive` | `transfer`
 
 ## Transaction
 ```

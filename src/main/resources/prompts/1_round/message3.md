@@ -1,0 +1,2 @@
+# Current Transaction Draft
+{{transaction}}

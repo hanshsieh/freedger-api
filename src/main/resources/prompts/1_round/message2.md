@@ -4,9 +4,6 @@
 - Locale: {{locale}}
 - Default currency Id: {{defaultCurrencyId}}
 
-# Current Transaction Draft
-{{transaction}}
-
 # Reference Items
 Here're the reference items that can be used for updating the transaction draft.
 

@@ -53,7 +53,7 @@ public class App {
 
   private void updateTransactionDraft() throws IOException {    
     addInitialInputs();
-    addUserInput("prompts/1_round/message3_4.md");
+    addUserInput("prompts/1_round/message4_3.md");
     final var params = paramsBuilder
       .input(ResponseCreateParams.Input.ofResponse(inputs))
       .text(UpdateTransactionDraft.class)
@@ -84,7 +84,6 @@ public class App {
     contextStr = contextStr.replace("{{timeZone}}", draftState.timeZone);
     contextStr = contextStr.replace("{{locale}}", draftState.locale);
     contextStr = contextStr.replace("{{defaultCurrencyId}}", draftState.defaultCurrencyId);
-    contextStr = contextStr.replace("{{transaction}}", objectMapper.writeValueAsString(draftState.transaction));
     contextStr = contextStr.replace("{{currencies}}", objectMapper.writeValueAsString(draftState.currencies));
     contextStr = contextStr.replace("{{accounts}}", objectMapper.writeValueAsString(draftState.accounts));
     contextStr = contextStr.replace("{{categories}}", objectMapper.writeValueAsString(draftState.categories));
@@ -94,6 +93,14 @@ public class App {
       ResponseInputItem.Message.builder()
         .role(ResponseInputItem.Message.Role.DEVELOPER)
         .addInputTextContent(contextStr)
+        .build()));
+
+    var currentDraftStr = loadResourceAsString("prompts/1_round/message3.md");
+    currentDraftStr = currentDraftStr.replace("{{transaction}}", objectMapper.writeValueAsString(draftState.transaction));
+    inputs.add(ResponseInputItem.ofMessage(
+      ResponseInputItem.Message.builder()
+        .role(ResponseInputItem.Message.Role.DEVELOPER)
+        .addInputTextContent(currentDraftStr)
         .build()));
   }
 
