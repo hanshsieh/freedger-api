@@ -1,5 +1,6 @@
 package org.freedger.services.eval;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import com.openai.models.Reasoning;
@@ -16,14 +17,19 @@ import com.openai.models.responses.Tool;
 
 public class EvalUtils {
   public static String loadResourceAsString(String resourcePath) {
-    try (var inputStream = EvalUtils.class.getClassLoader().getResourceAsStream(resourcePath)) {
-      if (inputStream == null) {
-        throw new IllegalStateException("Resource not found: " + resourcePath);
-      }
+    try (var inputStream = loadResourceAsStream(resourcePath)) {
       return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     } catch (Exception e) {
       throw new RuntimeException("Failed to read resource: " + resourcePath, e);
     }
+  }
+
+  public static InputStream loadResourceAsStream(String resourcePath) {
+    final var inputStream = EvalUtils.class.getClassLoader().getResourceAsStream(resourcePath);
+    if (inputStream == null) {
+      throw new IllegalStateException("Resource not found: " + resourcePath);
+    }
+    return inputStream;
   }
 
   public static void printRequest(ResponseCreateParams params) {
