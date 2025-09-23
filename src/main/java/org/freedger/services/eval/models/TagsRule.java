@@ -1,7 +1,5 @@
 package org.freedger.services.eval.models;
 
-import java.util.List;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public class TagsRule extends ValidationRule {
@@ -9,6 +7,9 @@ public class TagsRule extends ValidationRule {
     this.type = "tags";
   }
 
-  @Schema(name = "tags", description = "Expected tags of the transaction.")
-  public List<String> tags;
+  @Schema(name = "tagsRegex", description = "All the tags must match the regex.", types = {"string", "null"})
+  public String tagsRegex;
+
+  @Schema(name = "minTags", description = "The minimum number of tags.", types = {"integer", "null"})
+  public Integer minTags;
 }

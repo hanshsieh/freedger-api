@@ -1,2 +1,2 @@
-{ "item": { "user_message": "我在雄獅旅行社預訂了年底要去日本東京的行程，總共花了1萬五千元，刷PI錢包付款", "validations": [{"type": "categories", "categoryIds": ["01986eb9d22e77299b0b67460bc10d13"]}] } }
-{ "item": { "user_message": "用Line Pay在五十嵐買了一杯珍奶", "validations": [{"type": "categories", "categoryIds": ["01986eb9d19679bc912ebafd355cf410"]}] } }
+{ "item": { "userMessage": "我在雄獅旅行社預訂了年底要去日本東京的行程，總共花了1萬五千元，刷PI錢包付款", "validations": [{"type": "categories", "categoryIds": ["01986eb9d22e77299b0b67460bc10d13"]},{"type": "tags", "tagsRegex": "(日本)東京|(東京)旅(遊|行)", "minTags": 1}] } }
+{ "item": { "userMessage": "用Line Pay在五十嵐買了一杯珍奶", "validations": [{"type": "categories", "categoryIds": ["01986eb9d19679bc912ebafd355cf410"]},{"type": "tags", "tagsRegex": "珍奶|珍珠奶茶|手搖飲", "minTags": 1}] } }

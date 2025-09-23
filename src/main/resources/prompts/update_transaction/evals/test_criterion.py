@@ -1,5 +1,6 @@
 
 import json
+import re
 
 
 def grade(sample: dict, item: dict) -> float:
@@ -16,15 +17,31 @@ def grade(sample: dict, item: dict) -> float:
   output: dict = json.loads(sample.get("output_text"))
   validations: list[dict] = item.get("validations")
   for validation in validations:
-    type: str = validation.get("type")
-    if type == "categories":
-      if not validate_categories(output, validation):
-        return 0.0
+    validation_type: str = validation.get("type")
+    match validation_type:
+      case "categories":
+        if not validate_categories(output, validation):
+          return 0.0
+      case "tags":
+        if not validate_tags(output, validation):
+          return 0.0
   return 1.0
 
 def validate_categories(output: dict, validation: dict) -> bool:
-  categoryIds: list[str] = validation.get("categoryIds")
-  categoryIds.sort()
-  outputCategoryIds: list[str] = output.get("categoryIds")
-  outputCategoryIds.sort()
-  return outputCategoryIds == categoryIds
+  category_ids: list[str] = validation.get("categoryIds")
+  category_ids.sort()
+  output_category_ids: list[str] = output.get("categoryIds")
+  output_category_ids.sort()
+  return output_category_ids == category_ids
+
+def validate_tags(output: dict, validation: dict) -> bool:
+  tags_regex: str | None = validation.get("tagsRegex")
+  min_tags: int | None = validation.get("minTags")
+  tags: list[str] = output.get("tags")
+  if type(tags_regex) == str:
+    if not all(re.match(tags_regex, tag) for tag in tags):
+      return False
+  if type(min_tags) == int:
+    if len(tags) < min_tags:
+      return False
+  return True

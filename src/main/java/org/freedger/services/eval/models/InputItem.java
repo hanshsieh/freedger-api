@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "InputItem", description = "The input item for the eval.")
 public class InputItem {
-  public static final String USER_MESSAGE_KEY = "user_message";
+  public static final String USER_MESSAGE_KEY = "userMessage";
 
   @Schema(name = USER_MESSAGE_KEY, description = "The user message.")
   public String userMessage;
