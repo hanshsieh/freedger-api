@@ -3,9 +3,10 @@
   "timeZone": "UTC+08:00",
   "locale": "zh_TW",
   "defaultCurrencyId": "67fb6c93007e33a200b9963d@g",
-  "evalId": null,
+  "evalId": "eval_68d24d2507b8819180a03761133ac64b",
   "evalRunName": "Update Transaction Draft",
   "model": "gpt-5-mini-2025-08-07",
+  "reasoningEffort": "minimal",
   "transaction": {
     "type": "payment",
     "credits": [],

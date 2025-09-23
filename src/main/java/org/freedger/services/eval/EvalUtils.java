@@ -3,7 +3,6 @@ package org.freedger.services.eval;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.Option;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;

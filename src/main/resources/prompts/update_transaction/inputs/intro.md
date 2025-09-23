@@ -21,7 +21,7 @@ Expect user input from voice recognition, which may contain errors in pronunciat
   - Channel (Optional)
     - A channel represents the way to use the account. Users can use an account directly or via a channel.
   - Platform (Optional)
-    - The payment or receiving platform to use the account, such as Apple Pay or PayPal.
+    - The payment or receiving platform to use the account, such as Apple Pay, Google Pay, Samsung Pay, Line Pay, PayPal.
     - Users can use an account-channel pair directly or via a platform.
   - Amount: Must be non-negative.
   - Currency:
@@ -55,8 +55,9 @@ Follow the rules below when updating transaction:
 - For each journal, apply all of the following:
   - If `platformId` is specified, `accountId` and `accountChannelId` MUST be one of the account–channel pairs associated with that platform.
   - If `accountChannelId` is specified, it MUST be one of the account channels associated with the specified `accountId`.
-  - If the user specifies a platform but not an account or channel, choose the first account–channel pair of that platform.
-  - If the user specifies an account channel, but not the account, choose the account of the channel.
+  - If the user specifies a platform but not an account or channel, choose the first account–channel pair of that platform for `accountId` and `accountChannelId`.
+  - If the user specifies an account channel, but not the account, choose the account of the channel for `accountId`.
+  - If the user doesn't specify the platform or channel, and they cannot be inferred from the rules above, set them to `null`, respectively.
   - If the user doesn't specify any info about the account, channel, or platform, or no matching one can be found in the reference items, keep the journals unchanged.
     - Example: `I bought a burger at McDonald's` → Debit account is `McDonald's`, but credit journals should be left unchanged.
   - If the user doesn't specify the amount, use `0`.

@@ -39,3 +39,6 @@ target/
 
 # Azure Functions
 *.settings.json
+
+# Python
+**/__pycache__/*

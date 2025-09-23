@@ -109,8 +109,10 @@ public class UpdateTransactionEval implements Closeable {
         .model(context.model)
         .samplingParams(CreateEvalResponsesRunDataSource.SamplingParams.builder()
           // SDK doesn't yet support reasoning_effort
-          .putAdditionalProperty("reasoning_effort", JsonValue.from("minimal"))
+          .putAdditionalProperty("reasoning_effort", JsonValue.from(context.reasoningEffort))
           .text(CreateEvalResponsesRunDataSource.SamplingParams.Text.builder()
+            // The API doesn't yet support verbosity. 
+            // See https://community.openai.com/t/cannot-set-verbosity-for-gpt-5-evals/1354524?
             .format(createOutputSchema())
             .build())
           .build())

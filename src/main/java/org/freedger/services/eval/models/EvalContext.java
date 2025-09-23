@@ -32,6 +32,9 @@ public class EvalContext {
   @JsonProperty("model")
   public String model;
 
+  @JsonProperty("reasoningEffort")
+  public String reasoningEffort;
+
   @JsonProperty("transaction")
   public Transaction transaction;
 
