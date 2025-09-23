@@ -33,11 +33,18 @@
       "custom": false
     },
     {
-      "id": "01986eb9d6c2784aa3a2f9ad2b461011",
-      "type": "other",
-      "code": "LNP",
-      "name": "Line Point",
-      "custom": true
+      "id": "67fb6c93007e33a200b9963c@g",
+      "type": "fiat",
+      "code": "USD",
+      "name": "US Dollar",
+      "custom": false
+    },
+    {
+      "id": "67fb6c93007e33a200b9963b@g",
+      "type": "fiat",
+      "code": "JPY",
+      "name": "Japanese Yen",
+      "custom": false
     }
   ],
   "accounts": [
@@ -48,6 +55,24 @@
       "type": "cash",
       "category": "personal",
       "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "4692fca01e5a4693bcf4e78f73f6f6e",
+      "name": "美金",
+      "groupName": "現金",
+      "type": "cash",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963c@g",
+      "channels": []
+    },
+    {
+      "id": "bdd12d26aa1b4b20b00a2115578ca455",
+      "name": "日圓",
+      "groupName": "現金",
+      "type": "cash",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963b@g",
       "channels": []
     },
     {
@@ -69,12 +94,35 @@
       ]
     },
     {
+      "id": "a5d6df56b34d478b90249dbac11f9e78",
+      "name": "星展信用卡",
+      "groupName": "信用卡",
+      "type": "credit",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": [
+        {
+          "id": "1973d813954f4da1b407e4fa3edd2536",
+          "name": "eco極簡卡"
+        }
+      ]
+    },
+    {
       "id": "01986eb9d6c2784aa3a2f9ad2b461010",
       "name": "Line Point",
       "groupName": "點數",
       "type": "loadable",
       "category": "personal",
-      "currencyId": "01986eb9d6c2784aa3a2f9ad2b461011",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "84da50ccad6549f187edd17c45443d7b",
+      "name": "街口幣",
+      "groupName": "點數",
+      "type": "loadable",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
       "channels": []
     },
     {
@@ -82,6 +130,60 @@
       "name": "台新台幣",
       "groupName": "銀行",
       "type": "bank",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "f1ff613b72d343a7b576504283bd1662",
+      "name": "郵局",
+      "groupName": "銀行",
+      "type": "bank",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "8efb04a49e6a4044991bec5ebb6f9289",
+      "name": "Binance",
+      "groupName": "投資",
+      "type": "volatile",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963c@g",
+      "channels": []
+    },
+    {
+      "id": "7f9a65e1a64f417eb07519fdeecce5b0",
+      "name": "Bybit",
+      "groupName": "投資",
+      "type": "volatile",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963c@g",
+      "channels": []
+    },
+    {
+      "id": "a9aefc3fb2ea4bb490601ed392102f7e",
+      "name": "eToro",
+      "groupName": "投資",
+      "type": "volatile",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963c@g",
+      "channels": []
+    },
+    {
+      "id": "94d31fbc4adbc4c069e60a0bcd1225cef",
+      "name": "台新大口貸",
+      "groupName": "貸款",
+      "type": "loan",
+      "category": "personal",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "a01f7fd8e48f435e862dd9e40441128a",
+      "name": "樂天貸感謝祭大三元",
+      "groupName": "貸款",
+      "type": "loan",
       "category": "personal",
       "currencyId": "67fb6c93007e33a200b9963d@g",
       "channels": []
@@ -96,8 +198,62 @@
       "channels": []
     },
     {
+      "id": "8f935444e04a4e4fb478101cf065e8c6",
+      "name": "coco都可茶飲",
+      "groupName": null,
+      "type": "counterparty",
+      "category": "external",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "47f9e7da8c1a4b6cbc2ca2b83338df83",
+      "name": "momo購物網",
+      "groupName": null,
+      "type": "counterparty",
+      "category": "external",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
       "id": "01986eb9d6c2784aa3a2f9ad2b461015",
       "name": "雄獅旅行社",
+      "groupName": null,
+      "type": "counterparty",
+      "category": "external",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "eb4985d3e12b459c80c725f8d4592b4e",
+      "name": "台新銀行",
+      "groupName": null,
+      "type": "counterparty",
+      "category": "external",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "d10dd222b6ee42c2bf07114619503d78",
+      "name": "Airbnb",
+      "groupName": null,
+      "type": "counterparty",
+      "category": "external",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "d516b873e41042728da109805bee6c3f",
+      "name": "Netflix",
+      "groupName": null,
+      "type": "counterparty",
+      "category": "external",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
+      "id": "b4dc8dcfd99d40ebb59919cc0fe8a964",
+      "name": "Steam",
       "groupName": null,
       "type": "counterparty",
       "category": "external",
@@ -128,14 +284,32 @@
       "transactionType": "payment"
     },
     {
+      "id": "0ed34058be0544a4b3afd35fba4ad0c2",
+      "name": "食材",
+      "groupName": "飲食",
+      "transactionType": "payment"
+    },
+    {
       "id": "01986eb9d1de770cb56bd232cd097fa8",
       "name": "交通費",
       "groupName": "交通",
       "transactionType": "payment"
     },
     {
+      "id": "48aa43cbf284447aa6c35a917c04ca89",
+      "name": "維修保養",
+      "groupName": "交通",
+      "transactionType": "payment"
+    },
+    {
       "id": "01986eb9d22e77299b0b67460bc10d13",
       "name": "旅遊",
+      "groupName": "休閒",
+      "transactionType": "payment"
+    },
+    {
+      "id": "964ab9dd00354116bb7ea7a3e1f865b6",
+      "name": "娛樂與文化",
       "groupName": "休閒",
       "transactionType": "payment"
     },
@@ -148,6 +322,18 @@
     {
       "id": "01986eb9d1ee7b66aa9ed642e680398f",
       "name": "退款",
+      "groupName": null,
+      "transactionType": "receive"
+    },
+    {
+      "id": "d096e1fa90ee46cab8f2220459755bb5",
+      "name": "回饋金",
+      "groupName": null,
+      "transactionType": "receive"
+    },
+    {
+      "id": "3446b80a89e04ef195215039d1a9791f",
+      "name": "利息",
       "groupName": null,
       "transactionType": "receive"
     },
@@ -166,6 +352,12 @@
     {
       "id": "01986eb9d1ee7b66aa9ed642e6803993",
       "name": "存款",
+      "groupName": null,
+      "transactionType": "transfer"
+    },
+    {
+      "id": "cdf834558bac43dbb6b23825158b6e24",
+      "name": "繳費",
       "groupName": null,
       "transactionType": "transfer"
     }
@@ -200,5 +392,10 @@
       ]
     }
   ],
-  "tags": ["珍奶"]
+  "tags": [
+    "珍奶",
+    "日本",
+    "健保費",
+    "YouBike"
+  ]
 }
