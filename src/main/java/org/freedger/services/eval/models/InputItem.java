@@ -13,6 +13,6 @@ public class InputItem {
   public String userMessage;
 
   @Schema(name = "validations", description = "The validation rules.")
-  @ArraySchema(schema = @Schema(anyOf = {CategoriesRule.class, TagsRule.class}))
+  @ArraySchema(schema = @Schema(anyOf = {TypeRule.class, JournalsRule.class, CategoriesRule.class, TagsRule.class}))
   public List<Object> validations;
 }
