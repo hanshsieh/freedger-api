@@ -1,4 +1,7 @@
 
+import json
+
+
 def grade(sample: dict, item: dict) -> float:
   """
   Test criterion for the update transaction eval.
@@ -10,7 +13,18 @@ def grade(sample: dict, item: dict) -> float:
   Returns:
     The grade between 0.0 and 1.0.
   """
-  output = sample.get("output_text")
-  ground_truth = item.get("ground_truth")
-  #return 1.0 if output == ground_truth else 0.0
+  output: dict = json.loads(sample.get("output_text"))
+  validations: list[dict] = item.get("validations")
+  for validation in validations:
+    type: str = validation.get("type")
+    if type == "categories":
+      if not validate_categories(output, validation):
+        return 0.0
   return 1.0
+
+def validate_categories(output: dict, validation: dict) -> bool:
+  categoryIds: list[str] = validation.get("categoryIds")
+  categoryIds.sort()
+  outputCategoryIds: list[str] = output.get("categoryIds")
+  outputCategoryIds.sort()
+  return outputCategoryIds == categoryIds

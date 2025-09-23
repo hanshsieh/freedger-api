@@ -1,1 +1,2 @@
-{ "item": { "user_message": "我在雄獅旅行社預訂了年底要去日本東京的行程，總共花了1萬五千元，刷PI錢包付款", "ground_truth": "I just bought two packs of Pampers diapers for my baby at Walmart." } }
+{ "item": { "user_message": "我在雄獅旅行社預訂了年底要去日本東京的行程，總共花了1萬五千元，刷PI錢包付款", "validations": [{"type": "categories", "categoryIds": ["01986eb9d22e77299b0b67460bc10d13"]}] } }
+{ "item": { "user_message": "用Line Pay在五十嵐買了一杯珍奶", "validations": [{"type": "categories", "categoryIds": ["01986eb9d19679bc912ebafd355cf410"]}] } }
