@@ -261,6 +261,15 @@
       "channels": []
     },
     {
+      "id": "b8c7802be91d4748a617a1f0dded87c8",
+      "name": "郭台銘",
+      "groupName": null,
+      "type": "counterparty",
+      "category": "external",
+      "currencyId": "67fb6c93007e33a200b9963d@g",
+      "channels": []
+    },
+    {
       "id": "61819007ba4647539f4340f94e1c54d4",
       "name": "未指定",
       "groupName": null,
@@ -311,6 +320,18 @@
       "id": "964ab9dd00354116bb7ea7a3e1f865b6",
       "name": "娛樂與文化",
       "groupName": "休閒",
+      "transactionType": "payment"
+    },
+    {
+      "id": "0d0fb627566442df98a90f045e7c992e",
+      "name": "借款",
+      "groupName": "借還款",
+      "transactionType": "payment"
+    },
+    {
+      "id": "1f8ccf5e95bb410ab61e1aac3f23fc97",
+      "name": "還款",
+      "groupName": "借還款",
       "transactionType": "payment"
     },
     {
