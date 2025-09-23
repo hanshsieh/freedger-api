@@ -1,30 +1,24 @@
 package org.freedger.services.eval;
 
 import org.freedger.services.eval.models.EvalContext;
+import org.freedger.services.eval.models.InputItem;
 import org.freedger.services.openai.models.UpdateTransactionDraft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
-import com.openai.core.JsonField;
 import com.openai.core.JsonValue;
 import com.openai.core.MultipartField;
-import com.openai.models.ResponseFormatJsonSchema.JsonSchema.Schema;
 import com.openai.models.evals.EvalCreateParams;
 import com.openai.models.evals.EvalCreateParams.DataSourceConfig;
-import com.openai.models.evals.EvalCreateParams.DataSourceConfig.Custom.ItemSchema;
 import com.openai.models.evals.EvalCreateParams.TestingCriterion;
 import com.openai.models.evals.runs.RunCreateParams;
 import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource;
@@ -42,8 +36,6 @@ public class UpdateTransactionEval implements Closeable {
   private static final String INTRO_PROMPT_FILE = "prompts/update_transaction/inputs/intro.md";
   private static final String CONTEXT_PROMPT_FILE = "prompts/update_transaction/inputs/context.md";
   private static final String STATUS_PROMPT_FILE = "prompts/update_transaction/inputs/status.md";
-  private static final String DATA_KEY_USER_MESSAGE = "user_message";
-  private static final String DATA_KEY_GROUND_TRUTH = "ground_truth";
   private static final Duration FILE_EXPIRE_TIME = Duration.ofHours(1);
   private final ObjectMapper objectMapper = new ObjectMapper();
   private OpenAIClient client = OpenAIOkHttpClient.fromEnv();
@@ -74,15 +66,7 @@ public class UpdateTransactionEval implements Closeable {
     final var params = EvalCreateParams.builder()
     .name("Update Transaction Draft")
     .dataSourceConfig(DataSourceConfig.ofCustom(DataSourceConfig.Custom.builder()
-      .itemSchema(ItemSchema.builder()
-        .putAdditionalProperty("type", JsonValue.from("object"))
-        .putAdditionalProperty("properties", JsonValue.from(Map.of(
-          DATA_KEY_USER_MESSAGE, JsonValue.from(Map.of("type", "string")),
-          DATA_KEY_GROUND_TRUTH, JsonValue.from(Map.of("type", "string"))
-        )))
-        .putAdditionalProperty("required", JsonValue.from(List.of(DATA_KEY_USER_MESSAGE, DATA_KEY_GROUND_TRUTH)))
-        .putAdditionalProperty("additionalProperties", JsonValue.from(false))
-        .build())
+      .itemSchema(EvalUtils.extractJsonSchema(InputItem.class))
       .includeSampleSchema(true)
       .build()))
     .addTestingCriterion(EvalCreateParams.TestingCriterion.ofPython(TestingCriterion.Python.builder()
@@ -181,7 +165,7 @@ public class UpdateTransactionEval implements Closeable {
         .build())
       .addTemplate(ChatMessage.builder()
         .role("user")
-        .content("{{item.%s}}".formatted(DATA_KEY_USER_MESSAGE))
+        .content("{{item.%s}}".formatted(InputItem.USER_MESSAGE_KEY))
         .build())
       .build();
     return inputTemplate;
