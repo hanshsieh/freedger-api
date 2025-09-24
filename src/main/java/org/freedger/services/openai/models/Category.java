@@ -1,5 +1,7 @@
 package org.freedger.services.openai.models;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Category {
@@ -14,4 +16,7 @@ public class Category {
 
   @JsonProperty("transactionType")
   public TransactionType transactionType;
+
+  @JsonProperty("tags")
+  public List<String> tags;
 }

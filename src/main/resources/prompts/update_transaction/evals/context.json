@@ -284,103 +284,226 @@
       "id": "01986eb9d19679bc912ebafd355cf410",
       "name": "點心",
       "groupName": "飲食",
-      "transactionType": "payment"
+      "transactionType": "payment",
+      "tags": [
+        "下午茶",
+        "消夜",
+        "手搖飲",
+        "水果",
+        "蛋糕",
+        "茶",
+        "甜點"
+      ]
     },
     {
       "id": "01986eb9d179744d8033956432ad1133",
       "name": "正餐",
       "groupName": "飲食",
-      "transactionType": "payment"
+      "transactionType": "payment",
+      "tags": [
+        "早餐",
+        "午餐",
+        "晚餐",
+        "餐廳",
+        "便當"
+      ]
     },
     {
       "id": "0ed34058be0544a4b3afd35fba4ad0c2",
       "name": "食材",
       "groupName": "飲食",
-      "transactionType": "payment"
+      "transactionType": "payment",
+      "tags": [
+        "米",
+        "肉類",
+        "魚",
+        "蔬果",
+        "調味料",
+        "食用油",
+        "超市"
+      ]
     },
     {
       "id": "01986eb9d1de770cb56bd232cd097fa8",
       "name": "交通費",
       "groupName": "交通",
-      "transactionType": "payment"
+      "transactionType": "payment",
+      "tags": [
+        "公車",
+        "捷運",
+        "火車",
+        "高鐵",
+        "租車",
+        "計程車",
+        "YouBike",
+        "共享單車",
+        "Uber",
+        "Lyft"
+      ]
     },
     {
       "id": "48aa43cbf284447aa6c35a917c04ca89",
-      "name": "維修保養",
+      "name": "汽機車維護",
       "groupName": "交通",
-      "transactionType": "payment"
+      "transactionType": "payment",
+      "tags": [
+        "汽油",
+        "油費",
+        "過路費",
+        "停車費",
+        "保險",
+        "維修",
+        "保養",
+        "車輛登記",
+        "修車",
+        "洗車",
+        "打蠟",
+        "燃料費",
+        "車險",
+        "強制責任險",
+        "牌照稅"
+      ]
     },
     {
       "id": "01986eb9d22e77299b0b67460bc10d13",
       "name": "旅遊",
       "groupName": "休閒",
-      "transactionType": "payment"
+      "transactionType": "payment",
+      "tags": [
+        "團費",
+        "團體旅遊",
+        "跟團",
+        "旅行社",
+        "導覽"
+      ]
     },
     {
       "id": "964ab9dd00354116bb7ea7a3e1f865b6",
       "name": "娛樂與文化",
       "groupName": "休閒",
-      "transactionType": "payment"
+      "transactionType": "payment",
+      "tags": [
+        "電影",
+        "音樂會",
+        "展覽",
+        "遊樂園",
+        "桌遊",
+        "KTV",
+        "遊戲機",
+        "Netflix",
+        "YouTube 會員",
+        "專輯"
+      ]
     },
     {
       "id": "0d0fb627566442df98a90f045e7c992e",
       "name": "借款",
       "groupName": "借還款",
-      "transactionType": "payment"
+      "transactionType": "payment",
+      "tags": [
+        "借出",
+        "放款",
+        "出借",
+        "借錢"
+      ]
     },
     {
       "id": "1f8ccf5e95bb410ab61e1aac3f23fc97",
       "name": "還款",
       "groupName": "借還款",
-      "transactionType": "payment"
+      "transactionType": "payment",
+      "tags": [
+        "還出"
+      ]
     },
     {
       "id": "01986eb9d1ee7b66aa9ed642e680398e",
       "name": "薪資",
       "groupName": null,
-      "transactionType": "receive"
+      "transactionType": "receive",
+      "tags": [
+        "薪水",
+        "月薪",
+        "時薪",
+        "兼職",
+        "打工",
+        "勞務",
+        "工作收入"
+      ]
     },
     {
       "id": "01986eb9d1ee7b66aa9ed642e680398f",
       "name": "退款",
       "groupName": null,
-      "transactionType": "receive"
+      "transactionType": "receive",
+      "tags": [
+        "退費",
+        "退訂",
+        "押金退還",
+        "保證金",
+        "補償金",
+        "退貨",
+        "金額退回"
+      ]
     },
     {
       "id": "d096e1fa90ee46cab8f2220459755bb5",
       "name": "回饋金",
       "groupName": null,
-      "transactionType": "receive"
+      "transactionType": "receive",
+      "tags": [
+        "現金回饋",
+        "紅利",
+        "信用卡回饋",
+        "點數",
+        "里程",
+        "支付回饋",
+        "回贈",
+        "刷卡回饋"
+      ]
     },
     {
       "id": "3446b80a89e04ef195215039d1a9791f",
       "name": "利息",
       "groupName": null,
-      "transactionType": "receive"
+      "transactionType": "receive",
+      "tags": [
+        "定存",
+        "銀行利息",
+        "借出",
+        "放款",
+        "利息收入",
+        "存款利息"
+      ]
     },
     {
       "id": "01986eb9d1ee7b66aa9ed642e6803991",
       "name": "轉帳",
       "groupName": null,
-      "transactionType": "transfer"
-    },
-    {
-      "id": "01986eb9d1ee7b66aa9ed642e6803992",
-      "name": "提款",
-      "groupName": null,
-      "transactionType": "transfer"
-    },
-    {
-      "id": "01986eb9d1ee7b66aa9ed642e6803993",
-      "name": "存款",
-      "groupName": null,
-      "transactionType": "transfer"
+      "transactionType": "transfer",
+      "tags": [
+        "電匯",
+        "儲值",
+        "提款",
+        "ATM",
+        "存款",
+        "現金提領",
+        "入金",
+        "出金"
+      ]
     },
     {
       "id": "cdf834558bac43dbb6b23825158b6e24",
       "name": "繳費",
       "groupName": null,
-      "transactionType": "transfer"
+      "transactionType": "transfer",
+      "tags": [
+        "繳卡費",
+        "繳保費",
+        "貸款還款",
+        "信用卡費",
+        "保險費"
+      ]
     }
   ],
   "platforms": [

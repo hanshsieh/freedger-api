@@ -206,9 +206,11 @@ Multiple categories can be placed in the same group.
   // Nullable
   "groupName": "Food",
   "transactionType": "payment"
+  "tags": ["cake", "afternoon tea"]
 }
 ```
 - `transactionType`: `payment` | `receive` | `transfer`
+- `tags`: The tags providing additional explanation for the category.
 
 ## Transaction
 ```
