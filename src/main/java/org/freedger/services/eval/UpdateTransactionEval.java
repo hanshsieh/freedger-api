@@ -142,6 +142,7 @@ public class UpdateTransactionEval implements Closeable {
     contextPrompt = contextPrompt.replace("{{currentTime}}", context.currentTime);
     contextPrompt = contextPrompt.replace("{{timeZone}}", context.timeZone);
     contextPrompt = contextPrompt.replace("{{locale}}", context.locale);
+    contextPrompt = contextPrompt.replace("{{defaultExternalAccountId}}", context.defaultExternalAccountId);
     contextPrompt = contextPrompt.replace("{{defaultCurrencyId}}", context.defaultCurrencyId);
     contextPrompt = contextPrompt.replace("{{currencies}}", objectMapper.writeValueAsString(context.currencies));
     contextPrompt = contextPrompt.replace("{{accounts}}", objectMapper.writeValueAsString(context.accounts));

@@ -2,7 +2,8 @@
 - Current time: {{currentTime}}
 - Time zone: {{timeZone}}
 - Locale: {{locale}}
-- Default currency Id: {{defaultCurrencyId}}
+- Default external account ID: {{defaultExternalAccountId}}
+- Default currency ID: {{defaultCurrencyId}}
 
 # Reference Items
 Here're the reference items that can be used for updating the transaction draft.

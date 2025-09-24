@@ -20,6 +20,9 @@ public class EvalContext {
   @JsonProperty("locale")
   public String locale;
 
+  @JsonProperty("defaultExternalAccountId")
+  public String defaultExternalAccountId;
+
   @JsonProperty("defaultCurrencyId")
   public String defaultCurrencyId;
 
