@@ -2,6 +2,7 @@ package org.freedger.services.eval;
 
 import org.freedger.services.eval.models.EvalContext;
 import org.freedger.services.eval.models.InputItem;
+import org.freedger.services.eval.models.MessageItem;
 import org.freedger.services.eval.models.TransactionDraft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,7 +152,7 @@ public class UpdateTransactionEval implements Closeable {
     contextPrompt = contextPrompt.replace("{{tags}}", objectMapper.writeValueAsString(context.tags));
 
     var statusPrompt = statusPromptTemplate;
-    statusPrompt = statusPrompt.replace("{{transaction}}", "{{item.%s}}".formatted(InputItem.TRANSACTION_KEY));
+    statusPrompt = statusPrompt.replace("{{transaction}}", "{{item.messages.0.%s}}".formatted(MessageItem.INPUT_TRANSACTION_KEY));
 
     final var inputTemplate = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
       .addTemplate(ChatMessage.builder()
@@ -168,7 +169,7 @@ public class UpdateTransactionEval implements Closeable {
         .build())
       .addTemplate(ChatMessage.builder()
         .role("user")
-        .content("{{item.%s}}".formatted(InputItem.USER_MESSAGE_KEY))
+        .content("{{item.messages.0.%s}}".formatted(MessageItem.USER_MESSAGE_KEY))
         .build())
       .build();
     return inputTemplate;
