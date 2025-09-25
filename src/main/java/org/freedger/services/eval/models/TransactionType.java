@@ -1,4 +1,4 @@
-package org.freedger.services.openai.models;
+package org.freedger.services.eval.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

@@ -4,8 +4,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.freedger.services.openai.models.TransactionType;
-
 public class Category {
   @JsonProperty("id")
   public String id;

@@ -1,7 +1,6 @@
 package org.freedger.services.eval.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.freedger.services.openai.models.AccountCategory;
 
 public enum AccountType {
   @JsonProperty("cash")

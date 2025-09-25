@@ -2,7 +2,7 @@ package org.freedger.services.eval;
 
 import org.freedger.services.eval.models.EvalContext;
 import org.freedger.services.eval.models.InputItem;
-import org.freedger.services.openai.models.UpdateTransactionDraft;
+import org.freedger.services.eval.models.TransactionDraft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,7 +127,7 @@ public class UpdateTransactionEval implements Closeable {
   private ResponseFormatTextJsonSchemaConfig createOutputSchema() {
     return ResponseFormatTextJsonSchemaConfig.builder()
       .name("UpdateTransactionDraft")
-      .schema(EvalUtils.extractJsonSchema(UpdateTransactionDraft.class))
+      .schema(EvalUtils.extractJsonSchema(TransactionDraft.class))
       .strict(true)
       .build();
   }
@@ -151,7 +151,7 @@ public class UpdateTransactionEval implements Closeable {
     contextPrompt = contextPrompt.replace("{{tags}}", objectMapper.writeValueAsString(context.tags));
 
     var statusPrompt = statusPromptTemplate;
-    statusPrompt = statusPrompt.replace("{{transaction}}", objectMapper.writeValueAsString(context.transaction));
+    statusPrompt = statusPrompt.replace("{{transaction}}", "{{item.%s}}".formatted(InputItem.INITIAL_TRANSACTION_KEY));
 
     final var inputTemplate = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
       .addTemplate(ChatMessage.builder()

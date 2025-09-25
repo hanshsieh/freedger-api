@@ -8,9 +8,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(name = "InputItem", description = "The input item for the eval.")
 public class InputItem {
   public static final String USER_MESSAGE_KEY = "userMessage";
+  public static final String INITIAL_TRANSACTION_KEY = "initialTransaction";
 
   @Schema(name = USER_MESSAGE_KEY, description = "The user message.")
   public String userMessage;
+
+  @Schema(name = INITIAL_TRANSACTION_KEY, description = "The initial transaction draft.")
+  public TransactionDraft initialTransaction;
 
   @Schema(name = "validations", description = "The validation rules.")
   @ArraySchema(schema = @Schema(anyOf = {TypeRule.class, JournalsRule.class, CategoriesRule.class, TagsRule.class}))

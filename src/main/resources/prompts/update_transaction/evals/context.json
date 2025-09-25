@@ -8,23 +8,6 @@
   "evalRunName": "Update Transaction Draft",
   "model": "o3-mini",
   "reasoningEffort": "high",
-  "transaction": {
-    "type": "payment",
-    "credits": [],
-    "debits": [
-      {
-        "accountId": "61819007ba4647539f4340f94e1c54d4",
-        "accountChannelId": null,
-        "platformId": null,
-        "amount": "0",
-        "currencyId": "67fb6c93007e33a200b9963d@g",
-        "time": "2025-01-01T09:00:00+08:00",
-        "inBalance": false
-      }
-    ],
-    "tags": [],
-    "note": ""
-  },
   "currencies": [
     {
       "id": "67fb6c93007e33a200b9963d@g",

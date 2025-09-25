@@ -4,9 +4,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.freedger.services.openai.models.AccountCategory;
-import org.freedger.services.openai.models.AccountChannel;
-
 public class Account {
   @JsonProperty("id")
   public String id;
