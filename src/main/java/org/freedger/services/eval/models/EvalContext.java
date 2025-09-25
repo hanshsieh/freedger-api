@@ -2,12 +2,6 @@ package org.freedger.services.eval.models;
 
 import java.util.List;
 
-import org.freedger.services.openai.models.Account;
-import org.freedger.services.openai.models.Category;
-import org.freedger.services.openai.models.Currency;
-import org.freedger.services.openai.models.Platform;
-import org.freedger.services.openai.models.Transaction;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class EvalContext {

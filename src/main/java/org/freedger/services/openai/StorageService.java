@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.freedger.services.openai.models.Account;
+import org.freedger.services.eval.models.Account;
+import org.freedger.services.eval.models.Category;
+import org.freedger.services.eval.models.Currency;
+import org.freedger.services.eval.models.Platform;
 import org.freedger.services.openai.models.AccountCategory;
-import org.freedger.services.openai.models.Category;
-import org.freedger.services.openai.models.Currency;
-import org.freedger.services.openai.models.Platform;
 import org.freedger.services.openai.models.Storage;
 import org.freedger.services.openai.models.TransactionType;
 

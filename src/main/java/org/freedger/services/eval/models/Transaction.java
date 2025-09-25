@@ -1,8 +1,11 @@
-package org.freedger.services.openai.models;
+package org.freedger.services.eval.models;
+
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
+import org.freedger.services.openai.models.TransactionType;
+import org.freedger.services.openai.models.Journal;
 
 public class Transaction {
   @JsonProperty("type")

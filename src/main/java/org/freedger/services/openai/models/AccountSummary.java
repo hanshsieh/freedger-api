@@ -1,5 +1,7 @@
 package org.freedger.services.openai.models;
 
+import org.freedger.services.eval.models.Currency;
+
 public class AccountSummary {
   public String id;
   public String name;
