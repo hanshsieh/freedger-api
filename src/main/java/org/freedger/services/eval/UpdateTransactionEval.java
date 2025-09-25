@@ -151,7 +151,7 @@ public class UpdateTransactionEval implements Closeable {
     contextPrompt = contextPrompt.replace("{{tags}}", objectMapper.writeValueAsString(context.tags));
 
     var statusPrompt = statusPromptTemplate;
-    statusPrompt = statusPrompt.replace("{{transaction}}", "{{item.%s}}".formatted(InputItem.INITIAL_TRANSACTION_KEY));
+    statusPrompt = statusPrompt.replace("{{transaction}}", "{{item.%s}}".formatted(InputItem.TRANSACTION_KEY));
 
     final var inputTemplate = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
       .addTemplate(ChatMessage.builder()
