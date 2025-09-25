@@ -4,10 +4,10 @@
   "locale": "zh_TW",
   "defaultExternalAccountId": "61819007ba4647539f4340f94e1c54d4",
   "defaultCurrencyId": "67fb6c93007e33a200b9963d@g",
-  "evalId": "eval_68d24d2507b8819180a03761133ac64b",
+  "evalId": "eval_68d4b34fc01881919944e197ae1b8421",
   "evalRunName": "Update Transaction Draft",
-  "model": "o3-mini",
-  "reasoningEffort": "high",
+  "model": "gpt-5-mini-2025-08-07",
+  "reasoningEffort": "minimal",
   "currencies": [
     {
       "id": "67fb6c93007e33a200b9963d@g",

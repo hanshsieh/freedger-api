@@ -13,7 +13,7 @@ public class InputItem {
   @Schema(name = USER_MESSAGE_KEY, description = "The user message.")
   public String userMessage;
 
-  @Schema(name = TRANSACTION_KEY, description = "The initial transaction draft.")
+  @Schema(name = TRANSACTION_KEY, description = "The current transaction draft.")
   public TransactionDraft transaction;
 
   @Schema(name = "validations", description = "The validation rules.")
