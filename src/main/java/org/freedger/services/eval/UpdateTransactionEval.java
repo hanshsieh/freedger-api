@@ -2,6 +2,7 @@ package org.freedger.services.eval;
 
 import org.freedger.services.eval.models.EvalContext;
 import org.freedger.services.eval.models.InputItem;
+import org.freedger.services.eval.models.InputConfig;
 import org.freedger.services.eval.models.MessageItem;
 import org.freedger.services.eval.models.TransactionDraft;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.nio.file.Paths;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +34,9 @@ import com.openai.models.responses.ResponseFormatTextJsonSchemaConfig;
 public class UpdateTransactionEval implements Closeable {
   private static final Logger logger = LoggerFactory.getLogger(UpdateTransactionEval.class);
   private static final String CONTEXT_FILE = "prompts/update_transaction/evals/context.json";
-  private static final String INPUT_FILE = "prompts/update_transaction/evals/input.jsonl";
+  private static final InputConfig[] INPUT_CONFIGS = new InputConfig[] {
+    new InputConfig("prompts/update_transaction/evals/input_1.jsonl", 1)
+  };
   private static final String PYTHON_GRADER_FILE = "prompts/update_transaction/evals/test_criterion.py";
   private static final String INTRO_PROMPT_FILE = "prompts/update_transaction/inputs/intro.md";
   private static final String CONTEXT_PROMPT_FILE = "prompts/update_transaction/inputs/context.md";
@@ -57,9 +61,10 @@ public class UpdateTransactionEval implements Closeable {
       evalId = createEval();
     }
     
-    FileObject fileObj = uploadFile(INPUT_FILE);
-
-    submitRun(context, evalId, fileObj);
+    for (final var inputConfig : INPUT_CONFIGS) {
+      FileObject fileObj = uploadFile(inputConfig.filePath);
+      submitRun(context, evalId, fileObj, inputConfig);
+    }
   }
 
   String createEval() {
@@ -101,10 +106,11 @@ public class UpdateTransactionEval implements Closeable {
     }
   }
 
-  void submitRun(EvalContext context, String evalId, FileObject fileObj) throws JsonProcessingException {
-    final var inputTemplate = createInputTemplate(context);
+  void submitRun(EvalContext context, String evalId, FileObject fileObj, InputConfig inputConfig) throws JsonProcessingException {
+    final var inputTemplate = createInputTemplate(context, inputConfig.messageCount);
+    final var fileNameOnly = Paths.get(inputConfig.filePath).getFileName().toString();
     final var run = client.evals().runs().create(RunCreateParams.builder()
-      .name(context.evalRunName)
+      .name(context.evalRunName + " (" + fileNameOnly + ")")
       .evalId(evalId)
       .dataSource(CreateEvalResponsesRunDataSource.builder()
         .model(context.model)
@@ -134,7 +140,7 @@ public class UpdateTransactionEval implements Closeable {
   }
 
   private CreateEvalResponsesRunDataSource.InputMessages.Template createInputTemplate(
-    EvalContext context) throws JsonProcessingException {
+    EvalContext context, int messageCount) throws JsonProcessingException {
     final var introPrompt = EvalUtils.loadResourceAsString(INTRO_PROMPT_FILE);
     final var contextPromptTemplate = EvalUtils.loadResourceAsString(CONTEXT_PROMPT_FILE);
     final var statusPromptTemplate = EvalUtils.loadResourceAsString(STATUS_PROMPT_FILE);
@@ -151,10 +157,7 @@ public class UpdateTransactionEval implements Closeable {
     contextPrompt = contextPrompt.replace("{{platforms}}", objectMapper.writeValueAsString(context.platforms));
     contextPrompt = contextPrompt.replace("{{tags}}", objectMapper.writeValueAsString(context.tags));
 
-    var statusPrompt = statusPromptTemplate;
-    statusPrompt = statusPrompt.replace("{{transaction}}", "{{item.messages.0.%s}}".formatted(MessageItem.INPUT_TRANSACTION_KEY));
-
-    final var inputTemplate = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
+    final var templateBuilder = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
       .addTemplate(ChatMessage.builder()
         .role("developer")
         .content(introPrompt)
@@ -162,17 +165,30 @@ public class UpdateTransactionEval implements Closeable {
       .addTemplate(ChatMessage.builder()
         .role("developer")
         .content(contextPrompt)
-        .build())
-      .addTemplate(ChatMessage.builder()
+        .build());
+
+    for (int turnIndex = 0; turnIndex < messageCount; turnIndex++) {
+      final var statusPrompt = statusPromptTemplate.replace(
+        "{{transaction}}", "{{item.messages[%d].%s}}".formatted(
+          turnIndex, 
+          MessageItem.INPUT_TRANSACTION_KEY));
+      templateBuilder.addTemplate(ChatMessage.builder()
         .role("developer")
         .content(statusPrompt)
         .build())
       .addTemplate(ChatMessage.builder()
         .role("user")
-        .content("{{item.messages.0.%s}}".formatted(MessageItem.USER_MESSAGE_KEY))
-        .build())
-      .build();
-    return inputTemplate;
+        .content("{{item.messages[%d].%s}}".formatted(turnIndex, MessageItem.USER_MESSAGE_KEY))
+        .build());
+      if (turnIndex < messageCount - 1) {
+        templateBuilder.addTemplate(ChatMessage.builder()
+          .role("assistant")
+          .content("{{item.messages[%d].%s}}".formatted(turnIndex, MessageItem.OUTPUT_TRANSACTION_KEY))
+          .build());
+      }
+    }
+
+    return templateBuilder.build();
   }
 
   @Override
