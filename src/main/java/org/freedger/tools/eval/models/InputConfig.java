@@ -1,4 +1,4 @@
-package org.freedger.services.eval.models;
+package org.freedger.tools.eval.models;
 
 public class InputConfig {
   public final String filePath;

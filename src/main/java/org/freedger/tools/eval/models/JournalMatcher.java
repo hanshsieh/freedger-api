@@ -1,4 +1,4 @@
-package org.freedger.services.eval.models;
+package org.freedger.tools.eval.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

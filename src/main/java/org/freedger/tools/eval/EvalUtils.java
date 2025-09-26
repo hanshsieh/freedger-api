@@ -1,4 +1,4 @@
-package org.freedger.services.eval;
+package org.freedger.tools.eval;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;

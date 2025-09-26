@@ -1,10 +1,10 @@
-package org.freedger.services.eval;
+package org.freedger.tools.eval;
 
-import org.freedger.services.eval.models.EvalContext;
-import org.freedger.services.eval.models.InputItem;
-import org.freedger.services.eval.models.InputConfig;
-import org.freedger.services.eval.models.MessageItem;
-import org.freedger.services.eval.models.TransactionDraft;
+import org.freedger.tools.eval.models.EvalContext;
+import org.freedger.tools.eval.models.InputConfig;
+import org.freedger.tools.eval.models.InputItem;
+import org.freedger.tools.eval.models.MessageItem;
+import org.freedger.tools.eval.models.TransactionDraft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
