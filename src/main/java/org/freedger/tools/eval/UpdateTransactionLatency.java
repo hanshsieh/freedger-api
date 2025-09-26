@@ -39,7 +39,7 @@ public class UpdateTransactionLatency implements Closeable {
   private static final String ARG_HELP_LONG = "help";
   private static final String ARG_VERBOSE_SHORT = "v";
   private static final String ARG_VERBOSE_LONG = "verbose";
-  private final Pattern templateRegex = Pattern.compile("\\{\\{([a-zA-Z0-9_.]+)\\}\\}");
+  private final Pattern templateRegex = Pattern.compile("\\{\\{([a-zA-Z0-9_.\\[\\]]+)\\}\\}");
   private static final Logger logger = LoggerFactory.getLogger(UpdateTransactionLatency.class);
   
   private final UpdateTransactionUtils utils = new UpdateTransactionUtils();
@@ -183,7 +183,7 @@ public class UpdateTransactionLatency implements Closeable {
       final var latency = measureApiLatency(context, inputItem);
       latencies.add(latency);
       
-      logger.info("Request {}/{} completed in {:.3f}s",
+      logger.info("Request {}/{} completed in {}s",
         i + 1, count, latency.toMillis() / 1_000.0);
     }
     
@@ -227,12 +227,13 @@ public class UpdateTransactionLatency implements Closeable {
       .model(ChatModel.of(context.model))
       .text(ResponseTextConfig.builder()
         .verbosity(ResponseTextConfig.Verbosity.LOW)
+        .format(TransactionDraft.class)
         .build())
       .reasoning(Reasoning.builder()
-        .effort(ReasoningEffort.of(context.reasoningEffort))
+        .effort(context.reasoningEffort != null ? 
+          ReasoningEffort.of(context.reasoningEffort) : null)
         .build())
       .input(ResponseCreateParams.Input.ofResponse(inputs))
-      .text(TransactionDraft.class)
       .build();
 
     if (verbose) {
@@ -276,8 +277,8 @@ public class UpdateTransactionLatency implements Closeable {
     System.out.println("=============");
     System.out.printf("Total requests: %d%n", count);
     System.out.printf("Average latency (trimmed 10%%): %.3f seconds%n", averageLatency);
-    System.out.printf("Minimum latency: %.3f seconds%n", minLatency);
-    System.out.printf("Maximum latency: %.3f seconds%n", maxLatency);
+    System.out.printf("Minimum latency: %.3f seconds%n", minLatency.toMillis() / 1_000.0);
+    System.out.printf("Maximum latency: %.3f seconds%n", maxLatency.toMillis() / 1_000.0);
     System.out.println("=============");
   }
 
