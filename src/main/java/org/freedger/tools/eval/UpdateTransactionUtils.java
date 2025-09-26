@@ -23,8 +23,23 @@ import com.openai.models.responses.ResponseTextConfig;
 import com.openai.models.responses.StructuredResponse;
 import com.openai.models.responses.StructuredResponseCreateParams;
 import com.openai.models.responses.Tool;
+import com.openai.models.responses.ResponseFormatTextJsonSchemaConfig;
+import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource;
+import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource.InputMessages.Template.InnerTemplate.ChatMessage;
 
-public class EvalUtils {
+import org.freedger.tools.eval.models.EvalContext;
+import org.freedger.tools.eval.models.MessageItem;
+import org.freedger.tools.eval.models.TransactionDraft;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class UpdateTransactionUtils {
+  private static final String CONTEXT_FILE = "prompts/update_transaction/evals/context.json";
+  private static final String INTRO_PROMPT_FILE = "prompts/update_transaction/inputs/intro.md";
+  private static final String CONTEXT_PROMPT_FILE = "prompts/update_transaction/inputs/context.md";
+  private static final String STATUS_PROMPT_FILE = "prompts/update_transaction/inputs/status.md";
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * Extract the JSON schema from a Java class.
@@ -62,6 +77,10 @@ public class EvalUtils {
     return JsonValue.fromJsonNode(shema);
   }
 
+  public EvalContext loadContext() throws JsonProcessingException {
+    return objectMapper.readValue(loadResourceAsString(CONTEXT_FILE), EvalContext.class);
+  }
+
   public static String loadResourceAsString(String resourcePath) {
     try (var inputStream = loadResourceAsStream(resourcePath)) {
       return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
@@ -71,7 +90,7 @@ public class EvalUtils {
   }
 
   public static InputStream loadResourceAsStream(String resourcePath) {
-    final var inputStream = EvalUtils.class.getClassLoader().getResourceAsStream(resourcePath);
+    final var inputStream = UpdateTransactionUtils.class.getClassLoader().getResourceAsStream(resourcePath);
     if (inputStream == null) {
       throw new IllegalStateException("Resource not found: " + resourcePath);
     }
@@ -228,5 +247,79 @@ public class EvalUtils {
       final var outputText = outputTextOpt.get();
       System.out.println("    Output Text: " + outputText.text());
     }
+  }
+
+  /**
+   * Create the output schema for transaction draft responses.
+   * 
+   * @return The JSON schema configuration for structured responses.
+   */
+  public static ResponseFormatTextJsonSchemaConfig createTransactionOutputSchema() {
+    return ResponseFormatTextJsonSchemaConfig.builder()
+      .name("UpdateTransactionDraft")
+      .schema(extractJsonSchema(TransactionDraft.class))
+      .strict(true)
+      .build();
+  }
+
+  /**
+   * Create input template for evaluation runs.
+   * 
+   * @param context The evaluation context containing configuration.
+   * @param messageCount The number of messages in each conversation.
+   * @return The input template for the evaluation run.
+   * @throws JsonProcessingException If JSON processing fails.
+   */
+  public CreateEvalResponsesRunDataSource.InputMessages.Template createInputTemplate(
+    EvalContext context, int messageCount) throws JsonProcessingException {
+      
+    final var introPrompt = loadResourceAsString(INTRO_PROMPT_FILE);
+    final var contextPromptTemplate = loadResourceAsString(CONTEXT_PROMPT_FILE);
+    final var statusPromptTemplate = loadResourceAsString(STATUS_PROMPT_FILE);
+    
+    var contextPrompt = contextPromptTemplate;
+    contextPrompt = contextPrompt.replace("{{currentTime}}", context.currentTime);
+    contextPrompt = contextPrompt.replace("{{timeZone}}", context.timeZone);
+    contextPrompt = contextPrompt.replace("{{locale}}", context.locale);
+    contextPrompt = contextPrompt.replace("{{defaultExternalAccountId}}", context.defaultExternalAccountId);
+    contextPrompt = contextPrompt.replace("{{defaultCurrencyId}}", context.defaultCurrencyId);
+    contextPrompt = contextPrompt.replace("{{currencies}}", objectMapper.writeValueAsString(context.currencies));
+    contextPrompt = contextPrompt.replace("{{accounts}}", objectMapper.writeValueAsString(context.accounts));
+    contextPrompt = contextPrompt.replace("{{categories}}", objectMapper.writeValueAsString(context.categories));
+    contextPrompt = contextPrompt.replace("{{platforms}}", objectMapper.writeValueAsString(context.platforms));
+    contextPrompt = contextPrompt.replace("{{tags}}", objectMapper.writeValueAsString(context.tags));
+
+    final var templateBuilder = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
+      .addTemplate(ChatMessage.builder()
+        .role("developer")
+        .content(introPrompt)
+        .build())
+      .addTemplate(ChatMessage.builder()
+        .role("developer")
+        .content(contextPrompt)
+        .build());
+
+    for (int turnIndex = 0; turnIndex < messageCount; turnIndex++) {
+      final var statusPrompt = statusPromptTemplate.replace(
+        "{{transaction}}", "{{item.messages[%d].%s}}".formatted(
+          turnIndex, 
+          MessageItem.INPUT_TRANSACTION_KEY));
+      templateBuilder.addTemplate(ChatMessage.builder()
+        .role("developer")
+        .content(statusPrompt)
+        .build())
+      .addTemplate(ChatMessage.builder()
+        .role("user")
+        .content("{{item.messages[%d].%s}}".formatted(turnIndex, MessageItem.USER_MESSAGE_KEY))
+        .build());
+      if (turnIndex < messageCount - 1) {
+        templateBuilder.addTemplate(ChatMessage.builder()
+          .role("assistant")
+          .content("{{item.messages[%d].%s}}".formatted(turnIndex, MessageItem.OUTPUT_TRANSACTION_KEY))
+          .build());
+      }
+    }
+
+    return templateBuilder.build();
   }
 }

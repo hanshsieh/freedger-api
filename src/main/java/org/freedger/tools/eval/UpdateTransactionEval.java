@@ -3,8 +3,6 @@ package org.freedger.tools.eval;
 import org.freedger.tools.eval.models.EvalContext;
 import org.freedger.tools.eval.models.InputConfig;
 import org.freedger.tools.eval.models.InputItem;
-import org.freedger.tools.eval.models.MessageItem;
-import org.freedger.tools.eval.models.TransactionDraft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,24 +23,18 @@ import com.openai.models.evals.EvalCreateParams.DataSourceConfig;
 import com.openai.models.evals.EvalCreateParams.TestingCriterion;
 import com.openai.models.evals.runs.RunCreateParams;
 import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource;
-import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource.InputMessages.Template.InnerTemplate.ChatMessage;
 import com.openai.models.files.FileCreateParams;
 import com.openai.models.files.FileObject;
 import com.openai.models.files.FilePurpose;
-import com.openai.models.responses.ResponseFormatTextJsonSchemaConfig;
 
 public class UpdateTransactionEval implements Closeable {
   private static final Logger logger = LoggerFactory.getLogger(UpdateTransactionEval.class);
-  private static final String CONTEXT_FILE = "prompts/update_transaction/evals/context.json";
   private static final InputConfig[] INPUT_CONFIGS = new InputConfig[] {
     new InputConfig("prompts/update_transaction/evals/input_1.jsonl", 1)
   };
   private static final String PYTHON_GRADER_FILE = "prompts/update_transaction/evals/test_criterion.py";
-  private static final String INTRO_PROMPT_FILE = "prompts/update_transaction/inputs/intro.md";
-  private static final String CONTEXT_PROMPT_FILE = "prompts/update_transaction/inputs/context.md";
-  private static final String STATUS_PROMPT_FILE = "prompts/update_transaction/inputs/status.md";
   private static final Duration FILE_EXPIRE_TIME = Duration.ofHours(1);
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final UpdateTransactionUtils utils = new UpdateTransactionUtils();
   private OpenAIClient client = OpenAIOkHttpClient.fromEnv();
 
   public static void main(String[] args) throws Exception {
@@ -52,8 +44,7 @@ public class UpdateTransactionEval implements Closeable {
   }
 
   public void run() throws Exception {
-    final var context = objectMapper.readValue(
-      EvalUtils.loadResourceAsString(CONTEXT_FILE), EvalContext.class);
+    final var context = utils.loadContext();
     
     String evalId = context.evalId;
     if (evalId == null) {
@@ -68,11 +59,11 @@ public class UpdateTransactionEval implements Closeable {
   }
 
   String createEval() {
-    final var pythonSource = EvalUtils.loadResourceAsString(PYTHON_GRADER_FILE);
+    final var pythonSource = UpdateTransactionUtils.loadResourceAsString(PYTHON_GRADER_FILE);
     final var params = EvalCreateParams.builder()
     .name("Update Transaction Draft")
     .dataSourceConfig(DataSourceConfig.ofCustom(DataSourceConfig.Custom.builder()
-      .itemSchema(EvalUtils.extractJsonSchema(InputItem.class))
+      .itemSchema(UpdateTransactionUtils.extractJsonSchema(InputItem.class))
       .includeSampleSchema(true)
       .build()))
     .addTestingCriterion(EvalCreateParams.TestingCriterion.ofPython(TestingCriterion.Python.builder()
@@ -88,7 +79,7 @@ public class UpdateTransactionEval implements Closeable {
 
   FileObject uploadFile(String resourcePath) throws IOException {
     logger.info("Uploading file: {}", resourcePath);
-    try (var fileStream = EvalUtils.loadResourceAsStream(resourcePath)) {
+    try (var fileStream = UpdateTransactionUtils.loadResourceAsStream(resourcePath)) {
       var field = MultipartField.<InputStream>builder()
         .value(fileStream)
         .filename("input.jsonl")
@@ -107,7 +98,7 @@ public class UpdateTransactionEval implements Closeable {
   }
 
   void submitRun(EvalContext context, String evalId, FileObject fileObj, InputConfig inputConfig) throws JsonProcessingException {
-    final var inputTemplate = createInputTemplate(context, inputConfig.messageCount);
+    final var inputTemplate = utils.createInputTemplate(context, inputConfig.messageCount);
     final var fileNameOnly = Paths.get(inputConfig.filePath).getFileName().toString();
     final var run = client.evals().runs().create(RunCreateParams.builder()
       .name(context.evalRunName + " (" + fileNameOnly + ")")
@@ -120,7 +111,7 @@ public class UpdateTransactionEval implements Closeable {
           .text(CreateEvalResponsesRunDataSource.SamplingParams.Text.builder()
             // The API doesn't yet support verbosity. 
             // See https://community.openai.com/t/cannot-set-verbosity-for-gpt-5-evals/1354524?
-            .format(createOutputSchema())
+            .format(UpdateTransactionUtils.createTransactionOutputSchema())
             .build())
           .build())
         .type(CreateEvalResponsesRunDataSource.Type.RESPONSES)
@@ -129,66 +120,6 @@ public class UpdateTransactionEval implements Closeable {
         .build())
       .build());
     logger.info("Run ID: {}", run.id());
-  }
-
-  private ResponseFormatTextJsonSchemaConfig createOutputSchema() {
-    return ResponseFormatTextJsonSchemaConfig.builder()
-      .name("UpdateTransactionDraft")
-      .schema(EvalUtils.extractJsonSchema(TransactionDraft.class))
-      .strict(true)
-      .build();
-  }
-
-  private CreateEvalResponsesRunDataSource.InputMessages.Template createInputTemplate(
-    EvalContext context, int messageCount) throws JsonProcessingException {
-    final var introPrompt = EvalUtils.loadResourceAsString(INTRO_PROMPT_FILE);
-    final var contextPromptTemplate = EvalUtils.loadResourceAsString(CONTEXT_PROMPT_FILE);
-    final var statusPromptTemplate = EvalUtils.loadResourceAsString(STATUS_PROMPT_FILE);
-
-    var contextPrompt = contextPromptTemplate;
-    contextPrompt = contextPrompt.replace("{{currentTime}}", context.currentTime);
-    contextPrompt = contextPrompt.replace("{{timeZone}}", context.timeZone);
-    contextPrompt = contextPrompt.replace("{{locale}}", context.locale);
-    contextPrompt = contextPrompt.replace("{{defaultExternalAccountId}}", context.defaultExternalAccountId);
-    contextPrompt = contextPrompt.replace("{{defaultCurrencyId}}", context.defaultCurrencyId);
-    contextPrompt = contextPrompt.replace("{{currencies}}", objectMapper.writeValueAsString(context.currencies));
-    contextPrompt = contextPrompt.replace("{{accounts}}", objectMapper.writeValueAsString(context.accounts));
-    contextPrompt = contextPrompt.replace("{{categories}}", objectMapper.writeValueAsString(context.categories));
-    contextPrompt = contextPrompt.replace("{{platforms}}", objectMapper.writeValueAsString(context.platforms));
-    contextPrompt = contextPrompt.replace("{{tags}}", objectMapper.writeValueAsString(context.tags));
-
-    final var templateBuilder = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
-      .addTemplate(ChatMessage.builder()
-        .role("developer")
-        .content(introPrompt)
-        .build())
-      .addTemplate(ChatMessage.builder()
-        .role("developer")
-        .content(contextPrompt)
-        .build());
-
-    for (int turnIndex = 0; turnIndex < messageCount; turnIndex++) {
-      final var statusPrompt = statusPromptTemplate.replace(
-        "{{transaction}}", "{{item.messages[%d].%s}}".formatted(
-          turnIndex, 
-          MessageItem.INPUT_TRANSACTION_KEY));
-      templateBuilder.addTemplate(ChatMessage.builder()
-        .role("developer")
-        .content(statusPrompt)
-        .build())
-      .addTemplate(ChatMessage.builder()
-        .role("user")
-        .content("{{item.messages[%d].%s}}".formatted(turnIndex, MessageItem.USER_MESSAGE_KEY))
-        .build());
-      if (turnIndex < messageCount - 1) {
-        templateBuilder.addTemplate(ChatMessage.builder()
-          .role("assistant")
-          .content("{{item.messages[%d].%s}}".formatted(turnIndex, MessageItem.OUTPUT_TRANSACTION_KEY))
-          .build());
-      }
-    }
-
-    return templateBuilder.build();
   }
 
   @Override
