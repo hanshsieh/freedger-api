@@ -4,7 +4,7 @@
   "locale": "zh_TW",
   "defaultExternalAccountId": "61819007ba4647539f4340f94e1c54d4",
   "defaultCurrencyId": "67fb6c93007e33a200b9963d@g",
-  "evalId": null,
+  "evalId": "eval_68d6550601e88191870a602c5363a23f",
   "evalRunName": "Update Transaction Draft",
   "model": "gpt-4.1",
   "reasoningEffort": null,

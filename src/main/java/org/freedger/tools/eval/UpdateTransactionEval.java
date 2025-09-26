@@ -101,7 +101,7 @@ public class UpdateTransactionEval implements Closeable {
     final var inputTemplate = utils.createInputTemplate(context, inputConfig.messageCount);
     final var fileNameOnly = Paths.get(inputConfig.filePath).getFileName().toString();
     final var run = client.evals().runs().create(RunCreateParams.builder()
-      .name(context.evalRunName + " (" + fileNameOnly + ")")
+      .name(context.evalRunName + " (" + context.model + ", " + fileNameOnly + ")")
       .evalId(evalId)
       .dataSource(CreateEvalResponsesRunDataSource.builder()
         .model(context.model)
