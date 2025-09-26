@@ -164,23 +164,17 @@ public class UpdateTransactionLatency implements Closeable {
       true);
   }
 
-  private List<InputItem> loadInputItems(String inputPath) throws IOException {
+  private List<String> loadInputItems(String inputPath) throws IOException {
     final var resourcePath = inputPath.startsWith("@") ? inputPath.substring(1) : inputPath;
     final var content = UpdateTransactionUtils.loadResourceAsString(resourcePath);
     
     return Arrays.stream(content.split("\n"))
-      .filter(line -> !line.trim().isEmpty())
-      .map(line -> {
-        try {
-          return objectMapper.readValue(line, InputItem.class);
-        } catch (JsonProcessingException e) {
-          throw new RuntimeException("Failed to parse input item: " + line, e);
-        }
-      })
+      .map(String::trim)
+      .filter(line -> !line.isEmpty())
       .collect(Collectors.toList());
   }
 
-  private List<Duration> runLatencyTests(EvalContext context, List<InputItem> inputItems, int count) 
+  private List<Duration> runLatencyTests(EvalContext context, List<String> inputItems, int count) 
     throws IOException {
     final var latencies = new ArrayList<Duration>();
     
@@ -196,13 +190,12 @@ public class UpdateTransactionLatency implements Closeable {
     return latencies;
   }
 
-  private Duration measureApiLatency(EvalContext context, InputItem inputItem) throws IOException {
-    final var inputItemStr = objectMapper.writeValueAsString(inputItem);
+  private Duration measureApiLatency(EvalContext context, String inputItem) throws IOException {
     final List<ResponseInputItem> inputs = new ArrayList<>();
 
     final var inputTemplate = utils.createInputTemplate(context, inputMsgCount);
     final var innerTemplates = inputTemplate.template();
-    Object inputItemJson = Configuration.defaultConfiguration().jsonProvider().parse(inputItemStr);
+    Object inputItemJson = Configuration.defaultConfiguration().jsonProvider().parse(inputItem);
     for (var innerTemplate : innerTemplates) {
       if (!innerTemplate.isChatMessage()) {
         continue;
