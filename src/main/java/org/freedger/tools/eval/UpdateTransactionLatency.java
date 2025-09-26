@@ -226,7 +226,8 @@ public class UpdateTransactionLatency implements Closeable {
     final var params = ResponseCreateParams.builder()
       .model(ChatModel.of(context.model))
       .text(ResponseTextConfig.builder()
-        .verbosity(ResponseTextConfig.Verbosity.LOW)
+        .verbosity(context.verbosity != null ? 
+          ResponseTextConfig.Verbosity.of(context.verbosity) : null)
         .format(TransactionDraft.class)
         .build())
       .reasoning(Reasoning.builder()

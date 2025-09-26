@@ -32,6 +32,9 @@ public class EvalContext {
   @JsonProperty("reasoningEffort")
   public String reasoningEffort;
 
+  @JsonProperty("verbosity")
+  public String verbosity;
+
   @JsonProperty("currencies")
   public List<Currency> currencies;
 

@@ -6,8 +6,9 @@
   "defaultCurrencyId": "67fb6c93007e33a200b9963d@g",
   "evalId": "eval_68d5ff2a9d4481919ac234b45957ac89",
   "evalRunName": "Update Transaction Draft",
-  "model": "gpt-5-mini-2025-08-07",
-  "reasoningEffort": "minimal",
+  "model": "gpt-4.1",
+  "reasoningEffort": null,
+  "verbosity": "medium",
   "currencies": [
     {
       "id": "67fb6c93007e33a200b9963d@g",
