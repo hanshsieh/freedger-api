@@ -15,10 +15,13 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.ChatModel;
@@ -36,6 +39,7 @@ public class UpdateTransactionLatency implements Closeable {
   private static final String ARG_HELP_LONG = "help";
   private static final String ARG_VERBOSE_SHORT = "v";
   private static final String ARG_VERBOSE_LONG = "verbose";
+  private final Pattern templateRegex = Pattern.compile("\\{\\{([a-zA-Z0-9_.]+)\\}\\}");
   private static final Logger logger = LoggerFactory.getLogger(UpdateTransactionLatency.class);
   
   private final UpdateTransactionUtils utils = new UpdateTransactionUtils();
@@ -185,17 +189,20 @@ public class UpdateTransactionLatency implements Closeable {
       final var latency = measureApiLatency(context, inputItem);
       latencies.add(latency);
       
-      logger.info("Request {}/{} completed in {:.3f}s", i + 1, count, latency);
+      logger.info("Request {}/{} completed in {:.3f}s",
+        i + 1, count, latency.toMillis() / 1_000.0);
     }
     
     return latencies;
   }
 
   private Duration measureApiLatency(EvalContext context, InputItem inputItem) throws IOException {
+    final var inputItemStr = objectMapper.writeValueAsString(inputItem);
     final List<ResponseInputItem> inputs = new ArrayList<>();
 
     final var inputTemplate = utils.createInputTemplate(context, inputMsgCount);
     final var innerTemplates = inputTemplate.template();
+    Object inputItemJson = Configuration.defaultConfiguration().jsonProvider().parse(inputItemStr);
     for (var innerTemplate : innerTemplates) {
       if (!innerTemplate.isChatMessage()) {
         continue;
@@ -203,10 +210,23 @@ public class UpdateTransactionLatency implements Closeable {
       final var chatMessage = innerTemplate.asChatMessage();
       final var role = chatMessage.role();
       final var contentTemplate = chatMessage.content();
+      final var content = templateRegex.matcher(contentTemplate).replaceAll((result) -> {
+        final var jsonPath = "$." + result.group(1);
+        final var value = JsonPath.read(inputItemJson, jsonPath);
+        if (value instanceof String) {
+          return (String) value;
+        }
+        try {
+          return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+          throw new RuntimeException("Failed to write value as string: " + value, e);
+        }
+      });
+
       inputs.add(ResponseInputItem.ofMessage(
         ResponseInputItem.Message.builder()
           .role(ResponseInputItem.Message.Role.of(role))
-          .addInputTextContent(contentTemplate)
+          .addInputTextContent(content)
           .build())
       );
     }
