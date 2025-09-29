@@ -29,7 +29,7 @@ public class Journal {
   @Schema(description = "Time of the journal.", format = "date-time")
   public String time;
   
-  @JsonProperty("inBalance")
-  @Schema(description = "Whether the amount is included in balance of the account.")
-  public boolean inBalance;
+  @JsonProperty("affectsBalance")
+  @Schema(description = "Whether the amount affects the account balance.")
+  public boolean affectsBalance;
 }

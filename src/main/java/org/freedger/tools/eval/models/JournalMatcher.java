@@ -29,7 +29,7 @@ public class JournalMatcher {
   @JsonProperty("time")
   public String time;
 
-  @Schema(name = "inBalance", description = "Expected inBalance of the journal.")
-  @JsonProperty("inBalance")
-  public boolean inBalance;
+  @Schema(name = "affectsBalance", description = "Expected affectsBalance of the journal.")
+  @JsonProperty("affectsBalance")
+  public boolean affectsBalance;
 }

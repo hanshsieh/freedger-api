@@ -64,7 +64,7 @@ def match_journal(journal: dict, matcher: dict) -> bool:
   amount: str = journal.get("amount")
   currency_id: str = journal.get("currencyId")
   time: str = journal.get("time")
-  in_balance: bool = journal.get("inBalance")
+  affects_balance: bool = journal.get("affectsBalance")
 
   expected_account_id: str = matcher.get("accountId")
   expected_account_channel_id: str | None = matcher.get("accountChannelId")
@@ -72,7 +72,7 @@ def match_journal(journal: dict, matcher: dict) -> bool:
   expected_amount: str = matcher.get("amount")
   expected_currency_id: str = matcher.get("currencyId")
   expected_time: str = matcher.get("time")
-  expected_in_balance: bool = matcher.get("inBalance")
+  expected_affects_balance: bool = matcher.get("affectsBalance")
 
   if account_id != expected_account_id:
     return False
@@ -86,7 +86,7 @@ def match_journal(journal: dict, matcher: dict) -> bool:
     return False
   if time != expected_time:
     return False
-  if in_balance != expected_in_balance:
+  if affects_balance != expected_affects_balance:
     return False
   return True
 

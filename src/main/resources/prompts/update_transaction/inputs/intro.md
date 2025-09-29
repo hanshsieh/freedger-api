@@ -28,21 +28,21 @@ Expect user input from voice recognition, which may contain errors in pronunciat
     - Currency of the amount.
   - Time: 
     - Time when the journal happens.
-  - inBalance
-    - It means whether the amount should be included in the balance of the account.
+  - affectsBalance
+    - It means whether the amount should affect the account balance.
 - Transaction types:
   - `payment`:
     - Outgoing expense or repayment.
     - Examples:
       - `credit` account with channel → Store: Card expense
-      - `cash` account → "Tom" with `inBalance=true`: Lending money or paying back
+      - `cash` account → "Tom" with `affectsBalance=true`: Lending money or paying back
   - `receive`:
     - Incoming income or borrowing.
     - Examples:
       - My company → `bank` account: Salary
       - City Bank → `bank` account: Interest
       - Store → `credit` account with channel: Refund to the credit card
-      - "Tom" with `inBalance=true` → `cash` account: Borrowing or receiving repayment
+      - "Tom" with `affectsBalance=true` → `cash` account: Borrowing or receiving repayment
   - `transfer`:
     - Transfer between accounts.
     - Examples
@@ -85,36 +85,36 @@ Follow the rules below when updating a transaction:
   - `payment`
     - Credit journal
       - Account MUST have category `personal`.
-      - `inBalance` MUST be `true`.
+      - `affectsBalance` MUST be `true`.
       - Unless the user explicitly requests, use the account's default currency.
       - If the account cannot be confidently inferred for a journal, skip the journal.
     - Debit journal
       - Account MUST have category `external`.
-      - `inBalance` MUST be `false`, except when lending money or paying back
+      - `affectsBalance` MUST be `false`, except when lending money or paying back
       - `accountChannelId` and `platformId` MUST be `null`.
       - Unless the user explicitly requests, use the currency of the credit journals. If the credit journals use multiple currencies, it falls back to the user's default currency.
       - If the account cannot be confidently inferred, use the default external account.
   - `receive`
     - Credit journal
       - Account MUST have category `external`.
-      - `inBalance` MUST be `false`, except when borrowing or receiving repayment.
+      - `affectsBalance` MUST be `false`, except when borrowing or receiving repayment.
       - `accountChannelId` and `platformId` MUST be `null`.
       - Unless the user explicitly requests, use the currency of the debit journals. If the debit journals use multiple currencies, it falls back to the user's default currency.
       - If the account cannot be confidently inferred, use the default external account.
     - Debit journal
       - Account MUST have category `personal`.
-      - `inBalance` MUST be `true`.
+      - `affectsBalance` MUST be `true`.
       - Unless the user explicitly requests, use the account's default currency.
       - If the account cannot be confidently inferred for a journal, skip the journal.
   - `transfer`
     - Credit journal
       - Account MUST have category `personal`.
-      - `inBalance` MUST be `true`.
+      - `affectsBalance` MUST be `true`.
       - Unless the user explicitly requests, use the account's default currency.
       - If the account cannot be confidently inferred for a journal, skip the journal.
     - Debit journal
       - Account MUST have category `personal`.
-      - `inBalance` MUST be `true`.
+      - `affectsBalance` MUST be `true`.
       - Unless the user explicitly requests, use the account's default currency.
       - If the account cannot be confidently inferred for a journal, skip the journal.
 - Categories
@@ -253,7 +253,7 @@ Multiple categories can be placed in the same group.
       "currencyId": "{currency_id}",
       // ISO 8601
       "time": "2025-01-01T09:00:00+08:00",
-      "inBalance": true
+      "affectsBalance": true
     }
   ],
   "debits": [
@@ -267,7 +267,7 @@ Multiple categories can be placed in the same group.
       "currencyId": "{currency_id}",
       // ISO 8601
       "time": "2025-01-01T09:00:00+08:00",
-      "inBalance": false
+      "affectsBalance": false
     }
   ],
   "categoryIds": ["{category_id}"],
