@@ -43,7 +43,7 @@ public class DittoApi {
         new LedgerChildQuery("CategoryGroups"),
         new LedgerChildOrGlobalQuery("Currencies"),
         new LedgerChildOrGlobalQuery("Instruments"),
-        new LedgerChildQuery("JournalEntries"),
+        new LedgerChildQuery("Journals"),
         new CollectionQuery("Ledgers") {
             @Override
             public List<String> forReader(List<String> ledgerIds) {
