@@ -1,9 +1,24 @@
 package org.freedger.services.ditto.models;
 
+import java.time.Instant;
+
+import com.google.gson.annotations.SerializedName;
+
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
+
 public class AccountChannel {
+    @NotNull
+    @SerializedName("name")
     private String name;
+
+    @SerializedName("order")
+    
     private double order;
-    private boolean isArchived;
+
+    @Nullable
+    @SerializedName("archivedAt")
+    private Instant archivedAt;
 
     public String getName() {
         return name;
@@ -21,11 +36,11 @@ public class AccountChannel {
         this.order = order;
     }
 
-    public boolean isArchived() {
-        return isArchived;
+    public Instant getArchivedAt() {
+        return archivedAt;
     }
 
-    public void setArchived(boolean archived) {
-        isArchived = archived;
+    public void setArchivedAt(Instant archivedAt) {
+        this.archivedAt = archivedAt;
     }
 }

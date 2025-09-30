@@ -1,8 +1,11 @@
 package org.freedger.services.ditto.models;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+
 import com.google.gson.annotations.SerializedName;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
 public class Account {
@@ -31,18 +34,24 @@ public class Account {
     @NotNull
     private String name;
 
-    @SerializedName("isArchived")
-    private boolean archived = false;
+    @SerializedName("archivedAt")
+    @Nullable
+    private Instant archivedAt;
 
     @SerializedName("groupId")
+    @Nullable
     private String groupId;
 
     @SerializedName("currencyId")
     @NotNull
     private String currencyId;
 
-    @SerializedName("isAutoClear")
-    private boolean autoClear = true;
+    @SerializedName("openingBalance")
+    @NotNull
+    private BigDecimal openingBalance;
+
+    @SerializedName("autoReconcile")
+    private boolean autoReconcile = true;
 
     @SerializedName("note")
     @NotNull
@@ -99,12 +108,12 @@ public class Account {
         this.name = name;
     }
 
-    public boolean isArchived() {
-        return archived;
+    public Instant getArchivedAt() {
+        return archivedAt;
     }
 
-    public void setArchived(boolean archived) {
-        this.archived = archived;
+    public void setArchivedAt(Instant archivedAt) {
+        this.archivedAt = archivedAt;
     }
 
     public String getGroupId() {
@@ -123,12 +132,20 @@ public class Account {
         this.currencyId = currencyId;
     }
 
-    public boolean isAutoClear() {
-        return autoClear;
+    public BigDecimal getOpeningBalance() {
+        return openingBalance;
     }
 
-    public void setAutoClear(boolean isAutoClear) {
-        this.autoClear = isAutoClear;
+    public void setOpeningBalance(BigDecimal openingBalance) {
+        this.openingBalance = openingBalance;
+    }
+
+    public boolean isAutoReconcile() {
+        return autoReconcile;
+    }
+
+    public void setAutoReconcile(boolean autoReconcile) {
+        this.autoReconcile = autoReconcile;
     }
 
     public String getNote() {

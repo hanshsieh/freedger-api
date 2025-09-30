@@ -31,6 +31,7 @@ import org.freedger.services.ditto.models.WriteCommand;
 import org.freedger.services.ditto.models.WriteCommandResult;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -63,6 +64,7 @@ public class DittoHttpClient {
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
         this.gson = new GsonBuilder()
             .registerTypeAdapter(Instant.class, new InstantAdapter())
+            .registerTypeAdapter(BigDecimal.class, new BigDecimalAdapter())
             .create();
         
         // Create a reusable HttpClient with connection pooling and timeouts
@@ -128,10 +130,11 @@ public class DittoHttpClient {
             account.setUpdatedAt(now);
             account.setName(config.getExternalAccountName());
             account.setType(AccountType.COUNTERPARTY);
-            account.setArchived(false);
+            account.setArchivedAt(null);
             account.setGroupId(null);
             account.setCurrencyId(config.getCurrencyId());
-            account.setAutoClear(true);
+            account.setOpeningBalance(BigDecimal.ZERO);
+            account.setAutoReconcile(true);
             account.setNote("");
             account.setOrder(0.0);
 
