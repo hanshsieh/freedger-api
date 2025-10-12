@@ -13,6 +13,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,8 @@ import org.freedger.services.ditto.models.WriteCommandResult;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -50,7 +53,7 @@ public class DittoHttpClient {
     private static final Timeout REQUEST_TIMEOUT = Timeout.ofSeconds(10);
     private static final Timeout RESPONSE_TIMEOUT = Timeout.ofSeconds(10);
     
-    private final String baseUrl;
+    private final URI baseUri;
     private final Gson gson;
     private final CloseableHttpClient httpClient;
     
@@ -60,8 +63,12 @@ public class DittoHttpClient {
      * @param apiKey The API key for authentication
      */
     public DittoHttpClient(String baseUrl, String apiKey) {
-        // Ensure the base URL ends with a slash for proper path concatenation
-        this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+        try {
+            this.baseUri = new URI(baseUrl);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid base URL: " + baseUrl, e);
+        }
+        
         this.gson = new GsonBuilder()
             .registerTypeAdapter(Instant.class, new InstantAdapter())
             .registerTypeAdapter(BigDecimal.class, new BigDecimalAdapter())
@@ -184,8 +191,13 @@ public class DittoHttpClient {
             // Create JSON request body
             String jsonRequestBody = gson.toJson(request);
             
+            // Build URI using URIBuilder
+            URIBuilder uriBuilder = new URIBuilder(baseUri);
+            uriBuilder.appendPathSegments("store", "execute");
+            URI uri = uriBuilder.build();
+            
             // Create and execute the request
-            HttpPost httpPost = new HttpPost(baseUrl + "store/execute");
+            HttpPost httpPost = new HttpPost(uri);
             httpPost.setEntity(new StringEntity(jsonRequestBody, ContentType.APPLICATION_JSON));
             if (transactionId != null) {
                 httpPost.setHeader(HEADER_TXN_ID, transactionId);
@@ -200,8 +212,10 @@ public class DittoHttpClient {
                 TypeToken.getParameterized(QueryResponse.class, itemClass, itemIdClass).getType()
             );
             return queryResponse;
+        } catch (URISyntaxException e) {
+            throw new IOException("Failed to build URI", e);
         } catch (Exception e) {
-            throw new IOException("Failed to send execute request: " + e.getMessage(), e);
+            throw new IOException("Failed to send execute request", e);
         }
     }
 
@@ -210,8 +224,13 @@ public class DittoHttpClient {
             // Create JSON request body
             String jsonRequestBody = gson.toJson(request);
             
+            // Build URI using URIBuilder
+            URIBuilder uriBuilder = new URIBuilder(baseUri);
+            uriBuilder.appendPathSegments("store", "write");
+            URI uri = uriBuilder.build();
+            
             // Create and execute the request
-            HttpPost httpPost = new HttpPost(baseUrl + "store/write");
+            HttpPost httpPost = new HttpPost(uri);
             httpPost.setEntity(new StringEntity(jsonRequestBody, ContentType.APPLICATION_JSON));
             
             // Execute the request
@@ -223,8 +242,10 @@ public class DittoHttpClient {
                 WriteResponse.class
             );
             return writeResponse;
+        } catch (URISyntaxException e) {
+            throw new IOException("Failed to build URI", e);
         } catch (Exception e) {
-            throw new IOException("Failed to send write request: " + e.getMessage(), e);
+            throw new IOException("Failed to send write request", e);
         }
     }
 
@@ -241,7 +262,7 @@ public class DittoHttpClient {
             });
             return responseBody;
         } catch (Exception e) {
-            throw new IOException("Failed to send execute request: " + e.getMessage(), e);
+            throw new IOException("Failed to send request", e);
         }
     }
 
