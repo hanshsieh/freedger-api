@@ -28,7 +28,7 @@ import org.freedger.openapi.models.AuthorizeResponse;
 import org.freedger.openapi.models.DittoAuthToken;
 import org.freedger.openapi.models.Permission;
 import org.freedger.openapi.models.PermissionRules;
-import org.freedger.services.ditto.DittoHttpClient;
+import org.freedger.services.ditto.DittoClient;
 import org.freedger.services.ditto.models.Ledger;
 
 /**
@@ -65,7 +65,7 @@ public class DittoApi {
     );
 
     private final RequestValidator requestValidator;
-    private final DittoHttpClient dittoClient;
+    private final DittoClient dittoClient;
     private final Config config;
     private final TokenValidator tokenValidator;
     private final ScopePredicate scopePredicate;
@@ -75,7 +75,7 @@ public class DittoApi {
     public DittoApi(
         RequestValidator validator,
         Config config, 
-        DittoHttpClient dittoClient,
+        DittoClient dittoClient,
         TokenValidator tokenValidator,
         HttpMessageSerializer serializer) {
         this.requestValidator = validator;

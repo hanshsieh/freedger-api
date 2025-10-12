@@ -22,7 +22,7 @@ import org.freedger.openapi.models.ErrorCode;
 import org.freedger.openapi.models.ErrorResponse;
 import org.freedger.openapi.models.Ledger;
 import org.freedger.openapi.models.LedgerCreate;
-import org.freedger.services.ditto.DittoHttpClient;
+import org.freedger.services.ditto.DittoClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +31,13 @@ public class LedgersApi {
     private final TokenValidator tokenValidator;
     private final ScopePredicate writeLedgersPredicate;
     private final HttpMessageSerializer httpMessageSerializer;
-    private final DittoHttpClient dittoClient;
+    private final DittoClient dittoClient;
 
     @Inject
     public LedgersApi(RequestValidator requestValidator, 
         TokenValidator tokenValidator, 
         HttpMessageSerializer httpMessageSerializer, 
-        DittoHttpClient dittoClient) {
+        DittoClient dittoClient) {
         this.requestValidator = requestValidator;
         this.tokenValidator = tokenValidator;
         this.writeLedgersPredicate = new ScopePredicate(new String[] { Scope.WRITE_LEDGERS.getValue() });

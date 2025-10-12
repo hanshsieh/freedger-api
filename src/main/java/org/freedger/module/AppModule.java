@@ -12,7 +12,7 @@ import org.freedger.config.EnvConfig;
 import org.freedger.function.utils.HttpMessageSerializer;
 import org.freedger.function.utils.RequestValidator;
 import org.freedger.function.utils.TokenValidator;
-import org.freedger.services.ditto.DittoHttpClient;
+import org.freedger.services.ditto.DittoClient;
 
 import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.JwkProviderBuilder;
@@ -28,9 +28,9 @@ import dagger.Provides;
 public class AppModule {
     @Provides
     @Singleton
-    public DittoHttpClient provideDittoHttpClient(Config config, SecretClient secretClient) {
+    public DittoClient provideDittoHttpClient(Config config, SecretClient secretClient) {
         String apiKey = secretClient.getSecret(config.dittoApiKeySecretName()).getValue();
-        return new DittoHttpClient(config.dittoApiBaseUrl(), apiKey);
+        return new DittoClient(config.dittoApiBaseUrl(), apiKey);
     }
 
     @Provides

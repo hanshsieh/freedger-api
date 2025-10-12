@@ -47,9 +47,9 @@ import java.util.UUID;
 /**
  * Client for interacting with Ditto's HTTP API.
  */
-public class DittoHttpClient {
+public class DittoClient {
     private static final String HEADER_TXN_ID = "X-DITTO-TXN-ID";
-    private static final Logger logger = LoggerFactory.getLogger(DittoHttpClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(DittoClient.class);
     private static final Timeout REQUEST_TIMEOUT = Timeout.ofSeconds(10);
     private static final Timeout RESPONSE_TIMEOUT = Timeout.ofSeconds(10);
     
@@ -62,7 +62,7 @@ public class DittoHttpClient {
      * @param baseUrl The base URL of the Ditto API (e.g., "https://your-app-id.cloud.ditto.live/api/v4/")
      * @param apiKey The API key for authentication
      */
-    public DittoHttpClient(String baseUrl, String apiKey) {
+    public DittoClient(String baseUrl, String apiKey) {
         try {
             this.baseUri = new URI(baseUrl);
         } catch (URISyntaxException e) {
