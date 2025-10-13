@@ -82,27 +82,3 @@ See
 - [Use OpenTelemetry with Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=app-insights&pivots=programming-language-java)
 
 To configure the log level to send to Application Insights, use `host.json`. But it only affects the logs sent via SLF4J. The logs sent via `ExecutionContext#getLogger()` will always be sent.    
-
-### Example Queries
-Find the failed requests and the exception thrown
-```
-requests 
-| where success == false
-| project timestamp, name, operation_Id, resultCode
-| join (
-  exceptions
-  | project operation_Id, outerMethod, outerMessage, innermostMethod, innermostMessage, details
-) on $left.operation_Id == $right.operation_Id
-```
-
-Show response time buckets
-```
-// Response time buckets 
-// Show how many requests are in each performance-bucket. 
-requests
-| where url startswith "http://freedger-api/"
-| summarize requestCount=sum(itemCount), avgDuration=avg(duration) by performanceBucket
-| order by avgDuration asc // sort by average request duration
-| project-away avgDuration // no need to display avgDuration, we used it only for sorting results
-| render barchart
-```
