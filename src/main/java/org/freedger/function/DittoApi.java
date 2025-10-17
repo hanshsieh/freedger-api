@@ -120,7 +120,7 @@ public class DittoApi {
                 throw new SecurityException("Invalid token: missing subject");
             }
             
-            List<Ledger> accessibleLedgers = dittoClient.findAccessibleLedgers(userId, dittoAuthToken.getTransactionId());
+            List<Ledger> accessibleLedgers = dittoClient.queryLedgers(userId, dittoAuthToken.getTransactionId());
 
             AuthorizeResponse response = buildAuthResponse(userId, accessibleLedgers);
             

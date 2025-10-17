@@ -85,10 +85,70 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LedgerCreate'
+              $ref: '#/components/schemas/CreateLedger'
       responses:
         '201':
           description: Ledger created successfully
+          headers:
+            X-TXN-ID:
+              schema:
+                $ref: '#/components/schemas/TransactionId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ledger'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /ledgers/{ledgerId}:
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - Ledgers
+      summary: Update a ledger
+      description: |
+        Updates a ledger for the authenticated user.
+        
+        ### Authentication
+        This endpoint requires a valid JWT token in the Authorization header.
+        
+        **Example:**
+        ```
+        Authorization: Bearer <your_jwt_token>
+        ```
+      operationId: updateLedger
+      parameters:
+        - name: ledgerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLedger'
+      responses:
+        '200':
+          description: Ledger updated successfully
           headers:
             X-TXN-ID:
               schema:
@@ -148,38 +208,7 @@ components:
         - invalid_request
         - unauthorized
         - server_error
-    LedgerCreate:
-      type: object
-      description: |
-        The configuration for creating a new ledger.
-        The authorized user will be set as the writer of the ledger.
-      required:
-        - name
-        - note
-        - currencyId
-        - externalAccountName
-      properties:
-        name:
-          type: string
-          description: The name of the ledger
-          example: "My Ledger"
-        note:
-          type: string
-          description: The note of the ledger
-          example: "This is my ledger"
-        currencyId:
-          type: string
-          description: |
-            The ID of the default currency. 
-            The currency will be used as the default currency when creating a transaction.
-          example: "0123456789"
-        externalAccountName:
-          type: string
-          description: |
-            The name of the default external account. 
-            A "counterparty" account will be created with the name, and the account will be used as the default
-            external account when creating a transaction.
-          example: "Unspecified"
+
     Ledger:
       type: object
       required:
@@ -238,6 +267,85 @@ components:
             The ID of the default external account. 
             The external account will be used as the default external account when creating a transaction.
           example: "0123456789"
+
+    CreateLedger:
+      type: object
+      description: |
+        The configuration for creating a new ledger.
+        The authorized user will be set as the writer of the ledger.
+      required:
+        - name
+        - note
+        - currencyId
+        - externalAccountName
+      properties:
+        name:
+          type: string
+          description: The name of the ledger
+          example: "My Ledger"
+        note:
+          type: string
+          description: The note of the ledger
+          example: "This is my ledger"
+        currencyId:
+          type: string
+          description: |
+            The ID of the default currency. 
+            The currency will be used as the default currency when creating a transaction.
+          example: "0123456789"
+        externalAccountName:
+          type: string
+          description: |
+            The name of the default external account. 
+            A "counterparty" account will be created with the name, and the account will be used as the default
+            external account when creating a transaction.
+          example: "Unspecified"
+
+    UpdateLedger:
+      type: object
+      description: |
+        The configuration for updating a ledger.
+        The authorized user will be set as the writer of the ledger.
+      required:
+        - name
+        - note
+        - currencyId
+        - externalAccountId
+        - readerIds
+        - writerIds
+      properties:
+        name:
+          type: string
+          description: The name of the ledger
+          example: "My Ledger"
+        note:
+          type: string
+          description: The note of the ledger
+          example: "This is my ledger"
+        currencyId:
+          type: string
+          description: |
+            The ID of the default currency. 
+            The currency will be used as the default currency when creating a transaction.
+          example: "0123456789"
+        externalAccountId:
+          type: string
+          description: |
+            The ID of the default external account. 
+            The external account will be used as the default external account when creating a transaction.
+          example: "0123456789"
+        readerIds:
+          type: array
+          items:
+            type: string
+          description: The IDs of the readers of the ledger
+          example: ["user-123", "user-456"]
+        writerIds:
+          type: array
+          items:
+            type: string
+          description: The IDs of the writers of the ledger
+          example: ["user-123", "user-456"]
     AuthorizeRequest:
       type: object
       required:

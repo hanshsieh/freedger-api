@@ -17,14 +17,17 @@ import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.freedger.services.ditto.exceptions.DittoNotFoundException;
 import org.freedger.services.ditto.models.Account;
 import org.freedger.services.ditto.models.AccountType;
 import org.freedger.services.ditto.models.DittoResponse;
+import org.freedger.services.ditto.models.GetLedger;
 import org.freedger.services.ditto.models.Ledger;
 import org.freedger.services.ditto.models.LedgerChildId;
-import org.freedger.services.ditto.models.LedgerCreate;
+import org.freedger.services.ditto.models.CreateLedger;
 import org.freedger.services.ditto.models.QueryRequest;
 import org.freedger.services.ditto.models.QueryResponse;
+import org.freedger.services.ditto.models.UpdateLedger;
 import org.freedger.services.ditto.models.UpsertCommand;
 import org.freedger.services.ditto.models.WriteRequest;
 import org.freedger.services.ditto.models.WriteResponse;
@@ -39,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -89,20 +93,26 @@ public class DittoClient {
     }
 
     /**
-     * Find ledgers where the user has read or write access.
+     * Query ledgers where the user has read or write access.
      * @param userId The user ID to check access for
+     * @param transactionId The transaction ID to use for the request
      * @return List of ledgers the user can access
      */
-    public List<Ledger> findAccessibleLedgers(String userId, String transactionId) throws IOException {
+    public List<Ledger> queryLedgers(String userId, String transactionId) throws IOException {
         try {
             // Build the DQL query with parameters
             String query = String.format(
-                "SELECT * FROM %s WHERE array_contains(readerIds, :userId) OR array_contains(writerIds, :userId)",
+                "SELECT * FROM %s WHERE schemaVersion = :schemaVersion AND " +
+                "(array_contains(readerIds, :userId) OR array_contains(writerIds, :userId))",
                 Collection.LEDGERS.getName()
+            );
+            final Map<String, Object> args = Map.of(
+                "userId", userId, 
+                "schemaVersion", Ledger.SCHEMA_VERSION
             );
             
             // Create JSON request body
-            QueryRequest requestBody = new QueryRequest(query, Map.of("userId", userId));
+            QueryRequest requestBody = new QueryRequest(query, args);
             QueryResponse<Ledger, String> queryResponse = 
                 sendQueryRequest(requestBody, Ledger.class, String.class, transactionId);
             
@@ -110,6 +120,31 @@ public class DittoClient {
             
         } catch (Exception e) {
             throw new IOException("Failed to query Ditto API: " + e.getMessage(), e);
+        }
+    }
+
+    public DittoResponse<Ledger> getLedger(GetLedger request) throws IOException {
+        try {
+            final var query = String.format("SELECT * FROM %s WHERE _id = :id" +
+                " AND schemaVersion = :schemaVersion" +
+                " AND (array_contains(writerIds, :userId) OR array_contains(readerIds, :userId))" +
+                " LIMIT 1",
+                Collection.LEDGERS.getName());
+            final Map<String, Object> args = Map.of(
+                "id", request.getId(),
+                "schemaVersion", Ledger.SCHEMA_VERSION,
+                "userId", request.getUserId()
+            );
+            final var response = sendQueryRequest(
+                new QueryRequest(query, args), Ledger.class, String.class, request.getTransactionId());
+            if (response.getItems().isEmpty()) {
+                throw new DittoNotFoundException("No ledger found with ID: " + request.getId());
+            }
+            final var ledger = response.getItems().get(0);
+            final var transactionId = String.valueOf(response.getTransactionId());
+            return new DittoResponse<Ledger>(transactionId, ledger);
+        } catch (Exception e) {
+            throw new IOException("Failed to get ledger with ID: " + request.getId(), e);
         }
     }
 
@@ -122,7 +157,7 @@ public class DittoClient {
      * @return The created ledger
      * @throws IOException If an error occurs while creating the ledger
      */
-    public DittoResponse<Ledger> createLedger(LedgerCreate config) throws IOException {
+    public DittoResponse<Ledger> createLedger(CreateLedger config) throws IOException {
         try {
             final var now = Instant.now();
             WriteRequest request = new WriteRequest();
@@ -180,6 +215,62 @@ public class DittoClient {
         }
     }
 
+    public DittoResponse<String> updateLedger(UpdateLedger request)
+     throws IOException, DittoNotFoundException {
+        try {
+            final var now = Instant.now();
+            final StringBuilder queryBuilder = new StringBuilder();
+            queryBuilder.append(String.format(
+                "UPDATE %s",
+                Collection.LEDGERS.getName()
+            ));
+            final List<String> setClauses = new ArrayList<>() {{
+                add("updatedAt = :updatedAt");
+                add("name = :name");
+                add("note = :note");
+                add("currencyId = :currencyId");
+                add("externalAccountId = :externalAccountId");
+                add("readerIds = :readerIds");
+                add("writerIds = :writerIds");
+            }};
+            final Map<String, Object> args = new HashMap<>() {{
+                put("schemaVersion", Ledger.SCHEMA_VERSION);
+                put("updatedAt", now);
+                put("userId", request.getUserId());
+                put("ledgerId", request.getId());
+                put("name", request.getName());
+                put("note", request.getNote());
+                put("currencyId", request.getCurrencyId());
+                put("externalAccountId", request.getExternalAccountId());
+                put("readerIds", request.getReaderIds());
+                put("writerIds", request.getWriterIds());
+            }};
+            queryBuilder.append(" SET ");
+            queryBuilder.append(String.join(", ", setClauses));
+            queryBuilder.append(" WHERE _id = :ledgerId AND schemaVersion = :schemaVersion AND array_contains(writerIds, :userId)");
+            
+            // Create JSON request body
+            QueryRequest queryRequest = new QueryRequest(queryBuilder.toString(), args);
+
+            final var response = sendQueryRequest(
+                queryRequest,
+                Object.class,
+                String.class,
+                request.getTransactionId()
+            );
+            final var mutatedIds = response.getMutatedDocumentIds();
+            if (mutatedIds.isEmpty()) {
+                throw new DittoNotFoundException("No ledger found with ID: " + request.getId());
+            }
+            logger.info("Updated ledger. Ledger ID: {}", request.getId());
+            return new DittoResponse<String>(String.valueOf(response.getTransactionId()), request.getId());
+        } catch (DittoNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException("Failed to update ledger with ID: " + request.getId(), e);
+        }
+    }
+
     private Optional<String> getTransactionId(WriteResponse writeResponse) {
         final var transactionId = writeResponse.getResults().stream().mapToLong(WriteCommandResult::getTransactionId).max();
         return Optional.ofNullable(transactionId.isPresent() ? String.valueOf(transactionId.getAsLong()) : null);
@@ -219,6 +310,13 @@ public class DittoClient {
         }
     }
 
+    // Sends a `/store/write` request to update, insert, or remove documents using legacy QL.
+    // Different from the newer `/store/execute` request, this endpoint supports multiple commands in
+    // a single transaction.
+    //
+    // @param request The request body to send
+    // @return The response from the request
+    // @see https://docs.ditto.live/cloud/http-api/api/post-storewrite
     private WriteResponse sendWriteRequest(WriteRequest request) throws IOException {
         try {
             // Create JSON request body

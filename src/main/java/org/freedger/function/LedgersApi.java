@@ -2,6 +2,7 @@ package org.freedger.function;
 
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
+import com.microsoft.azure.functions.annotation.BindingName;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 
@@ -18,10 +19,11 @@ import org.freedger.function.utils.RequestValidator;
 import org.freedger.function.utils.Scope;
 import org.freedger.function.utils.ScopePredicate;
 import org.freedger.function.utils.TokenValidator;
+import org.freedger.openapi.models.CreateLedger;
 import org.freedger.openapi.models.ErrorCode;
 import org.freedger.openapi.models.ErrorResponse;
 import org.freedger.openapi.models.Ledger;
-import org.freedger.openapi.models.LedgerCreate;
+import org.freedger.openapi.models.UpdateLedger;
 import org.freedger.services.ditto.DittoClient;
 
 public class LedgersApi {
@@ -44,20 +46,20 @@ public class LedgersApi {
   }
   
   @FunctionName("CreateLedger")
-  public HttpResponseMessage run(
+  public HttpResponseMessage createLedger(
       @HttpTrigger(
           name = "req",
           methods = {HttpMethod.POST},
           authLevel = AuthorizationLevel.ANONYMOUS,
           route = "ledgers") 
-      HttpRequestMessage<LedgerCreate> request,
+      HttpRequestMessage<CreateLedger> request,
       final ExecutionContext context) {
     final var logger = context.getLogger();
     try {
       requestValidator.validate(request.getBody());
       final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
       final var reqLedgerCreate = request.getBody();
-      final var dittoLedgerCreate = new org.freedger.services.ditto.models.LedgerCreate();
+      final var dittoLedgerCreate = new org.freedger.services.ditto.models.CreateLedger();
       dittoLedgerCreate.setName(reqLedgerCreate.getName());
       dittoLedgerCreate.setNote(reqLedgerCreate.getNote());
       dittoLedgerCreate.setCurrencyId(reqLedgerCreate.getCurrencyId());
@@ -79,6 +81,73 @@ public class LedgersApi {
       respLedger.setExternalAccountId(dittoLedger.getExternalAccountId());
       return httpMessageSerializer.serializeResponse(
           request.createResponseBuilder(HttpStatus.CREATED), respLedger, dittoResp.getTransactionId())
+          .build();
+    } catch (ValidationException e) {
+      logger.fine("Invalid request: " + e.getMessage());
+      return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+          .body(new ErrorResponse().code(ErrorCode.INVALID_REQUEST).message(e.getMessage()))
+          .build();
+    } catch (SecurityException e) {
+      logger.info("Token validation failed: " + e.getMessage());
+      return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
+          .body(new ErrorResponse().code(ErrorCode.UNAUTHORIZED).message(e.getMessage()))
+          .build();
+    } catch (Exception ex) {
+      logger.log(Level.SEVERE, "Error processing create ledger request", ex);
+      return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(new ErrorResponse().code(ErrorCode.SERVER_ERROR).message(ex.getMessage()))
+          .build();
+    }
+  }
+
+  @FunctionName("UpdateLedger")
+  public HttpResponseMessage updateLedger(
+      @HttpTrigger(
+          name = "req",
+          methods = {HttpMethod.PUT},
+          authLevel = AuthorizationLevel.ANONYMOUS,
+          route = "ledgers/{ledgerId}") 
+      HttpRequestMessage<UpdateLedger> request,
+      @BindingName("ledgerId") String ledgerId,
+      final ExecutionContext context) {
+    final var logger = context.getLogger();
+    try {
+      if (ledgerId == null) {
+        throw new ValidationException("Ledger ID is required");
+      }
+      requestValidator.validate(request.getBody());
+      final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
+      final var reqLedgerUpdate = request.getBody();
+      final var dittoLedger = new org.freedger.services.ditto.models.UpdateLedger() {{
+        setId(ledgerId);
+        setUserId(jwtToken.getSubject());
+        setName(reqLedgerUpdate.getName());
+        setNote(reqLedgerUpdate.getNote());
+        setCurrencyId(reqLedgerUpdate.getCurrencyId());
+        setExternalAccountId(reqLedgerUpdate.getExternalAccountId());
+        setReaderIds(reqLedgerUpdate.getReaderIds());
+        setWriterIds(reqLedgerUpdate.getWriterIds());
+      }};
+
+      final var updateResp = dittoClient.updateLedger(dittoLedger);
+      final var resultResp = dittoClient.getLedger(new org.freedger.services.ditto.models.GetLedger() {{
+        setId(ledgerId);
+        setUserId(jwtToken.getSubject());
+        setTransactionId(updateResp.getTransactionId());
+      }});
+      final var resultLedger = resultResp.getData();
+      final var respLedger = new Ledger();
+      respLedger.setId(resultLedger.getId());
+      respLedger.setCreatedAt(resultLedger.getCreatedAt().atOffset(ZoneOffset.UTC));
+      respLedger.setUpdatedAt(resultLedger.getUpdatedAt().atOffset(ZoneOffset.UTC));
+      respLedger.setName(resultLedger.getName());
+      respLedger.setReaderIds(resultLedger.getReaderIds());
+      respLedger.setWriterIds(resultLedger.getWriterIds());
+      respLedger.setNote(resultLedger.getNote());
+      respLedger.setCurrencyId(resultLedger.getCurrencyId());
+      respLedger.setExternalAccountId(resultLedger.getExternalAccountId());
+      return httpMessageSerializer.serializeResponse(
+          request.createResponseBuilder(HttpStatus.OK), respLedger, resultResp.getTransactionId())
           .build();
     } catch (ValidationException e) {
       logger.fine("Invalid request: " + e.getMessage());

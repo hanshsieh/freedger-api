@@ -2,9 +2,19 @@ package org.freedger.services.ditto.models;
 
 import java.util.List;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
-public class LedgerCreate {
+public class UpdateLedger {
+    @NotNull
+    private String id;
+
+    @NotNull
+    private String userId;
+
+    @Nullable
+    private String transactionId;
+
     @NotNull
     private String name;
 
@@ -21,7 +31,23 @@ public class LedgerCreate {
     private List<String> readerIds;
 
     @NotNull
-    private String externalAccountName;
+    private String externalAccountId;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
     public String getName() {
         return name;
@@ -29,6 +55,14 @@ public class LedgerCreate {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
     }
 
     public String getNote() {
@@ -63,11 +97,11 @@ public class LedgerCreate {
         this.readerIds = readerIds;
     }
 
-    public String getExternalAccountName() {
-        return externalAccountName;
+    public String getExternalAccountId() {
+        return externalAccountId;
     }
 
-    public void setExternalAccountName(String externalAccountName) {
-        this.externalAccountName = externalAccountName;
+    public void setExternalAccountId(String externalAccountId) {
+        this.externalAccountId = externalAccountId;
     }
 }
