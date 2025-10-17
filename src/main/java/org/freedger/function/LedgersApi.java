@@ -25,6 +25,7 @@ import org.freedger.openapi.models.ErrorResponse;
 import org.freedger.openapi.models.Ledger;
 import org.freedger.openapi.models.UpdateLedger;
 import org.freedger.services.ditto.DittoClient;
+import org.freedger.services.ditto.exceptions.DittoNotFoundException;
 
 public class LedgersApi {
   private final RequestValidator requestValidator;
@@ -158,6 +159,12 @@ public class LedgersApi {
       logger.info("Token validation failed: " + e.getMessage());
       return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
           .body(new ErrorResponse().code(ErrorCode.UNAUTHORIZED).message(e.getMessage()))
+          .build();
+    } catch (DittoNotFoundException e) {
+      return request.createResponseBuilder(HttpStatus.NOT_FOUND)
+          .body(new ErrorResponse()
+            .code(ErrorCode.NOT_FOUND)
+            .message("The ledger doesn't exist or you aren't authorized to update it"))
           .build();
     } catch (Exception ex) {
       logger.log(Level.SEVERE, "Error processing create ledger request", ex);

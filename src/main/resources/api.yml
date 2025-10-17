@@ -205,9 +205,16 @@ components:
     ErrorCode:
       type: string
       enum:
-        - invalid_request
+        - invalidRequest
+        - notFound
         - unauthorized
-        - server_error
+        - serverError
+      # Ask the generated code to use SNAKE_CASE for the enum names
+      x-enum-varnames:
+        - INVALID_REQUEST
+        - NOT_FOUND
+        - UNAUTHORIZED
+        - SERVER_ERROR
 
     Ledger:
       type: object
