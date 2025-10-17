@@ -23,80 +23,78 @@ import org.freedger.openapi.models.ErrorResponse;
 import org.freedger.openapi.models.Ledger;
 import org.freedger.openapi.models.LedgerCreate;
 import org.freedger.services.ditto.DittoClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LedgersApi {
-    private final RequestValidator requestValidator;
-    private final TokenValidator tokenValidator;
-    private final ScopePredicate writeLedgersPredicate;
-    private final HttpMessageSerializer httpMessageSerializer;
-    private final DittoClient dittoClient;
+  private final RequestValidator requestValidator;
+  private final TokenValidator tokenValidator;
+  private final ScopePredicate writeLedgersPredicate;
+  private final HttpMessageSerializer httpMessageSerializer;
+  private final DittoClient dittoClient;
 
-    @Inject
-    public LedgersApi(RequestValidator requestValidator, 
-        TokenValidator tokenValidator, 
-        HttpMessageSerializer httpMessageSerializer, 
-        DittoClient dittoClient) {
-        this.requestValidator = requestValidator;
-        this.tokenValidator = tokenValidator;
-        this.writeLedgersPredicate = new ScopePredicate(new String[] { Scope.WRITE_LEDGERS.getValue() });
-        this.httpMessageSerializer = httpMessageSerializer;
-        this.dittoClient = dittoClient;
+  @Inject
+  public LedgersApi(RequestValidator requestValidator, 
+      TokenValidator tokenValidator, 
+      HttpMessageSerializer httpMessageSerializer, 
+      DittoClient dittoClient) {
+    this.requestValidator = requestValidator;
+    this.tokenValidator = tokenValidator;
+    this.writeLedgersPredicate = new ScopePredicate(new String[] { Scope.WRITE_LEDGERS.getValue() });
+    this.httpMessageSerializer = httpMessageSerializer;
+    this.dittoClient = dittoClient;
+  }
+  
+  @FunctionName("CreateLedger")
+  public HttpResponseMessage run(
+      @HttpTrigger(
+          name = "req",
+          methods = {HttpMethod.POST},
+          authLevel = AuthorizationLevel.ANONYMOUS,
+          route = "ledgers") 
+      HttpRequestMessage<LedgerCreate> request,
+      final ExecutionContext context) {
+    final var logger = context.getLogger();
+    try {
+      requestValidator.validate(request.getBody());
+      final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
+      final var reqLedgerCreate = request.getBody();
+      final var dittoLedgerCreate = new org.freedger.services.ditto.models.LedgerCreate();
+      dittoLedgerCreate.setName(reqLedgerCreate.getName());
+      dittoLedgerCreate.setNote(reqLedgerCreate.getNote());
+      dittoLedgerCreate.setCurrencyId(reqLedgerCreate.getCurrencyId());
+      dittoLedgerCreate.setExternalAccountName(reqLedgerCreate.getExternalAccountName());
+      dittoLedgerCreate.setReaderIds(Collections.emptyList());
+      dittoLedgerCreate.setWriterIds(Collections.singletonList(jwtToken.getSubject()));
+      
+      final var dittoResp = dittoClient.createLedger(dittoLedgerCreate);
+      final var dittoLedger = dittoResp.getData();
+      final var respLedger = new Ledger();
+      respLedger.setId(dittoLedger.getId());
+      respLedger.setCreatedAt(dittoLedger.getCreatedAt().atOffset(ZoneOffset.UTC));
+      respLedger.setUpdatedAt(dittoLedger.getUpdatedAt().atOffset(ZoneOffset.UTC));
+      respLedger.setName(dittoLedger.getName());
+      respLedger.setReaderIds(dittoLedger.getReaderIds());
+      respLedger.setWriterIds(dittoLedger.getWriterIds());
+      respLedger.setNote(dittoLedger.getNote());
+      respLedger.setCurrencyId(dittoLedger.getCurrencyId());
+      respLedger.setExternalAccountId(dittoLedger.getExternalAccountId());
+      return httpMessageSerializer.serializeResponse(
+          request.createResponseBuilder(HttpStatus.CREATED), respLedger, dittoResp.getTransactionId())
+          .build();
+    } catch (ValidationException e) {
+      logger.fine("Invalid request: " + e.getMessage());
+      return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+          .body(new ErrorResponse().code(ErrorCode.INVALID_REQUEST).message(e.getMessage()))
+          .build();
+    } catch (SecurityException e) {
+      logger.info("Token validation failed: " + e.getMessage());
+      return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
+          .body(new ErrorResponse().code(ErrorCode.UNAUTHORIZED).message(e.getMessage()))
+          .build();
+    } catch (Exception ex) {
+      logger.log(Level.SEVERE, "Error processing create ledger request", ex);
+      return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(new ErrorResponse().code(ErrorCode.SERVER_ERROR).message(ex.getMessage()))
+          .build();
     }
-    
-    @FunctionName("CreateLedger")
-    public HttpResponseMessage run(
-            @HttpTrigger(
-                name = "req",
-                methods = {HttpMethod.POST},
-                authLevel = AuthorizationLevel.ANONYMOUS,
-                route = "ledgers") 
-            HttpRequestMessage<LedgerCreate> request,
-            final ExecutionContext context) {
-        final var logger = context.getLogger();
-        try {
-            requestValidator.validate(request.getBody());
-            final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
-            final var reqLedgerCreate = request.getBody();
-            final var dittoLedgerCreate = new org.freedger.services.ditto.models.LedgerCreate();
-            dittoLedgerCreate.setName(reqLedgerCreate.getName());
-            dittoLedgerCreate.setNote(reqLedgerCreate.getNote());
-            dittoLedgerCreate.setCurrencyId(reqLedgerCreate.getCurrencyId());
-            dittoLedgerCreate.setExternalAccountName(reqLedgerCreate.getExternalAccountName());
-            dittoLedgerCreate.setReaderIds(Collections.emptyList());
-            dittoLedgerCreate.setWriterIds(Collections.singletonList(jwtToken.getSubject()));
-            
-            final var dittoResp = dittoClient.createLedger(dittoLedgerCreate);
-            final var dittoLedger = dittoResp.getData();
-            final var respLedger = new Ledger();
-            respLedger.setId(dittoLedger.getId());
-            respLedger.setCreatedAt(dittoLedger.getCreatedAt().atOffset(ZoneOffset.UTC));
-            respLedger.setUpdatedAt(dittoLedger.getUpdatedAt().atOffset(ZoneOffset.UTC));
-            respLedger.setName(dittoLedger.getName());
-            respLedger.setReaderIds(dittoLedger.getReaderIds());
-            respLedger.setWriterIds(dittoLedger.getWriterIds());
-            respLedger.setNote(dittoLedger.getNote());
-            respLedger.setCurrencyId(dittoLedger.getCurrencyId());
-            respLedger.setExternalAccountId(dittoLedger.getExternalAccountId());
-            return httpMessageSerializer.serializeResponse(
-                    request.createResponseBuilder(HttpStatus.CREATED), respLedger, dittoResp.getTransactionId())
-                .build();
-        } catch (ValidationException e) {
-            logger.fine("Invalid request: " + e.getMessage());
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse().code(ErrorCode.INVALID_REQUEST).message(e.getMessage()))
-                .build();
-        } catch (SecurityException e) {
-            logger.info("Token validation failed: " + e.getMessage());
-            return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
-                .body(new ErrorResponse().code(ErrorCode.UNAUTHORIZED).message(e.getMessage()))
-                .build();
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, "Error processing create ledger request", ex);
-            return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse().code(ErrorCode.SERVER_ERROR).message(ex.getMessage()))
-                .build();
-        }
-    }
+  }
 }
