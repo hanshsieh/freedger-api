@@ -4,7 +4,8 @@ public enum Collection {
   LEDGERS("Ledgers"),
   ACCOUNTS("Accounts"),
   CURRENCIES("Currencies"),
-  INSTRUMENTS("Instruments");
+  INSTRUMENTS("Instruments"),
+  QUOTES("Quotes");
 
   private final String name;
 

@@ -18,10 +18,6 @@ public class GetInstrumentRequest {
   @SerializedName("instrumentId")
   private String instrumentId;
 
-  @Nullable
-  @SerializedName("userId")
-  private String userId;
-
   public String getTransactionId() {
     return transactionId;
   }
@@ -44,13 +40,5 @@ public class GetInstrumentRequest {
 
   public void setInstrumentId(String instrumentId) {
     this.instrumentId = instrumentId;
-  }
-
-  public String getUserId() {
-    return userId;
-  }
-
-  public void setUserId(String userId) {
-    this.userId = userId;
   }
 }

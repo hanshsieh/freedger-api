@@ -41,8 +41,10 @@ import org.freedger.services.ditto.models.Instrument;
 import org.freedger.services.ditto.models.Ledger;
 import org.freedger.services.ditto.models.LedgerChildId;
 import org.freedger.services.ditto.models.QueryCurrenciesRequest;
+import org.freedger.services.ditto.models.QueryQuotesRequest;
 import org.freedger.services.ditto.models.QueryRequest;
 import org.freedger.services.ditto.models.QueryResponse;
+import org.freedger.services.ditto.models.Quote;
 import org.freedger.services.ditto.models.UpdateLedgerRequest;
 import org.freedger.services.ditto.models.UpsertCommand;
 import org.freedger.services.ditto.models.WriteCommand;
@@ -306,10 +308,6 @@ public class DittoClient {
         whereClauses.add("code = :code");
         args.put("code", request.getCode());
       }
-      if (request.getUserId() != null) {
-        whereClauses.add("array_contains(writerIds, :userId) OR array_contains(readerIds, :userId)");
-        args.put("userId", request.getUserId());
-      }
       queryBuilder.append(" WHERE ");
       queryBuilder.append(String.join(" AND ", whereClauses));
       queryBuilder.append(" ORDER BY code, _id.ledgerId, _id.id");
@@ -348,10 +346,6 @@ public class DittoClient {
           "id", request.getInstrumentId()));
         put("schemaVersion", Instrument.SCHEMA_VERSION);
       }};
-      if (request.getUserId() != null) {
-        whereClauses.add("array_contains(writerIds, :userId) OR array_contains(readerIds, :userId)");
-        args.put("userId", request.getUserId());
-      }
       queryBuilder.append(" WHERE ");
       queryBuilder.append(String.join(" AND ", whereClauses));
       final var query = queryBuilder.toString();
@@ -364,6 +358,45 @@ public class DittoClient {
       return new DittoResponse<Instrument>(String.valueOf(response.getTransactionId()), instrument);
     } catch (Exception e) {
       throw new IOException("Failed to get instrument", e);
+    }
+  }
+
+  public DittoResponse<List<Quote>> queryQuotes(QueryQuotesRequest request) throws IOException {
+    try {
+      final var queryBuilder = new StringBuilder(String.format("SELECT * FROM %s", Collection.QUOTES.getName()));
+      final List<String> whereClauses = new ArrayList<>() {{
+        add("instrumentId = :instrumentId");
+        add("schemaVersion = :schemaVersion");
+      }};
+      final Map<String, Object> args = new HashMap<>() {{
+        put("instrumentId", request.getInstrumentId());
+        put("schemaVersion", Quote.SCHEMA_VERSION);
+      }};
+      if (request.getTimeBegin() != null) {
+        whereClauses.add("time >= :timeBegin");
+        args.put("timeBegin", request.getTimeBegin());
+      }
+      if (request.getTimeEnd() != null) {
+        whereClauses.add("time < :timeEnd");
+        args.put("timeEnd", request.getTimeEnd());
+      }
+      queryBuilder.append(" WHERE ");
+      queryBuilder.append(String.join(" AND ", whereClauses));
+      queryBuilder.append(" ORDER BY time DESC");
+      if (request.getLimit() != null) {
+        queryBuilder.append(" LIMIT :limit");
+        args.put("limit", request.getLimit());
+      }
+      if (request.getOffset() != null) {
+        queryBuilder.append(" OFFSET :offset");
+        args.put("offset", request.getOffset());
+      }
+      final var query = queryBuilder.toString();
+      final var response =
+          sendQueryRequest(new QueryRequest(query, args), Quote.class, LedgerChildId.class, request.getTransactionId());
+      return new DittoResponse<List<Quote>>(String.valueOf(response.getTransactionId()), response.getItems());
+    } catch (Exception e) {
+      throw new IOException("Failed to query quotes", e);
     }
   }
 

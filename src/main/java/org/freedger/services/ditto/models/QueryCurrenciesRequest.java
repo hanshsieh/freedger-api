@@ -19,9 +19,6 @@ public class QueryCurrenciesRequest {
   private Boolean archived;
 
   @Nullable
-  private String userId;
-
-  @Nullable
   private Integer limit;
 
   @Nullable
@@ -81,13 +78,5 @@ public class QueryCurrenciesRequest {
 
   public void setOffset(Integer offset) {
     this.offset = offset;
-  }
-
-  public String getUserId() {
-    return userId;
-  }
-
-  public void setUserId(String userId) {
-    this.userId = userId;
   }
 }
