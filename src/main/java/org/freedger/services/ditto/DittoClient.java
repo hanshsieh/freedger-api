@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -34,7 +35,9 @@ import org.freedger.services.ditto.models.AccountType;
 import org.freedger.services.ditto.models.CreateLedgerRequest;
 import org.freedger.services.ditto.models.Currency;
 import org.freedger.services.ditto.models.DittoResponse;
+import org.freedger.services.ditto.models.GetInstrumentRequest;
 import org.freedger.services.ditto.models.GetLedgerRequest;
+import org.freedger.services.ditto.models.Instrument;
 import org.freedger.services.ditto.models.Ledger;
 import org.freedger.services.ditto.models.LedgerChildId;
 import org.freedger.services.ditto.models.QueryCurrenciesRequest;
@@ -279,22 +282,16 @@ public class DittoClient {
     }
   }
 
-  public List<Currency> queryCurrencies(QueryCurrenciesRequest request) throws IOException {
+  public DittoResponse<List<Currency>> queryCurrencies(QueryCurrenciesRequest request) throws IOException {
     try {
       final var queryBuilder =
           new StringBuilder(String.format("SELECT * FROM %s", Collection.CURRENCIES.getName()));
-      final List<String> whereClauses =
-          new ArrayList<>() {
-            {
-              add("schemaVersion = :schemaVersion");
-            }
-          };
-      final Map<String, Object> args =
-          new HashMap<>() {
-            {
-              put("schemaVersion", Currency.SCHEMA_VERSION);
-            }
-          };
+      final List<String> whereClauses = new ArrayList<>() {{
+        add("schemaVersion = :schemaVersion");
+      }};
+      final Map<String, Object> args = new HashMap<>() {{
+        put("schemaVersion", Currency.SCHEMA_VERSION);
+      }};
       if (request.getLedgerId() != null) {
         whereClauses.add("_id.ledgerId = :ledgerId");
         args.put("ledgerId", request.getLedgerId());
@@ -309,6 +306,10 @@ public class DittoClient {
         whereClauses.add("code = :code");
         args.put("code", request.getCode());
       }
+      if (request.getUserId() != null) {
+        whereClauses.add("array_contains(writerIds, :userId) OR array_contains(readerIds, :userId)");
+        args.put("userId", request.getUserId());
+      }
       queryBuilder.append(" WHERE ");
       queryBuilder.append(String.join(" AND ", whereClauses));
       final var query = queryBuilder.toString();
@@ -318,9 +319,42 @@ public class DittoClient {
               Currency.class,
               LedgerChildId.class,
               request.getTransactionId());
-      return response.getItems();
+      return new DittoResponse<List<Currency>>(String.valueOf(response.getTransactionId()), response.getItems());
     } catch (Exception e) {
       throw new IOException("Failed to query currencies", e);
+    }
+  }
+
+  public DittoResponse<Instrument> getInstrument(GetInstrumentRequest request) throws IOException {
+    try {
+      final var queryBuilder = new StringBuilder(String.format("SELECT * FROM %s", Collection.INSTRUMENTS.getName()));
+      final List<String> whereClauses =
+          new ArrayList<>() {{
+            add("_id = :id");
+            add("schemaVersion = :schemaVersion");
+          }};
+      final Map<String, Object> args = new HashMap<>() {{
+        put("_id", Map.of(
+          "ledgerId", request.getLedgerId(), 
+          "id", request.getInstrumentId()));
+        put("schemaVersion", Instrument.SCHEMA_VERSION);
+      }};
+      if (request.getUserId() != null) {
+        whereClauses.add("array_contains(writerIds, :userId) OR array_contains(readerIds, :userId)");
+        args.put("userId", request.getUserId());
+      }
+      queryBuilder.append(" WHERE ");
+      queryBuilder.append(String.join(" AND ", whereClauses));
+      final var query = queryBuilder.toString();
+      final var response =
+          sendQueryRequest(new QueryRequest(query, args), Instrument.class, LedgerChildId.class, request.getTransactionId());
+      if (response.getItems().isEmpty()) {
+        throw new DittoNotFoundException("No instrument found with ID: " + request.getInstrumentId());
+      }
+      final var instrument = response.getItems().get(0);
+      return new DittoResponse<Instrument>(String.valueOf(response.getTransactionId()), instrument);
+    } catch (Exception e) {
+      throw new IOException("Failed to get instrument", e);
     }
   }
 

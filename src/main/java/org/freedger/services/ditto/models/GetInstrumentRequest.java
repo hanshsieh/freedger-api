@@ -1,24 +1,25 @@
 package org.freedger.services.ditto.models;
 
-import jakarta.annotation.Nullable;
+import com.google.gson.annotations.SerializedName;
 
-public class QueryCurrenciesRequest {
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
+
+public class GetInstrumentRequest {
   @Nullable
+  @SerializedName("transactionId")
   private String transactionId;
 
-  @Nullable
+  @NotNull
+  @SerializedName("ledgerId")
   private String ledgerId;
 
-  @Nullable
-  private CurrencyType type;
+  @NotNull
+  @SerializedName("instrumentId")
+  private String instrumentId;
 
   @Nullable
-  private String code;
-
-  @Nullable
-  private Boolean archived;
-
-  @Nullable
+  @SerializedName("userId")
   private String userId;
 
   public String getTransactionId() {
@@ -37,28 +38,12 @@ public class QueryCurrenciesRequest {
     this.ledgerId = ledgerId;
   }
 
-  public CurrencyType getType() {
-    return type;
+  public String getInstrumentId() {
+    return instrumentId;
   }
 
-  public void setType(CurrencyType type) {
-    this.type = type;
-  }
-
-  public String getCode() {
-    return code;
-  }
-
-  public void setCode(String code) {
-    this.code = code;
-  }
-
-  public Boolean getArchived() {
-    return archived;
-  }
-
-  public void setArchived(Boolean archived) {
-    this.archived = archived;
+  public void setInstrumentId(String instrumentId) {
+    this.instrumentId = instrumentId;
   }
 
   public String getUserId() {
