@@ -107,7 +107,7 @@ public class DittoClient {
    * @param transactionId The transaction ID to use for the request
    * @return List of ledgers the user can access
    */
-  public List<Ledger> queryLedgers(String userId, String transactionId) throws IOException {
+  public DittoResponse<List<Ledger>> queryLedgers(String userId, String transactionId) throws IOException {
     try {
       // Build the DQL query with parameters
       String query =
@@ -123,7 +123,7 @@ public class DittoClient {
       QueryResponse<Ledger, String> queryResponse =
           sendQueryRequest(requestBody, Ledger.class, String.class, transactionId);
 
-      return queryResponse.getItems();
+      return new DittoResponse<List<Ledger>>(String.valueOf(queryResponse.getTransactionId()), queryResponse.getItems());
 
     } catch (Exception e) {
       throw new IOException("Failed to query Ditto API: " + e.getMessage(), e);

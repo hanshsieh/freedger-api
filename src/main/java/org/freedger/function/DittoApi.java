@@ -117,7 +117,7 @@ public class DittoApi {
       }
 
       List<Ledger> accessibleLedgers =
-          dittoClient.queryLedgers(userId, dittoAuthToken.getTransactionId());
+          dittoClient.queryLedgers(userId, dittoAuthToken.getTransactionId()).getData();
 
       AuthorizeResponse response = buildAuthResponse(userId, accessibleLedgers);
 
