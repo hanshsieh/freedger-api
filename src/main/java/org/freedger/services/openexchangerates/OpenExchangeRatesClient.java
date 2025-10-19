@@ -2,11 +2,14 @@ package org.freedger.services.openexchangerates;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -15,6 +18,8 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Timeout;
+import org.freedger.services.openexchangerates.models.CurrenciesRequest;
+import org.freedger.services.openexchangerates.models.CurrenciesResponse;
 import org.freedger.services.openexchangerates.models.HistoricalRatesRequest;
 import org.freedger.services.openexchangerates.models.HistoricalRatesResponse;
 import org.slf4j.Logger;
@@ -23,13 +28,17 @@ import org.slf4j.LoggerFactory;
 /**
  * Client for interacting with OpenExchangeRates HTTP API.
  *
- * <p>This client provides access to historical exchange rate data from the OpenExchangeRates API.
- * Currently supports the /historical/*.json endpoint.
+ * <p>This client provides access to historical exchange rate data and currency information from the
+ * OpenExchangeRates API. Currently supports:
+ * <ul>
+ *   <li>/historical/*.json - Historical exchange rates</li>
+ *   <li>/currencies.json - List of all available currencies</li>
+ * </ul>
  *
  * @see <a href="https://docs.openexchangerates.org">OpenExchangeRates API Documentation</a>
  */
-public class OpenExchangeRatesHttpClient {
-  private static final Logger logger = LoggerFactory.getLogger(OpenExchangeRatesHttpClient.class);
+public class OpenExchangeRatesClient {
+  private static final Logger logger = LoggerFactory.getLogger(OpenExchangeRatesClient.class);
   private static final Timeout REQUEST_TIMEOUT = Timeout.ofSeconds(10);
   private static final Timeout RESPONSE_TIMEOUT = Timeout.ofSeconds(10);
   private static final String DEFAULT_BASE_URL = "https://openexchangerates.org/api/";
@@ -45,7 +54,7 @@ public class OpenExchangeRatesHttpClient {
    *
    * @param appId The App ID for authentication
    */
-  public OpenExchangeRatesHttpClient(String appId) {
+  public OpenExchangeRatesClient(String appId) {
     this(DEFAULT_BASE_URL, appId);
   }
 
@@ -55,7 +64,7 @@ public class OpenExchangeRatesHttpClient {
    * @param baseUrl The base URL of the OpenExchangeRates API
    * @param appId The App ID for authentication
    */
-  public OpenExchangeRatesHttpClient(String baseUrl, String appId) {
+  public OpenExchangeRatesClient(String baseUrl, String appId) {
     try {
       this.baseUri = new URI(baseUrl);
     } catch (URISyntaxException e) {
@@ -136,12 +145,54 @@ public class OpenExchangeRatesHttpClient {
       logger.debug("Successfully fetched historical rates for date: {}", dateStr);
       return response;
 
-    } catch (URISyntaxException e) {
-      logger.error("Failed to build URI for date: {}", request.getDate(), e);
-      throw new IOException("Failed to build URI", e);
     } catch (Exception e) {
       logger.error("Failed to fetch historical rates for date: {}", request.getDate(), e);
       throw new IOException("Failed to fetch historical rates", e);
+    }
+  }
+
+  /**
+   * Gets a list of all currency symbols available from the Open Exchange Rates API.
+   *
+   * <p>This endpoint returns a JSON object where each key:value pair represents a currency's symbol
+   * and unit display name (singular and Capitalised).
+   *
+   * <p>Note: Requests to currencies.json do not count towards your account usage limit, and App ID
+   * authentication is optional for this endpoint.
+   *
+   * <p>Example usage:
+   *
+   * <pre>
+   * // Get all standard currencies
+   * CurrenciesResponse response = client.getCurrencies(CurrenciesRequest.create());
+   *
+   * // Get all currencies including alternative/black market rates
+   * CurrenciesRequest request = CurrenciesRequest.builder()
+   *     .showAlternative(true)
+   *     .build();
+   * CurrenciesResponse response = client.getCurrencies(request);
+   * </pre>
+   *
+   * @param request The request with optional parameters for alternative currencies
+   * @return A map of currency codes to their full display names
+   * @throws IOException If an error occurs while fetching the currencies
+   */
+  public Map<String, String> getCurrencies(CurrenciesRequest request) throws IOException {
+    try {
+      // Build the URI with query parameters using URIBuilder
+      URIBuilder uriBuilder = new URIBuilder(baseUri);
+      uriBuilder.appendPathSegments("currencies.json");
+      uriBuilder.addParameter("show_alternative", request.getShowAlternative() ? "true" : "false");
+      uriBuilder.addParameter("show_inactive", request.getShowInactive() ? "true" : "false");
+
+      final URI uri = uriBuilder.build();
+
+      final HttpGet httpGet = new HttpGet(uri);
+      
+      return sendRequest(httpGet, new TypeToken<Map<String, String>>() {}.getType());
+    } catch (Exception e) {
+      logger.error("Failed to fetch currencies", e);
+      throw new IOException("Failed to fetch currencies", e);
     }
   }
 
@@ -154,7 +205,7 @@ public class OpenExchangeRatesHttpClient {
    * @return The parsed response object
    * @throws IOException If the request fails, returns a non-2xx status code, or parsing fails
    */
-  private <T> T sendRequest(ClassicHttpRequest request, Class<T> responseClass) throws IOException {
+  private <T> T sendRequest(ClassicHttpRequest request, Type responseType) throws IOException {
     try {
       return httpClient.execute(
           request,
@@ -165,7 +216,7 @@ public class OpenExchangeRatesHttpClient {
 
             if (statusCode >= 200 && statusCode < 300) {
               // Parse the response body to the specified class
-              return gson.fromJson(responseBody, responseClass);
+              return gson.fromJson(responseBody, responseType);
             } else {
               logger.error("Request failed with status code {}: {}", statusCode, responseBody);
               throw new IOException(
