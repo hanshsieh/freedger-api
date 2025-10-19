@@ -3,6 +3,7 @@ package org.freedger.services.ditto.models;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.annotations.SerializedName;
 
 import jakarta.annotation.Nullable;
@@ -38,8 +39,9 @@ public class Quote {
   @NotNull
   private BigDecimal value;
 
-  @SerializedName("source") 
   @Nullable
+  @SerializedName("source") 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private String source;
 
   public int getSchemaVersion() {

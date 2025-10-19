@@ -7,6 +7,12 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
 public class CreateQuoteRequest {
+  @Nullable
+  private String transactionId;
+
+  @NotNull
+  private String ledgerId;
+
   @NotNull
   private String instrumentId;
 
@@ -18,6 +24,22 @@ public class CreateQuoteRequest {
 
   @Nullable
   private String source;
+
+  public String getTransactionId() {
+    return transactionId;
+  }
+
+  public void setTransactionId(String transactionId) {
+    this.transactionId = transactionId;
+  }
+
+  public String getLedgerId() {
+    return ledgerId;
+  }
+
+  public void setLedgerId(String ledgerId) {
+    this.ledgerId = ledgerId;
+  }
 
   public String getInstrumentId() {
     return instrumentId;

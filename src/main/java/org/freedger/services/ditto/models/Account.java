@@ -1,5 +1,6 @@
 package org.freedger.services.ditto.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.gson.annotations.SerializedName;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -32,8 +33,9 @@ public class Account {
   @NotNull
   private String name;
 
-  @SerializedName("archivedAt")
   @Nullable
+  @SerializedName("archivedAt")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private Instant archivedAt;
 
   @SerializedName("groupId")

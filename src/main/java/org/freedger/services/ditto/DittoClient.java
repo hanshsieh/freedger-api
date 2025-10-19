@@ -33,6 +33,7 @@ import org.freedger.services.ditto.exceptions.DittoNotFoundException;
 import org.freedger.services.ditto.models.Account;
 import org.freedger.services.ditto.models.AccountType;
 import org.freedger.services.ditto.models.CreateLedgerRequest;
+import org.freedger.services.ditto.models.CreateQuoteRequest;
 import org.freedger.services.ditto.models.Currency;
 import org.freedger.services.ditto.models.DittoResponse;
 import org.freedger.services.ditto.models.GetInstrumentRequest;
@@ -397,6 +398,34 @@ public class DittoClient {
       return new DittoResponse<List<Quote>>(String.valueOf(response.getTransactionId()), response.getItems());
     } catch (Exception e) {
       throw new IOException("Failed to query quotes", e);
+    }
+  }
+
+  public DittoResponse<String> createQuote(CreateQuoteRequest request) throws IOException {
+    try {
+      final var queryBuilder = new StringBuilder(String.format("INSERT INTO %s DOCUMENTS (:quote)", Collection.QUOTES.getName()));
+      final var now = Instant.now();
+      final var quoteId = generateId();
+      final var args = new HashMap<String, Object>() {{
+        put("quote", new Quote() {{
+          setId(new LedgerChildId() {{
+            setLedgerId(request.getLedgerId());
+            setId(quoteId);
+          }});
+          setCreatedAt(now);
+          setUpdatedAt(now);
+          setInstrumentId(request.getInstrumentId());
+          setTime(request.getTime());
+          setValue(request.getValue());
+          setSource(request.getSource());
+        }});
+      }};
+      final var query = queryBuilder.toString();
+      final var response =
+          sendQueryRequest(new QueryRequest(query, args), Quote.class, LedgerChildId.class, request.getTransactionId());
+      return new DittoResponse<String>(String.valueOf(response.getTransactionId()), quoteId);
+    } catch (Exception e) {
+      throw new IOException("Failed to create quote", e);
     }
   }
 
