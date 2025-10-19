@@ -9,27 +9,21 @@ import jakarta.validation.constraints.NotNull;
 
 public class QueryQuotesRequest {
   @Nullable
-  @SerializedName("transactionId")
   private String transactionId;
 
   @NotNull
-  @SerializedName("instrumentId")
   private String instrumentId;
 
   @Nullable
-  @SerializedName("timeBegin")
   private Instant timeBegin;
 
   @Nullable
-  @SerializedName("timeEnd")
   private Instant timeEnd;
 
   @Nullable
-  @SerializedName("limit")
   private Integer limit;
 
   @Nullable
-  @SerializedName("offset")
   private Integer offset;
 
   public String getTransactionId() {
