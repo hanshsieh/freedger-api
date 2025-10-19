@@ -26,6 +26,4 @@ public class LedgerChildId {
         this.ledgerId = ledgerId;
         return this;
     }
-
-
 }

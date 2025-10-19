@@ -60,7 +60,7 @@ public class LedgersApi {
       requestValidator.validate(request.getBody());
       final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
       final var reqLedgerCreate = request.getBody();
-      final var dittoLedgerCreate = new org.freedger.services.ditto.models.CreateLedger();
+      final var dittoLedgerCreate = new org.freedger.services.ditto.models.CreateLedgerRequest();
       dittoLedgerCreate.setName(reqLedgerCreate.getName());
       dittoLedgerCreate.setNote(reqLedgerCreate.getNote());
       dittoLedgerCreate.setCurrencyId(reqLedgerCreate.getCurrencyId());
@@ -119,7 +119,7 @@ public class LedgersApi {
       requestValidator.validate(request.getBody());
       final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
       final var reqLedgerUpdate = request.getBody();
-      final var dittoLedger = new org.freedger.services.ditto.models.UpdateLedger() {{
+      final var dittoLedger = new org.freedger.services.ditto.models.UpdateLedgerRequest() {{
         setId(ledgerId);
         setUserId(jwtToken.getSubject());
         setName(reqLedgerUpdate.getName());
@@ -131,7 +131,7 @@ public class LedgersApi {
       }};
 
       final var updateResp = dittoClient.updateLedger(dittoLedger);
-      final var resultResp = dittoClient.getLedger(new org.freedger.services.ditto.models.GetLedger() {{
+      final var resultResp = dittoClient.getLedger(new org.freedger.services.ditto.models.GetLedgerRequest() {{
         setId(ledgerId);
         setUserId(jwtToken.getSubject());
         setTransactionId(updateResp.getTransactionId());

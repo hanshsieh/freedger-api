@@ -5,7 +5,7 @@ import java.util.List;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
-public class UpdateLedger {
+public class UpdateLedgerRequest {
     @NotNull
     private String id;
 

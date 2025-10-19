@@ -2,7 +2,8 @@ package org.freedger.services.ditto;
 
 public enum Collection {
     LEDGERS("Ledgers"),
-    ACCOUNTS("Accounts");
+    ACCOUNTS("Accounts"),
+    CURRENCIES("Currencies");
 
     private final String name;
 

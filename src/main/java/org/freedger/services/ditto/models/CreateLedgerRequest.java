@@ -4,7 +4,7 @@ import java.util.List;
 
 import jakarta.validation.constraints.NotNull;
 
-public class CreateLedger {
+public class CreateLedgerRequest {
     @NotNull
     private String name;
 

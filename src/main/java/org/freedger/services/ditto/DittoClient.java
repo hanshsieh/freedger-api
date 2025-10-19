@@ -21,13 +21,15 @@ import org.freedger.services.ditto.exceptions.DittoNotFoundException;
 import org.freedger.services.ditto.models.Account;
 import org.freedger.services.ditto.models.AccountType;
 import org.freedger.services.ditto.models.DittoResponse;
-import org.freedger.services.ditto.models.GetLedger;
+import org.freedger.services.ditto.models.GetLedgerRequest;
 import org.freedger.services.ditto.models.Ledger;
 import org.freedger.services.ditto.models.LedgerChildId;
-import org.freedger.services.ditto.models.CreateLedger;
+import org.freedger.services.ditto.models.QueryCurrenciesRequest;
+import org.freedger.services.ditto.models.CreateLedgerRequest;
+import org.freedger.services.ditto.models.Currency;
 import org.freedger.services.ditto.models.QueryRequest;
 import org.freedger.services.ditto.models.QueryResponse;
-import org.freedger.services.ditto.models.UpdateLedger;
+import org.freedger.services.ditto.models.UpdateLedgerRequest;
 import org.freedger.services.ditto.models.UpsertCommand;
 import org.freedger.services.ditto.models.WriteRequest;
 import org.freedger.services.ditto.models.WriteResponse;
@@ -123,7 +125,7 @@ public class DittoClient {
         }
     }
 
-    public DittoResponse<Ledger> getLedger(GetLedger request) throws IOException {
+    public DittoResponse<Ledger> getLedger(GetLedgerRequest request) throws IOException {
         try {
             final var query = String.format("SELECT * FROM %s WHERE _id = :id" +
                 " AND schemaVersion = :schemaVersion" +
@@ -157,7 +159,7 @@ public class DittoClient {
      * @return The created ledger
      * @throws IOException If an error occurs while creating the ledger
      */
-    public DittoResponse<Ledger> createLedger(CreateLedger config) throws IOException {
+    public DittoResponse<Ledger> createLedger(CreateLedgerRequest config) throws IOException {
         try {
             final var now = Instant.now();
             WriteRequest request = new WriteRequest();
@@ -215,7 +217,7 @@ public class DittoClient {
         }
     }
 
-    public DittoResponse<String> updateLedger(UpdateLedger request)
+    public DittoResponse<String> updateLedger(UpdateLedgerRequest request)
      throws IOException, DittoNotFoundException {
         try {
             final var now = Instant.now();
@@ -268,6 +270,40 @@ public class DittoClient {
             throw e;
         } catch (Exception e) {
             throw new IOException("Failed to update ledger with ID: " + request.getId(), e);
+        }
+    }
+
+    public List<Currency> queryCurrencies(QueryCurrenciesRequest request) throws IOException {
+        try {
+            final var queryBuilder = new StringBuilder(String.format("SELECT * FROM %s", Collection.CURRENCIES.getName()));
+            final List<String> whereClauses = new ArrayList<>() {{
+                add("schemaVersion = :schemaVersion");
+            }};
+            final Map<String, Object> args = new HashMap<>() {{
+                put("schemaVersion", Currency.SCHEMA_VERSION);
+            }};
+            if (request.getLedgerId() != null) {
+                whereClauses.add("_id.ledgerId = :ledgerId");
+                args.put("ledgerId", request.getLedgerId());
+            } else {
+                whereClauses.add("_id.ledgerId IS NULL");
+            }
+            if (request.getType() != null) {
+                whereClauses.add("type = :type");
+                args.put("type", request.getType());
+            }
+            if (request.getCode() != null) {
+                whereClauses.add("code = :code");
+                args.put("code", request.getCode());
+            }
+            queryBuilder.append(" WHERE ");
+            queryBuilder.append(String.join(" AND ", whereClauses));
+            final var query = queryBuilder.toString();
+            final var response = sendQueryRequest(
+                new QueryRequest(query, args), Currency.class, LedgerChildId.class, request.getTransactionId());
+            return response.getItems();
+        } catch (Exception e) {
+            throw new IOException("Failed to query currencies", e);
         }
     }
 

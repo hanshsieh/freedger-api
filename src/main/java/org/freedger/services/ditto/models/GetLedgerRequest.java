@@ -3,7 +3,7 @@ package org.freedger.services.ditto.models;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
-public class GetLedger {
+public class GetLedgerRequest {
     @NotNull
     private String id;
 
