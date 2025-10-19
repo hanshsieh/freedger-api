@@ -383,7 +383,14 @@ public class DittoClient {
       }
       queryBuilder.append(" WHERE ");
       queryBuilder.append(String.join(" AND ", whereClauses));
-      queryBuilder.append(" ORDER BY time DESC, _id.ledgerId, _id.id");
+      switch (request.getOrder()) {
+        case TIME_DESC:
+          queryBuilder.append(" ORDER BY time DESC, _id.ledgerId, _id.id");
+          break;
+        case TIME_ASC:
+          queryBuilder.append(" ORDER BY time ASC, _id.ledgerId, _id.id");
+          break;
+      }
       if (request.getLimit() != null) {
         queryBuilder.append(" LIMIT :limit");
         args.put("limit", request.getLimit());

@@ -2,8 +2,6 @@ package org.freedger.services.ditto.models;
 
 import java.time.Instant;
 
-import com.google.gson.annotations.SerializedName;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
@@ -25,6 +23,9 @@ public class QueryQuotesRequest {
 
   @Nullable
   private Integer offset;
+
+  @NotNull
+  private QuoteOrder order = QuoteOrder.TIME_DESC;
 
   public String getTransactionId() {
     return transactionId;
@@ -72,5 +73,13 @@ public class QueryQuotesRequest {
 
   public void setOffset(Integer offset) {
     this.offset = offset;
+  }
+
+  public QuoteOrder getOrder() {
+    return order;
+  }
+
+  public void setOrder(QuoteOrder order) {
+    this.order = order;
   }
 }
