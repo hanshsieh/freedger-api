@@ -1,135 +1,131 @@
 package org.freedger.services.ditto.models;
 
 import com.google.gson.annotations.SerializedName;
-
 import jakarta.validation.constraints.NotNull;
-
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.time.Instant;
 
-/**
- * Represents a Ledger document from Ditto.
- */
+/** Represents a Ledger document from Ditto. */
 public class Ledger {
-    public static final int SCHEMA_VERSION = 1;
-    
-    @SerializedName("_id")
-    @NotNull
-    private String id;
-    
-    @SerializedName("schemaVersion")
-    private int schemaVersion = SCHEMA_VERSION;
+  public static final int SCHEMA_VERSION = 1;
 
-    @SerializedName("createdAt")
-    @NotNull
-    private Instant createdAt;
+  @SerializedName("_id")
+  @NotNull
+  private String id;
 
-    @SerializedName("updatedAt")
-    @NotNull
-    private Instant updatedAt;
+  @SerializedName("schemaVersion")
+  private int schemaVersion = SCHEMA_VERSION;
 
-    @SerializedName("name")
-    @NotNull
-    private String name;
-    
-    @SerializedName("readerIds")
-    @NotNull
-    private List<String> readerIds = Collections.emptyList();
-    
-    @SerializedName("writerIds")
-    @NotNull
-    private List<String> writerIds = Collections.emptyList();
+  @SerializedName("createdAt")
+  @NotNull
+  private Instant createdAt;
 
-    @SerializedName("note")
-    @NotNull
-    private String note = "";
+  @SerializedName("updatedAt")
+  @NotNull
+  private Instant updatedAt;
 
-    @SerializedName("externalAccountId")
-    @NotNull
-    private String externalAccountId;
+  @SerializedName("name")
+  @NotNull
+  private String name;
 
-    @SerializedName("currencyId")
-    @NotNull
-    private String currencyId;
+  @SerializedName("readerIds")
+  @NotNull
+  private List<String> readerIds = Collections.emptyList();
 
-    public int getSchemaVersion() {
-        return schemaVersion;
-    }
+  @SerializedName("writerIds")
+  @NotNull
+  private List<String> writerIds = Collections.emptyList();
 
-    public void setSchemaVersion(int schemaVersion) {
-        this.schemaVersion = schemaVersion;
-    }
-    
-    public String getId() {
-        return id;
-    }
+  @SerializedName("note")
+  @NotNull
+  private String note = "";
 
-    public void setId(String id) {
-        this.id = id;
-    }
+  @SerializedName("externalAccountId")
+  @NotNull
+  private String externalAccountId;
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
+  @SerializedName("currencyId")
+  @NotNull
+  private String currencyId;
 
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
+  public int getSchemaVersion() {
+    return schemaVersion;
+  }
 
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
+  public void setSchemaVersion(int schemaVersion) {
+    this.schemaVersion = schemaVersion;
+  }
 
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+  public String getId() {
+    return id;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
 
-    public List<String> getReaderIds() {
-        return readerIds;
-    }
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
 
-    public void setReaderIds(List<String> readerIds) {
-        this.readerIds = readerIds;
-    }
+  public Instant getUpdatedAt() {
+    return updatedAt;
+  }
 
-    public List<String> getWriterIds() {
-        return writerIds;
-    }
+  public void setUpdatedAt(Instant updatedAt) {
+    this.updatedAt = updatedAt;
+  }
 
-    public void setWriterIds(List<String> writerIds) {
-        this.writerIds = writerIds;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public String getNote() {
-        return note;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setNote(String note) {
-        this.note = note;
-    }
+  public List<String> getReaderIds() {
+    return readerIds;
+  }
 
-    public String getCurrencyId() {
-        return currencyId;
-    }
+  public void setReaderIds(List<String> readerIds) {
+    this.readerIds = readerIds;
+  }
 
-    public void setCurrencyId(String currencyId) {
-        this.currencyId = currencyId;
-    }
+  public List<String> getWriterIds() {
+    return writerIds;
+  }
 
-    public String getExternalAccountId() {
-        return externalAccountId;
-    }
+  public void setWriterIds(List<String> writerIds) {
+    this.writerIds = writerIds;
+  }
 
-    public void setExternalAccountId(String externalAccountId) {
-        this.externalAccountId = externalAccountId;
-    }
+  public String getNote() {
+    return note;
+  }
+
+  public void setNote(String note) {
+    this.note = note;
+  }
+
+  public String getCurrencyId() {
+    return currencyId;
+  }
+
+  public void setCurrencyId(String currencyId) {
+    this.currencyId = currencyId;
+  }
+
+  public String getExternalAccountId() {
+    return externalAccountId;
+  }
+
+  public void setExternalAccountId(String externalAccountId) {
+    this.externalAccountId = externalAccountId;
+  }
 }

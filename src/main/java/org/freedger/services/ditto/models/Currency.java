@@ -1,50 +1,48 @@
 package org.freedger.services.ditto.models;
 
-import java.time.Instant;
-
 import com.google.gson.annotations.SerializedName;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
 
 public class Currency {
-    public static final int SCHEMA_VERSION = 1;
-    
-    @SerializedName("schemaVersion")
-    private int schemaVersion = SCHEMA_VERSION;
+  public static final int SCHEMA_VERSION = 1;
 
-    @SerializedName("_id")
-    @NotNull
-    private LedgerChildId id;
+  @SerializedName("schemaVersion")
+  private int schemaVersion = SCHEMA_VERSION;
 
-    @SerializedName("createdAt")
-    @NotNull
-    private Instant createdAt;
+  @SerializedName("_id")
+  @NotNull
+  private LedgerChildId id;
 
-    @SerializedName("updatedAt")
-    @NotNull
-    private Instant updatedAt;
+  @SerializedName("createdAt")
+  @NotNull
+  private Instant createdAt;
 
-    @SerializedName("archivedAt")
-    @Nullable
-    private Instant archivedAt;
+  @SerializedName("updatedAt")
+  @NotNull
+  private Instant updatedAt;
 
-    @SerializedName("type")
-    @NotNull
-    private CurrencyType type;
+  @SerializedName("archivedAt")
+  @Nullable
+  private Instant archivedAt;
 
-    @SerializedName("name")
-    @NotNull
-    private String name;
+  @SerializedName("type")
+  @NotNull
+  private CurrencyType type;
 
-    @SerializedName("code")
-    @NotNull
-    private String code;
+  @SerializedName("name")
+  @NotNull
+  private String name;
 
-    @SerializedName("decimals")
-    private int decimals;
+  @SerializedName("code")
+  @NotNull
+  private String code;
 
-    @SerializedName("instrumentId")
-    @NotNull
-    private String instrumentId;
+  @SerializedName("decimals")
+  private int decimals;
+
+  @SerializedName("instrumentId")
+  @NotNull
+  private String instrumentId;
 }

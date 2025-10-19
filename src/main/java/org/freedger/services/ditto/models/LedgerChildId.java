@@ -3,27 +3,27 @@ package org.freedger.services.ditto.models;
 import com.google.gson.annotations.SerializedName;
 
 public class LedgerChildId {
-    @SerializedName("id")
-    private String id;
-    
-    @SerializedName("ledgerId")
-    private String ledgerId;
+  @SerializedName("id")
+  private String id;
 
-    public String getId() {
-        return id;
-    }
+  @SerializedName("ledgerId")
+  private String ledgerId;
 
-    public LedgerChildId setId(String id) {
-        this.id = id;
-        return this;
-    }
+  public String getId() {
+    return id;
+  }
 
-    public String getLedgerId() {
-        return ledgerId;
-    }
+  public LedgerChildId setId(String id) {
+    this.id = id;
+    return this;
+  }
 
-    public LedgerChildId setLedgerId(String ledgerId) {
-        this.ledgerId = ledgerId;
-        return this;
-    }
+  public String getLedgerId() {
+    return ledgerId;
+  }
+
+  public LedgerChildId setLedgerId(String ledgerId) {
+    this.ledgerId = ledgerId;
+    return this;
+  }
 }

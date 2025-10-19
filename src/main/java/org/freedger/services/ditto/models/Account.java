@@ -1,166 +1,164 @@
 package org.freedger.services.ditto.models;
 
+import com.google.gson.annotations.SerializedName;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import com.google.gson.annotations.SerializedName;
-
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
-
 public class Account {
-    public static final int SCHEMA_VERSION = 1;
-    
-    @SerializedName("schemaVersion")
-    private int schemaVersion = SCHEMA_VERSION;
+  public static final int SCHEMA_VERSION = 1;
 
-    @SerializedName("_id")
-    @NotNull
-    private LedgerChildId id;
+  @SerializedName("schemaVersion")
+  private int schemaVersion = SCHEMA_VERSION;
 
-    @SerializedName("createdAt")
-    @NotNull
-    private Instant createdAt;
+  @SerializedName("_id")
+  @NotNull
+  private LedgerChildId id;
 
-    @SerializedName("updatedAt")
-    @NotNull
-    private Instant updatedAt;
+  @SerializedName("createdAt")
+  @NotNull
+  private Instant createdAt;
 
-    @SerializedName("type")
-    @NotNull
-    private AccountType type;
+  @SerializedName("updatedAt")
+  @NotNull
+  private Instant updatedAt;
 
-    @SerializedName("name")
-    @NotNull
-    private String name;
+  @SerializedName("type")
+  @NotNull
+  private AccountType type;
 
-    @SerializedName("archivedAt")
-    @Nullable
-    private Instant archivedAt;
+  @SerializedName("name")
+  @NotNull
+  private String name;
 
-    @SerializedName("groupId")
-    @Nullable
-    private String groupId;
+  @SerializedName("archivedAt")
+  @Nullable
+  private Instant archivedAt;
 
-    @SerializedName("currencyId")
-    @NotNull
-    private String currencyId;
+  @SerializedName("groupId")
+  @Nullable
+  private String groupId;
 
-    @SerializedName("openingBalance")
-    @NotNull
-    private BigDecimal openingBalance;
+  @SerializedName("currencyId")
+  @NotNull
+  private String currencyId;
 
-    @SerializedName("autoReconcile")
-    private boolean autoReconcile = true;
+  @SerializedName("openingBalance")
+  @NotNull
+  private BigDecimal openingBalance;
 
-    @SerializedName("note")
-    @NotNull
-    private String note = "";
+  @SerializedName("autoReconcile")
+  private boolean autoReconcile = true;
 
-    @SerializedName("order")
-    private double order = 0.0;
+  @SerializedName("note")
+  @NotNull
+  private String note = "";
 
-    public int getSchemaVersion() {
-        return schemaVersion;
-    }
+  @SerializedName("order")
+  private double order = 0.0;
 
-    public void setSchemaVersion(int schemaVersion) {
-        this.schemaVersion = schemaVersion;
-    }
+  public int getSchemaVersion() {
+    return schemaVersion;
+  }
 
-    public LedgerChildId getId() {
-        return id;
-    }
+  public void setSchemaVersion(int schemaVersion) {
+    this.schemaVersion = schemaVersion;
+  }
 
-    public void setId(LedgerChildId id) {
-        this.id = id;
-    }
+  public LedgerChildId getId() {
+    return id;
+  }
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
+  public void setId(LedgerChildId id) {
+    this.id = id;
+  }
 
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
 
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
 
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+  public Instant getUpdatedAt() {
+    return updatedAt;
+  }
 
-    public AccountType getType() {
-        return type;
-    }
+  public void setUpdatedAt(Instant updatedAt) {
+    this.updatedAt = updatedAt;
+  }
 
-    public void setType(AccountType type) {
-        this.type = type;
-    }
+  public AccountType getType() {
+    return type;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public void setType(AccountType type) {
+    this.type = type;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public Instant getArchivedAt() {
-        return archivedAt;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setArchivedAt(Instant archivedAt) {
-        this.archivedAt = archivedAt;
-    }
+  public Instant getArchivedAt() {
+    return archivedAt;
+  }
 
-    public String getGroupId() {
-        return groupId;
-    }
+  public void setArchivedAt(Instant archivedAt) {
+    this.archivedAt = archivedAt;
+  }
 
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
+  public String getGroupId() {
+    return groupId;
+  }
 
-    public String getCurrencyId() {
-        return currencyId;
-    }
+  public void setGroupId(String groupId) {
+    this.groupId = groupId;
+  }
 
-    public void setCurrencyId(String currencyId) {
-        this.currencyId = currencyId;
-    }
+  public String getCurrencyId() {
+    return currencyId;
+  }
 
-    public BigDecimal getOpeningBalance() {
-        return openingBalance;
-    }
+  public void setCurrencyId(String currencyId) {
+    this.currencyId = currencyId;
+  }
 
-    public void setOpeningBalance(BigDecimal openingBalance) {
-        this.openingBalance = openingBalance;
-    }
+  public BigDecimal getOpeningBalance() {
+    return openingBalance;
+  }
 
-    public boolean isAutoReconcile() {
-        return autoReconcile;
-    }
+  public void setOpeningBalance(BigDecimal openingBalance) {
+    this.openingBalance = openingBalance;
+  }
 
-    public void setAutoReconcile(boolean autoReconcile) {
-        this.autoReconcile = autoReconcile;
-    }
+  public boolean isAutoReconcile() {
+    return autoReconcile;
+  }
 
-    public String getNote() {
-        return note;
-    }
+  public void setAutoReconcile(boolean autoReconcile) {
+    this.autoReconcile = autoReconcile;
+  }
 
-    public void setNote(String note) {
-        this.note = note;
-    }
+  public String getNote() {
+    return note;
+  }
 
-    public double getOrder() {
-        return order;
-    }
+  public void setNote(String note) {
+    this.note = note;
+  }
 
-    public void setOrder(double order) {
-        this.order = order;
-    }
+  public double getOrder() {
+    return order;
+  }
+
+  public void setOrder(double order) {
+    this.order = order;
+  }
 }

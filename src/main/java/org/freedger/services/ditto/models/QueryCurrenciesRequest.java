@@ -3,20 +3,15 @@ package org.freedger.services.ditto.models;
 import jakarta.annotation.Nullable;
 
 public class QueryCurrenciesRequest {
-  @Nullable
-  private String transactionId;
+  @Nullable private String transactionId;
 
-  @Nullable
-  private String ledgerId;
+  @Nullable private String ledgerId;
 
-  @Nullable
-  private CurrencyType type;
+  @Nullable private CurrencyType type;
 
-  @Nullable
-  private String code;
+  @Nullable private String code;
 
-  @Nullable
-  private Boolean archived;
+  @Nullable private Boolean archived;
 
   public String getTransactionId() {
     return transactionId;
@@ -33,7 +28,7 @@ public class QueryCurrenciesRequest {
   public void setLedgerId(String ledgerId) {
     this.ledgerId = ledgerId;
   }
-  
+
   public CurrencyType getType() {
     return type;
   }
@@ -41,8 +36,7 @@ public class QueryCurrenciesRequest {
   public void setType(CurrencyType type) {
     this.type = type;
   }
-  
-  
+
   public String getCode() {
     return code;
   }
@@ -50,8 +44,7 @@ public class QueryCurrenciesRequest {
   public void setCode(String code) {
     this.code = code;
   }
-  
-  
+
   public Boolean getArchived() {
     return archived;
   }
