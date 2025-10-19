@@ -1,11 +1,9 @@
 package org.freedger.tools.eval.models;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 
 @Schema(name = "InputItem", description = "The input item for the eval.")
 public class InputItem {
@@ -18,7 +16,10 @@ public class InputItem {
   public List<MessageItem> messages;
 
   @Schema(name = VALIDATIONS_KEY, description = "The validation rules.")
-  @ArraySchema(schema = @Schema(anyOf = {TypeRule.class, JournalsRule.class, CategoriesRule.class, TagsRule.class}))
+  @ArraySchema(
+      schema =
+          @Schema(
+              anyOf = {TypeRule.class, JournalsRule.class, CategoriesRule.class, TagsRule.class}))
   @JsonProperty(VALIDATIONS_KEY)
   public List<Object> validations;
 }

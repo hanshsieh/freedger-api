@@ -1,12 +1,15 @@
 package org.freedger.tools.eval.models;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-@Schema(name = "TransactionDraft", description = "The transaction draft allowing the user to review and give feedback.")
+@Schema(
+    name = "TransactionDraft",
+    description = "The transaction draft allowing the user to review and give feedback.")
 public class TransactionDraft {
-  @Schema(description = "Type of the transaction.", allowableValues = {"payment", "receive", "transfer"})
+  @Schema(
+      description = "Type of the transaction.",
+      allowableValues = {"payment", "receive", "transfer"})
   public String type;
 
   @Schema(description = "The credit journals of the transaction.")

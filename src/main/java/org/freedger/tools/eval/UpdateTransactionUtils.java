@@ -1,8 +1,7 @@
 package org.freedger.tools.eval;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.Option;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
@@ -13,8 +12,11 @@ import com.github.victools.jsonschema.module.swagger2.Swagger2Module;
 import com.openai.core.JsonField;
 import com.openai.core.JsonValue;
 import com.openai.models.Reasoning;
+import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource;
+import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource.InputMessages.Template.InnerTemplate.ChatMessage;
 import com.openai.models.responses.Response;
 import com.openai.models.responses.ResponseCreateParams;
+import com.openai.models.responses.ResponseFormatTextJsonSchemaConfig;
 import com.openai.models.responses.ResponseInputContent;
 import com.openai.models.responses.ResponseInputItem;
 import com.openai.models.responses.ResponseOutputItem;
@@ -23,16 +25,11 @@ import com.openai.models.responses.ResponseTextConfig;
 import com.openai.models.responses.StructuredResponse;
 import com.openai.models.responses.StructuredResponseCreateParams;
 import com.openai.models.responses.Tool;
-import com.openai.models.responses.ResponseFormatTextJsonSchemaConfig;
-import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource;
-import com.openai.models.evals.runs.RunCreateParams.DataSource.CreateEvalResponsesRunDataSource.InputMessages.Template.InnerTemplate.ChatMessage;
-
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import org.freedger.tools.eval.models.EvalContext;
 import org.freedger.tools.eval.models.MessageItem;
 import org.freedger.tools.eval.models.TransactionDraft;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class UpdateTransactionUtils {
   private static final String CONTEXT_FILE = "prompts/update_transaction/evals/context.json";
@@ -42,36 +39,35 @@ public class UpdateTransactionUtils {
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
-   * Extract the JSON schema from a Java class.
-   * It's useful for the OpenAI SDK classes that not yet support defining the JSON schema with classes.
-   * 
-   * Reference: https://github.com/openai/openai-java/blob/a0a9a1ebff9e442003786caa5b6be45fe34fed9f/openai-java-core/src/main/kotlin/com/openai/core/StructuredOutputs.kt#L199C1-L223C2
-   * 
+   * Extract the JSON schema from a Java class. It's useful for the OpenAI SDK classes that not yet
+   * support defining the JSON schema with classes.
+   *
+   * <p>Reference:
+   * https://github.com/openai/openai-java/blob/a0a9a1ebff9e442003786caa5b6be45fe34fed9f/openai-java-core/src/main/kotlin/com/openai/core/StructuredOutputs.kt#L199C1-L223C2
+   *
    * @param clazz The Java class to extract the JSON schema from.
    * @return The JSON schema.
    */
   @SuppressWarnings("unchecked")
   public static <T> JsonField<T> extractJsonSchema(Class<?> clazz) {
-    final var configBuilder = new SchemaGeneratorConfigBuilder(
-            SchemaVersion.DRAFT_2020_12,
-            OptionPreset.PLAIN_JSON
-        )
-        // Add `"additionalProperties" : false` to all object schemas (see OpenAI).
-        .with(Option.FORBIDDEN_ADDITIONAL_PROPERTIES_BY_DEFAULT)
-        // Use `JacksonModule` to support the use of Jackson annotations to set property and
-        // class names and descriptions and to mark fields with `@JsonIgnore`.
-        .with(new JacksonModule())
-        // Use `Swagger2Module` to support OpenAPI Swagger 2 `@Schema` annotations to set
-        // property constraints (e.g., a `"pattern"` constraint for a string property).
-        .with(new Swagger2Module());
+    final var configBuilder =
+        new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON)
+            // Add `"additionalProperties" : false` to all object schemas (see OpenAI).
+            .with(Option.FORBIDDEN_ADDITIONAL_PROPERTIES_BY_DEFAULT)
+            // Use `JacksonModule` to support the use of Jackson annotations to set property and
+            // class names and descriptions and to mark fields with `@JsonIgnore`.
+            .with(new JacksonModule())
+            // Use `Swagger2Module` to support OpenAPI Swagger 2 `@Schema` annotations to set
+            // property constraints (e.g., a `"pattern"` constraint for a string property).
+            .with(new Swagger2Module());
 
     configBuilder
-      .forFields()
-      // For OpenAI schemas, _all_ properties _must_ be required. Override the interpretation of
-      // the Jackson `required` parameter to the `@JsonProperty` annotation: it will always be
-      // assumed to be `true`, even if explicitly `false` and even if there is no `@JsonProperty`
-      // annotation present.
-      .withRequiredCheck((fieldScope) -> true);
+        .forFields()
+        // For OpenAI schemas, _all_ properties _must_ be required. Override the interpretation of
+        // the Jackson `required` parameter to the `@JsonProperty` annotation: it will always be
+        // assumed to be `true`, even if explicitly `false` and even if there is no `@JsonProperty`
+        // annotation present.
+        .withRequiredCheck((fieldScope) -> true);
 
     final var shema = new SchemaGenerator(configBuilder.build()).generateSchema(clazz);
     return JsonValue.fromJsonNode(shema);
@@ -90,7 +86,8 @@ public class UpdateTransactionUtils {
   }
 
   public static InputStream loadResourceAsStream(String resourcePath) {
-    final var inputStream = UpdateTransactionUtils.class.getClassLoader().getResourceAsStream(resourcePath);
+    final var inputStream =
+        UpdateTransactionUtils.class.getClassLoader().getResourceAsStream(resourcePath);
     if (inputStream == null) {
       throw new IllegalStateException("Resource not found: " + resourcePath);
     }
@@ -251,72 +248,78 @@ public class UpdateTransactionUtils {
 
   /**
    * Create the output schema for transaction draft responses.
-   * 
+   *
    * @return The JSON schema configuration for structured responses.
    */
   public static ResponseFormatTextJsonSchemaConfig createTransactionOutputSchema() {
     return ResponseFormatTextJsonSchemaConfig.builder()
-      .name("UpdateTransactionDraft")
-      .schema(extractJsonSchema(TransactionDraft.class))
-      .strict(true)
-      .build();
+        .name("UpdateTransactionDraft")
+        .schema(extractJsonSchema(TransactionDraft.class))
+        .strict(true)
+        .build();
   }
 
   /**
    * Create input template for evaluation runs.
-   * 
+   *
    * @param context The evaluation context containing configuration.
    * @param messageCount The number of messages in each conversation.
    * @return The input template for the evaluation run.
    * @throws JsonProcessingException If JSON processing fails.
    */
   public CreateEvalResponsesRunDataSource.InputMessages.Template createInputTemplate(
-    EvalContext context, int messageCount) throws JsonProcessingException {
-      
+      EvalContext context, int messageCount) throws JsonProcessingException {
+
     final var introPrompt = loadResourceAsString(INTRO_PROMPT_FILE);
     final var contextPromptTemplate = loadResourceAsString(CONTEXT_PROMPT_FILE);
     final var statusPromptTemplate = loadResourceAsString(STATUS_PROMPT_FILE);
-    
+
     var contextPrompt = contextPromptTemplate;
     contextPrompt = contextPrompt.replace("{{currentTime}}", context.currentTime);
     contextPrompt = contextPrompt.replace("{{timeZone}}", context.timeZone);
     contextPrompt = contextPrompt.replace("{{locale}}", context.locale);
-    contextPrompt = contextPrompt.replace("{{defaultExternalAccountId}}", context.defaultExternalAccountId);
+    contextPrompt =
+        contextPrompt.replace("{{defaultExternalAccountId}}", context.defaultExternalAccountId);
     contextPrompt = contextPrompt.replace("{{defaultCurrencyId}}", context.defaultCurrencyId);
-    contextPrompt = contextPrompt.replace("{{currencies}}", objectMapper.writeValueAsString(context.currencies));
-    contextPrompt = contextPrompt.replace("{{accounts}}", objectMapper.writeValueAsString(context.accounts));
-    contextPrompt = contextPrompt.replace("{{categories}}", objectMapper.writeValueAsString(context.categories));
-    contextPrompt = contextPrompt.replace("{{platforms}}", objectMapper.writeValueAsString(context.platforms));
-    contextPrompt = contextPrompt.replace("{{tags}}", objectMapper.writeValueAsString(context.tags));
+    contextPrompt =
+        contextPrompt.replace(
+            "{{currencies}}", objectMapper.writeValueAsString(context.currencies));
+    contextPrompt =
+        contextPrompt.replace("{{accounts}}", objectMapper.writeValueAsString(context.accounts));
+    contextPrompt =
+        contextPrompt.replace(
+            "{{categories}}", objectMapper.writeValueAsString(context.categories));
+    contextPrompt =
+        contextPrompt.replace("{{platforms}}", objectMapper.writeValueAsString(context.platforms));
+    contextPrompt =
+        contextPrompt.replace("{{tags}}", objectMapper.writeValueAsString(context.tags));
 
-    final var templateBuilder = CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
-      .addTemplate(ChatMessage.builder()
-        .role("developer")
-        .content(introPrompt)
-        .build())
-      .addTemplate(ChatMessage.builder()
-        .role("developer")
-        .content(contextPrompt)
-        .build());
+    final var templateBuilder =
+        CreateEvalResponsesRunDataSource.InputMessages.Template.builder()
+            .addTemplate(ChatMessage.builder().role("developer").content(introPrompt).build())
+            .addTemplate(ChatMessage.builder().role("developer").content(contextPrompt).build());
 
     for (int turnIndex = 0; turnIndex < messageCount; turnIndex++) {
-      final var statusPrompt = statusPromptTemplate.replace(
-        "{{transaction}}", "{{item.messages[%d].%s}}".formatted(
-          turnIndex, 
-          MessageItem.INPUT_TRANSACTION_KEY));
-      templateBuilder.addTemplate(ChatMessage.builder()
-        .role("developer")
-        .content(statusPrompt)
-        .build())
-      .addTemplate(ChatMessage.builder()
-        .role("user")
-        .content("{{item.messages[%d].%s}}".formatted(turnIndex, MessageItem.USER_MESSAGE_KEY))
-        .build());
+      final var statusPrompt =
+          statusPromptTemplate.replace(
+              "{{transaction}}",
+              "{{item.messages[%d].%s}}".formatted(turnIndex, MessageItem.INPUT_TRANSACTION_KEY));
+      templateBuilder
+          .addTemplate(ChatMessage.builder().role("developer").content(statusPrompt).build())
+          .addTemplate(
+              ChatMessage.builder()
+                  .role("user")
+                  .content(
+                      "{{item.messages[%d].%s}}".formatted(turnIndex, MessageItem.USER_MESSAGE_KEY))
+                  .build());
       if (turnIndex < messageCount - 1) {
-        templateBuilder.addTemplate(ChatMessage.builder()
-          .role("assistant")
-          .content("{{item.messages[%d].%s}}".formatted(turnIndex, MessageItem.OUTPUT_TRANSACTION_KEY))
-          .build());
+        templateBuilder.addTemplate(
+            ChatMessage.builder()
+                .role("assistant")
+                .content(
+                    "{{item.messages[%d].%s}}"
+                        .formatted(turnIndex, MessageItem.OUTPUT_TRANSACTION_KEY))
+                .build());
       }
     }
 

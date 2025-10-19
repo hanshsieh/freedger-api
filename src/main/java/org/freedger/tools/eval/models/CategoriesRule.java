@@ -1,13 +1,14 @@
 package org.freedger.tools.eval.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.swagger.v3.oas.annotations.media.Schema;
-
 public class CategoriesRule {
-  @Schema(name = "type", description = "Type of the validation rule.", allowableValues = {"categories"})
+  @Schema(
+      name = "type",
+      description = "Type of the validation rule.",
+      allowableValues = {"categories"})
   @JsonProperty("type")
   public String type;
 

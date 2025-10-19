@@ -1,23 +1,5 @@
 package org.freedger.tools.eval;
 
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.help.HelpFormatter;
-import org.freedger.tools.eval.models.EvalContext;
-import org.freedger.tools.eval.models.InputItem;
-import org.freedger.tools.eval.models.TransactionDraft;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
@@ -30,6 +12,21 @@ import com.openai.models.ReasoningEffort;
 import com.openai.models.responses.ResponseCreateParams;
 import com.openai.models.responses.ResponseInputItem;
 import com.openai.models.responses.ResponseTextConfig;
+import java.io.Closeable;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.help.HelpFormatter;
+import org.freedger.tools.eval.models.EvalContext;
+import org.freedger.tools.eval.models.TransactionDraft;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UpdateTransactionLatency implements Closeable {
   private static final String ARG_INPUT = "input";
@@ -41,7 +38,7 @@ public class UpdateTransactionLatency implements Closeable {
   private static final String ARG_VERBOSE_LONG = "verbose";
   private final Pattern templateRegex = Pattern.compile("\\{\\{([a-zA-Z0-9_.\\[\\]]+)\\}\\}");
   private static final Logger logger = LoggerFactory.getLogger(UpdateTransactionLatency.class);
-  
+
   private final UpdateTransactionUtils utils = new UpdateTransactionUtils();
   private final ObjectMapper objectMapper = new ObjectMapper();
   private OpenAIClient client = OpenAIOkHttpClient.fromEnv();
@@ -75,11 +72,14 @@ public class UpdateTransactionLatency implements Closeable {
       return;
     }
 
-    logger.info("Starting latency test with {} requests using {} input items", testCount, inputItems.size());
+    logger.info(
+        "Starting latency test with {} requests using {} input items",
+        testCount,
+        inputItems.size());
 
     // Run latency tests
     final var latencies = runLatencyTests(context, inputItems, testCount);
-    
+
     // Calculate and print statistics
     printStatistics(latencies);
   }
@@ -105,7 +105,7 @@ public class UpdateTransactionLatency implements Closeable {
       exitCode = 1;
       return false;
     }
-    
+
     testCount = Integer.parseInt(countStr);
     if (testCount <= 0) {
       System.err.printf("Error: --%s must be positive", ARG_COUNT);
@@ -119,74 +119,78 @@ public class UpdateTransactionLatency implements Closeable {
 
   private Options createCommandLineOptions() {
     final var options = new Options();
-    
-    options.addOption(Option.builder()
-      .longOpt(ARG_INPUT)
-      .hasArg()
-      .desc("Input resource path (e.g., @input_1.jsonl)")
-      .required()
-      .get());
 
-    options.addOption(Option.builder()
-      .longOpt(ARG_INPUT_MSG_COUNT)
-      .hasArg()
-      .desc("Number of messages in each input item")
-      .required()
-      .get());
-    
-    options.addOption(Option.builder()
-      .longOpt(ARG_COUNT)
-      .hasArg()
-      .desc("Number of requests to send")
-      .required()
-      .get());
-    
-    options.addOption(Option.builder(ARG_HELP_SHORT)
-      .longOpt(ARG_HELP_LONG)
-      .desc("Print this help message")
-      .get());
-    
-    options.addOption(Option.builder(ARG_VERBOSE_SHORT)
-      .longOpt(ARG_VERBOSE_LONG)
-      .desc("Print verbose output")
-      .get());
-    
+    options.addOption(
+        Option.builder()
+            .longOpt(ARG_INPUT)
+            .hasArg()
+            .desc("Input resource path (e.g., @input_1.jsonl)")
+            .required()
+            .get());
+
+    options.addOption(
+        Option.builder()
+            .longOpt(ARG_INPUT_MSG_COUNT)
+            .hasArg()
+            .desc("Number of messages in each input item")
+            .required()
+            .get());
+
+    options.addOption(
+        Option.builder()
+            .longOpt(ARG_COUNT)
+            .hasArg()
+            .desc("Number of requests to send")
+            .required()
+            .get());
+
+    options.addOption(
+        Option.builder(ARG_HELP_SHORT)
+            .longOpt(ARG_HELP_LONG)
+            .desc("Print this help message")
+            .get());
+
+    options.addOption(
+        Option.builder(ARG_VERBOSE_SHORT)
+            .longOpt(ARG_VERBOSE_LONG)
+            .desc("Print verbose output")
+            .get());
+
     return options;
   }
 
   private void printHelp(Options options) throws IOException {
-    final var formatter = HelpFormatter.builder()
-      .get();
-    formatter.printHelp(getClass().getSimpleName(), 
-      "Evaluate the latency of the update transaction OpenAI API calls",
-      options.getOptions(), 
-      "", 
-      true);
+    final var formatter = HelpFormatter.builder().get();
+    formatter.printHelp(
+        getClass().getSimpleName(),
+        "Evaluate the latency of the update transaction OpenAI API calls",
+        options.getOptions(),
+        "",
+        true);
   }
 
   private List<String> loadInputItems(String inputPath) throws IOException {
     final var resourcePath = inputPath.startsWith("@") ? inputPath.substring(1) : inputPath;
     final var content = UpdateTransactionUtils.loadResourceAsString(resourcePath);
-    
+
     return Arrays.stream(content.split("\n"))
-      .map(String::trim)
-      .filter(line -> !line.isEmpty())
-      .collect(Collectors.toList());
+        .map(String::trim)
+        .filter(line -> !line.isEmpty())
+        .collect(Collectors.toList());
   }
 
-  private List<Duration> runLatencyTests(EvalContext context, List<String> inputItems, int count) 
-    throws IOException {
+  private List<Duration> runLatencyTests(EvalContext context, List<String> inputItems, int count)
+      throws IOException {
     final var latencies = new ArrayList<Duration>();
-    
+
     for (int i = 0; i < count; i++) {
       final var inputItem = inputItems.get(i % inputItems.size());
       final var latency = measureApiLatency(context, inputItem);
       latencies.add(latency);
-      
-      logger.info("Request {}/{} completed in {}s",
-        i + 1, count, latency.toMillis() / 1_000.0);
+
+      logger.info("Request {}/{} completed in {}s", i + 1, count, latency.toMillis() / 1_000.0);
     }
-    
+
     return latencies;
   }
 
@@ -203,39 +207,50 @@ public class UpdateTransactionLatency implements Closeable {
       final var chatMessage = innerTemplate.asChatMessage();
       final var role = chatMessage.role();
       final var contentTemplate = chatMessage.content();
-      final var content = templateRegex.matcher(contentTemplate).replaceAll((result) -> {
-        final var jsonPath = "$." + result.group(1);
-        final var value = JsonPath.read(inputItemJson, jsonPath);
-        if (value instanceof String) {
-          return (String) value;
-        }
-        try {
-          return objectMapper.writeValueAsString(value);
-        } catch (JsonProcessingException e) {
-          throw new RuntimeException("Failed to write value as string: " + value, e);
-        }
-      });
+      final var content =
+          templateRegex
+              .matcher(contentTemplate)
+              .replaceAll(
+                  (result) -> {
+                    final var jsonPath = "$." + result.group(1);
+                    final var value = JsonPath.read(inputItemJson, jsonPath);
+                    if (value instanceof String) {
+                      return (String) value;
+                    }
+                    try {
+                      return objectMapper.writeValueAsString(value);
+                    } catch (JsonProcessingException e) {
+                      throw new RuntimeException("Failed to write value as string: " + value, e);
+                    }
+                  });
 
-      inputs.add(ResponseInputItem.ofMessage(
-        ResponseInputItem.Message.builder()
-          .role(ResponseInputItem.Message.Role.of(role))
-          .addInputTextContent(content)
-          .build())
-      );
+      inputs.add(
+          ResponseInputItem.ofMessage(
+              ResponseInputItem.Message.builder()
+                  .role(ResponseInputItem.Message.Role.of(role))
+                  .addInputTextContent(content)
+                  .build()));
     }
-    final var params = ResponseCreateParams.builder()
-      .model(ChatModel.of(context.model))
-      .text(ResponseTextConfig.builder()
-        .verbosity(context.verbosity != null ? 
-          ResponseTextConfig.Verbosity.of(context.verbosity) : null)
-        .format(TransactionDraft.class)
-        .build())
-      .reasoning(Reasoning.builder()
-        .effort(context.reasoningEffort != null ? 
-          ReasoningEffort.of(context.reasoningEffort) : null)
-        .build())
-      .input(ResponseCreateParams.Input.ofResponse(inputs))
-      .build();
+    final var params =
+        ResponseCreateParams.builder()
+            .model(ChatModel.of(context.model))
+            .text(
+                ResponseTextConfig.builder()
+                    .verbosity(
+                        context.verbosity != null
+                            ? ResponseTextConfig.Verbosity.of(context.verbosity)
+                            : null)
+                    .format(TransactionDraft.class)
+                    .build())
+            .reasoning(
+                Reasoning.builder()
+                    .effort(
+                        context.reasoningEffort != null
+                            ? ReasoningEffort.of(context.reasoningEffort)
+                            : null)
+                    .build())
+            .input(ResponseCreateParams.Input.ofResponse(inputs))
+            .build();
 
     if (verbose) {
       UpdateTransactionUtils.printRequest(params);
@@ -255,24 +270,23 @@ public class UpdateTransactionLatency implements Closeable {
       System.out.println("No latency data available");
       return;
     }
-    
+
     // Sort latencies for percentile calculations
     final var sortedLatencies = new ArrayList<>(latencies);
     Collections.sort(sortedLatencies);
-    
+
     final var count = sortedLatencies.size();
-    final var removeCount = Math.max((count - 1) / 2, (int) Math.round(count * 0.1)); // Remove top and bottom 10%
-    
+    final var removeCount =
+        Math.max((count - 1) / 2, (int) Math.round(count * 0.1)); // Remove top and bottom 10%
+
     // Calculate trimmed mean (remove top and bottom 10%)
     final var trimmedLatencies = sortedLatencies.subList(removeCount, count - removeCount);
-    final var averageLatency = trimmedLatencies.stream()
-      .mapToDouble((t) -> t.toMillis() / 1_000.0)
-      .average()
-      .orElse(0.0);
-    
+    final var averageLatency =
+        trimmedLatencies.stream().mapToDouble((t) -> t.toMillis() / 1_000.0).average().orElse(0.0);
+
     final var minLatency = Collections.min(latencies);
     final var maxLatency = Collections.max(latencies);
-    
+
     System.out.println("=============");
     System.out.println("Latency Statistics");
     System.out.println("=============");

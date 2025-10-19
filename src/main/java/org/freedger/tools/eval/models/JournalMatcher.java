@@ -1,7 +1,6 @@
 package org.freedger.tools.eval.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public class JournalMatcher {
@@ -9,11 +8,17 @@ public class JournalMatcher {
   @JsonProperty("accountId")
   public String accountId;
 
-  @Schema(name = "accountChannelId", description = "Expected account channel ID of the journal.", nullable = true)
+  @Schema(
+      name = "accountChannelId",
+      description = "Expected account channel ID of the journal.",
+      nullable = true)
   @JsonProperty("accountChannelId")
   public String accountChannelId;
 
-  @Schema(name = "platformId", description = "Expected platform ID of the journal.", nullable = true)
+  @Schema(
+      name = "platformId",
+      description = "Expected platform ID of the journal.",
+      nullable = true)
   @JsonProperty("platformId")
   public String platformId;
 
