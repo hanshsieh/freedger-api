@@ -44,9 +44,9 @@ public class Account {
   @NotNull
   private String currencyId;
 
-  @SerializedName("openingBalance")
+  @SerializedName("initialBalance")
   @NotNull
-  private BigDecimal openingBalance;
+  private BigDecimal initialBalance;
 
   @SerializedName("autoReconcile")
   private boolean autoReconcile = true;
@@ -130,12 +130,12 @@ public class Account {
     this.currencyId = currencyId;
   }
 
-  public BigDecimal getOpeningBalance() {
-    return openingBalance;
+  public BigDecimal getInitialBalance() {
+    return initialBalance;
   }
 
-  public void setOpeningBalance(BigDecimal openingBalance) {
-    this.openingBalance = openingBalance;
+  public void setInitialBalance(BigDecimal openingBalance) {
+    this.initialBalance = openingBalance;
   }
 
   public boolean isAutoReconcile() {

@@ -181,7 +181,7 @@ public class DittoClient {
       account.setArchivedAt(null);
       account.setGroupId(null);
       account.setCurrencyId(config.getCurrencyId());
-      account.setOpeningBalance(BigDecimal.ZERO);
+      account.setInitialBalance(BigDecimal.ZERO);
       account.setAutoReconcile(true);
       account.setNote("");
       account.setOrder(0.0);
