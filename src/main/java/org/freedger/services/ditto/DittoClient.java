@@ -312,6 +312,15 @@ public class DittoClient {
       }
       queryBuilder.append(" WHERE ");
       queryBuilder.append(String.join(" AND ", whereClauses));
+      queryBuilder.append(" ORDER BY code, _id.ledgerId, _id.id");
+      if (request.getLimit() != null) {
+        queryBuilder.append(" LIMIT :limit");
+        args.put("limit", request.getLimit());
+      }
+      if (request.getOffset() != null) {
+        queryBuilder.append(" OFFSET :offset");
+        args.put("offset", request.getOffset());
+      }
       final var query = queryBuilder.toString();
       final var response =
           sendQueryRequest(

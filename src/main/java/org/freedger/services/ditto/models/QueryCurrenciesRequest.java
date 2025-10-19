@@ -21,6 +21,12 @@ public class QueryCurrenciesRequest {
   @Nullable
   private String userId;
 
+  @Nullable
+  private Integer limit;
+
+  @Nullable
+  private Integer offset;
+
   public String getTransactionId() {
     return transactionId;
   }
@@ -59,6 +65,22 @@ public class QueryCurrenciesRequest {
 
   public void setArchived(Boolean archived) {
     this.archived = archived;
+  }
+
+  public Integer getLimit() {
+    return limit;
+  }
+
+  public void setLimit(Integer limit) {
+    this.limit = limit;
+  }
+
+  public Integer getOffset() {
+    return offset;
+  }
+
+  public void setOffset(Integer offset) {
+    this.offset = offset;
   }
 
   public String getUserId() {
