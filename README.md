@@ -54,21 +54,14 @@ Copy `local.settings.example.json` to `local.settings.json` and edit it with you
    You can ignore these errors.
    </details>
 
-3. Test the API:
-   (Unix/Bash)
-   ```bash
-   curl -X POST http://localhost:7071/api/ditto/authorize \
-     -H "Content-Type: application/json" \
-     -d '{"appID": "bfaf1c4d-ee83-4215-9022-ac9c129364ea", "provider": "freedger_api", "token": "{TOKEN}"}'
-   ```
-
-  (Windows/Powershell)
-   ```powershell
-   Invoke-RestMethod -Uri "http://localhost:7071/api/GetDittoPermissions" `
-     -Method Post `
-     -Headers @{ "Content-Type" = "application/json" } `
-     -Body '{"appID": "bfaf1c4d-ee83-4215-9022-ac9c129364ea", "provider": "freedger_api", "token": "{TOKEN}"}'
-   ```
+3. Test the APIs:
+   The easiest way to test the APIs is to use the prepared Bruno files. Download and install [Bruno](https://www.usebruno.com/).
+   - Launch Bruno.
+   - Open the collection at folder `bruno`.
+   - Open the environment settings at top-right.
+   - The secrets like access token aren't stored in the environment. You need to specify them manually.
+   - To obtain an access token, you can launch the Freedger app, set a breakpoint in `DittoService`, and copy-paste the access token.
+   - Always check the `Secret` checkbox in Bruno for the secrets.
 
 ## Deployment to Azure
 

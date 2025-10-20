@@ -1,0 +1,22 @@
+meta {
+  name: Update a ledger
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/ledgers/{{ledgerId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "我的帳本",
+    "note": "",
+    "currencyId": "67fb6c93007e33a200b9963d@g",
+    "externalAccountId": "61819007ba4647539f4340f94e1c54d4",
+    "readerIds": [],
+    "writerIds": ["{{userId}}"]
+  }
+}
