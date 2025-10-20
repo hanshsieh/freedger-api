@@ -227,7 +227,7 @@ public class DittoClient {
     }
   }
 
-  public DittoResponse<String> updateLedger(UpdateLedgerRequest request)
+  public DittoResponse<Ledger> updateLedger(UpdateLedgerRequest request)
       throws IOException, DittoNotFoundException {
     try {
       final var now = Instant.now();
@@ -276,8 +276,19 @@ public class DittoClient {
         throw new DittoNotFoundException("No ledger found with ID: " + request.getId());
       }
       logger.info("Updated ledger. Ledger ID: {}", request.getId());
-      return new DittoResponse<String>(
-          String.valueOf(response.getTransactionId()), request.getId());
+      final var updatedLedger = new Ledger() {{
+        setId(request.getId());
+        setCreatedAt(now);
+        setUpdatedAt(now);
+        setName(request.getName());
+        setReaderIds(request.getReaderIds());
+        setWriterIds(request.getWriterIds());
+        setNote(request.getNote());
+        setExternalAccountId(request.getExternalAccountId());
+        setCurrencyId(request.getCurrencyId());
+      }};
+      return new DittoResponse<Ledger>(
+          String.valueOf(response.getTransactionId()), updatedLedger);
     } catch (DittoNotFoundException e) {
       throw e;
     } catch (Exception e) {

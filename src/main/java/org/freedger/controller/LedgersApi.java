@@ -10,9 +10,11 @@ import java.time.ZoneOffset;
 import java.util.logging.Level;
 import javax.inject.Inject;
 
+import org.freedger.domain.exception.NotFoundException;
 import org.freedger.domain.models.CreateLedgerRequest;
 import org.freedger.domain.models.Scope;
 import org.freedger.domain.models.ScopePredicate;
+import org.freedger.domain.models.UpdateLedgerRequest;
 import org.freedger.openapi.models.CreateLedger;
 import org.freedger.openapi.models.ErrorCode;
 import org.freedger.openapi.models.ErrorResponse;
@@ -114,47 +116,22 @@ public class LedgersApi {
       requestValidator.validate(request.getBody());
       final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
       final var reqLedgerUpdate = request.getBody();
-      final var dittoLedger =
-          new org.freedger.repository.ditto.models.UpdateLedgerRequest() {
-            {
-              setId(ledgerId);
-              setUserId(jwtToken.getSubject());
-              setName(reqLedgerUpdate.getName());
-              setNote(reqLedgerUpdate.getNote());
-              setCurrencyId(reqLedgerUpdate.getCurrencyId());
-              setExternalAccountId(reqLedgerUpdate.getExternalAccountId());
-              setReaderIds(reqLedgerUpdate.getReaderIds());
-              setWriterIds(reqLedgerUpdate.getWriterIds());
-            }
-          };
-
-      final var updateResp = dittoClient.updateLedger(dittoLedger);
-      final var resultResp =
-          dittoClient.getLedger(
-              new org.freedger.repository.ditto.models.GetLedgerRequest() {
-                {
-                  setId(ledgerId);
-                  setUserId(jwtToken.getSubject());
-                  setTransactionId(updateResp.getTransactionId());
-                }
-              });
-      final var resultLedger = resultResp.getData();
-      final var respLedger = new Ledger();
-      respLedger.setId(resultLedger.getId());
-      respLedger.setCreatedAt(resultLedger.getCreatedAt().atOffset(ZoneOffset.UTC));
-      respLedger.setUpdatedAt(resultLedger.getUpdatedAt().atOffset(ZoneOffset.UTC));
-      respLedger.setName(resultLedger.getName());
-      respLedger.setReaderIds(resultLedger.getReaderIds());
-      respLedger.setWriterIds(resultLedger.getWriterIds());
-      respLedger.setNote(resultLedger.getNote());
-      respLedger.setCurrencyId(resultLedger.getCurrencyId());
-      respLedger.setExternalAccountId(resultLedger.getExternalAccountId());
+      final var updatedLedger = ledgerService.updateLedger(UpdateLedgerRequest.builder()
+        .id(ledgerId)
+        .userId(jwtToken.getSubject())
+        .name(reqLedgerUpdate.getName())
+        .note(reqLedgerUpdate.getNote())
+        .currencyId(reqLedgerUpdate.getCurrencyId())
+        .externalAccountId(reqLedgerUpdate.getExternalAccountId())
+        .readerIds(reqLedgerUpdate.getReaderIds())
+        .writerIds(reqLedgerUpdate.getWriterIds())
+        .build());
       return httpMessageSerializer
-          .serializeResponse(
-              request.createResponseBuilder(HttpStatus.OK),
-              respLedger,
-              resultResp.getTransactionId())
-          .build();
+        .serializeResponse(
+          request.createResponseBuilder(HttpStatus.OK),
+          updatedLedger.getData().toOpenApiModel(),
+          updatedLedger.getTransactionId())
+        .build();
     } catch (ValidationException e) {
       logger.fine("Invalid request: " + e.getMessage());
       return request
@@ -167,7 +144,7 @@ public class LedgersApi {
           .createResponseBuilder(HttpStatus.UNAUTHORIZED)
           .body(new ErrorResponse().code(ErrorCode.UNAUTHORIZED).message(e.getMessage()))
           .build();
-    } catch (DittoNotFoundException e) {
+    } catch (NotFoundException e) {
       return request
           .createResponseBuilder(HttpStatus.NOT_FOUND)
           .body(

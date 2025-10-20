@@ -6,10 +6,13 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 
+import org.freedger.domain.exception.NotFoundException;
 import org.freedger.domain.models.CreateLedgerRequest;
 import org.freedger.domain.models.Ledger;
 import org.freedger.domain.models.Result;
+import org.freedger.domain.models.UpdateLedgerRequest;
 import org.freedger.repository.ditto.DittoClient;
+import org.freedger.repository.ditto.exceptions.DittoNotFoundException;
 
 public class LedgerService {
   private final DittoClient dittoClient;
@@ -45,5 +48,40 @@ public class LedgerService {
       .data(respLedger)
       .transactionId(dittoResp.getTransactionId())
       .build();
+  }
+
+  public Result<Ledger> updateLedger(UpdateLedgerRequest request) throws IOException, NotFoundException {
+    try {
+      final var dittoLedgerUpdate = new org.freedger.repository.ditto.models.UpdateLedgerRequest() {{
+        setId(request.getId());
+        setUserId(request.getUserId());
+        setName(request.getName());
+        setNote(request.getNote());
+        setCurrencyId(request.getCurrencyId());
+        setExternalAccountId(request.getExternalAccountId());
+        setReaderIds(request.getReaderIds());
+        setWriterIds(request.getWriterIds());
+      }};
+
+      final var dittoResp = dittoClient.updateLedger(dittoLedgerUpdate);
+      final var dittoLedger = dittoResp.getData();
+      final var respLedger = Ledger.builder()
+        .id(dittoLedger.getId())
+        .createdAt(dittoLedger.getCreatedAt())
+        .updatedAt(dittoLedger.getUpdatedAt())
+        .name(dittoLedger.getName())
+        .readerIds(dittoLedger.getReaderIds())
+        .writerIds(dittoLedger.getWriterIds())
+        .note(dittoLedger.getNote())
+        .currencyId(dittoLedger.getCurrencyId())
+        .externalAccountId(dittoLedger.getExternalAccountId())
+        .build();
+      return Result.<Ledger>builder()
+        .data(respLedger)
+        .transactionId(dittoResp.getTransactionId())
+        .build();
+    } catch (DittoNotFoundException e) {
+      throw new NotFoundException("Ledger not found");
+    }
   }
 }
