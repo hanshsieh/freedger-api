@@ -44,6 +44,14 @@
             <version>${dagger.version}</version>
         </dependency>
 
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.42</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- JSON Processing -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -225,6 +233,11 @@
                             <groupId>com.google.dagger</groupId>
                             <artifactId>dagger-compiler</artifactId>
                             <version>${dagger.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.42</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

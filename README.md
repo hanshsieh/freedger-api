@@ -10,6 +10,11 @@ OpenAPI spec: [api.yml](src/main/resources/api.yml).
 - Provides Ditto webhook for authorizing Ditto clients.
 - Provides an API to create ledgers.
 
+## Dependency Injection
+This project uses Dagger for dependency injection.  
+To integrate Dagger framework into Azure Function, `src\main\resources\META-INF\services\com.microsoft.azure.functions.spi.inject.FunctionInstanceInjector` specifies the injector class. If the class is renamed or moved, remember to update this file.  
+See the [official example](https://github.com/Azure/azure-functions-java-worker/tree/dev/samples/dependency-injection-example/dagger-function) for more details.
+
 ## Local Development
 
 ### Prerequisites
