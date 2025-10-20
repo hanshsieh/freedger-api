@@ -1,4 +1,4 @@
-package org.freedger.controller.utils;
+package org.freedger.domain.models;
 
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;

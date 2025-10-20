@@ -11,11 +11,8 @@ import java.util.Collections;
 import java.util.logging.Level;
 import javax.inject.Inject;
 
-import org.freedger.controller.utils.HttpMessageSerializer;
-import org.freedger.controller.utils.RequestValidator;
-import org.freedger.controller.utils.Scope;
-import org.freedger.controller.utils.ScopePredicate;
-import org.freedger.controller.utils.TokenValidator;
+import org.freedger.domain.models.Scope;
+import org.freedger.domain.models.ScopePredicate;
 import org.freedger.openapi.models.CreateLedger;
 import org.freedger.openapi.models.ErrorCode;
 import org.freedger.openapi.models.ErrorResponse;
@@ -23,6 +20,9 @@ import org.freedger.openapi.models.Ledger;
 import org.freedger.openapi.models.UpdateLedger;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.ditto.exceptions.DittoNotFoundException;
+import org.freedger.service.HttpMessageSerializer;
+import org.freedger.service.RequestValidator;
+import org.freedger.service.TokenValidator;
 
 public class LedgersApi {
   private final RequestValidator requestValidator;

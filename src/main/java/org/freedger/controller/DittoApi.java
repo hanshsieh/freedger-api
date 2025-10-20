@@ -11,19 +11,19 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.freedger.config.Config;
-import org.freedger.controller.utils.CollectionQuery;
-import org.freedger.controller.utils.HttpMessageSerializer;
-import org.freedger.controller.utils.LedgerChildOrGlobalQuery;
-import org.freedger.controller.utils.LedgerChildQuery;
-import org.freedger.controller.utils.RequestValidator;
-import org.freedger.controller.utils.Scope;
-import org.freedger.controller.utils.ScopePredicate;
-import org.freedger.controller.utils.TokenValidator;
+import org.freedger.domain.models.CollectionQuery;
+import org.freedger.domain.models.DittoAuthRequest;
+import org.freedger.domain.models.LedgerChildOrGlobalQuery;
+import org.freedger.domain.models.LedgerChildQuery;
+import org.freedger.domain.models.Scope;
+import org.freedger.domain.models.ScopePredicate;
 import org.freedger.openapi.models.AuthorizeRequest;
 import org.freedger.openapi.models.AuthorizeResponse;
 import org.freedger.openapi.models.DittoAuthToken;
 import org.freedger.service.AuthService;
-import org.freedger.service.models.DittoAuthRequest;
+import org.freedger.service.HttpMessageSerializer;
+import org.freedger.service.RequestValidator;
+import org.freedger.service.TokenValidator;
 
 /** Azure Functions with HTTP Trigger for Ditto APIs. */
 public class DittoApi {

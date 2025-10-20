@@ -1,4 +1,4 @@
-package org.freedger.service.models;
+package org.freedger.domain.models;
 
 import lombok.Builder;
 import lombok.NonNull;

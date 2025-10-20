@@ -10,15 +10,15 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.freedger.config.Config;
-import org.freedger.controller.utils.CollectionQuery;
-import org.freedger.controller.utils.LedgerChildOrGlobalQuery;
-import org.freedger.controller.utils.LedgerChildQuery;
+import org.freedger.domain.models.CollectionQuery;
+import org.freedger.domain.models.DittoAuthRequest;
+import org.freedger.domain.models.LedgerChildOrGlobalQuery;
+import org.freedger.domain.models.LedgerChildQuery;
 import org.freedger.openapi.models.AuthorizeResponse;
 import org.freedger.openapi.models.Permission;
 import org.freedger.openapi.models.PermissionRules;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.ditto.models.Ledger;
-import org.freedger.service.models.DittoAuthRequest;
 
 public class AuthService {
   private static final List<CollectionQuery> collections =

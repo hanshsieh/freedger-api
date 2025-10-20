@@ -1,4 +1,4 @@
-package org.freedger.controller.utils;
+package org.freedger.service;
 
 import com.auth0.jwk.Jwk;
 import com.auth0.jwk.JwkException;
@@ -12,6 +12,7 @@ import com.microsoft.azure.functions.HttpRequestMessage;
 import java.security.interfaces.RSAPublicKey;
 import java.util.regex.Pattern;
 import org.freedger.config.Config;
+import org.freedger.domain.models.ScopePredicate;
 
 public class TokenValidator {
   private final JwkProvider authProviderJwks;

@@ -1,4 +1,4 @@
-package org.freedger.controller.utils;
+package org.freedger.service;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

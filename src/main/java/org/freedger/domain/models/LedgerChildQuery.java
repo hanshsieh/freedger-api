@@ -1,4 +1,4 @@
-package org.freedger.controller.utils;
+package org.freedger.domain.models;
 
 import java.util.List;
 import java.util.stream.Collectors;

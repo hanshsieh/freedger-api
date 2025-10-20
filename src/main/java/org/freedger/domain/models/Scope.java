@@ -1,4 +1,4 @@
-package org.freedger.controller.utils;
+package org.freedger.domain.models;
 
 public enum Scope {
   // Can read the Ditto authorization config of the user.

@@ -1,4 +1,4 @@
-package org.freedger.controller.utils;
+package org.freedger.domain.models;
 
 import java.util.ArrayList;
 import java.util.List;

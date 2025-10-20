@@ -1,9 +1,11 @@
-package org.freedger.controller.utils;
+package org.freedger.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.azure.functions.HttpResponseMessage;
 import java.time.OffsetDateTime;
+
+import org.freedger.controller.utils.OffsetDateTimeAdapter;
 
 /**
  * Custom serializer for handling function response serialization/deserialization.
