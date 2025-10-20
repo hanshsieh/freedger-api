@@ -13,6 +13,7 @@ import org.freedger.domain.models.Result;
 import org.freedger.domain.models.UpdateLedgerRequest;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.ditto.exceptions.DittoNotFoundException;
+import org.freedger.repository.ditto.models.GetLedgerRequest;
 
 public class LedgerService {
   private final DittoClient dittoClient;
@@ -63,22 +64,28 @@ public class LedgerService {
         setWriterIds(request.getWriterIds());
       }};
 
-      final var dittoResp = dittoClient.updateLedger(dittoLedgerUpdate);
-      final var dittoLedger = dittoResp.getData();
+      final var updateResp = dittoClient.updateLedger(dittoLedgerUpdate);
+
+      // We aren't able to obtain the created time. To obtain it, we need to get the ledger again.
+      final var updatedLedger = dittoClient.getLedger(new GetLedgerRequest() {{
+        setId(request.getId());
+        setUserId(request.getUserId());
+        setTransactionId(updateResp.getTransactionId());
+      }}).getData();
       final var respLedger = Ledger.builder()
-        .id(dittoLedger.getId())
-        .createdAt(dittoLedger.getCreatedAt())
-        .updatedAt(dittoLedger.getUpdatedAt())
-        .name(dittoLedger.getName())
-        .readerIds(dittoLedger.getReaderIds())
-        .writerIds(dittoLedger.getWriterIds())
-        .note(dittoLedger.getNote())
-        .currencyId(dittoLedger.getCurrencyId())
-        .externalAccountId(dittoLedger.getExternalAccountId())
+        .id(updatedLedger.getId())
+        .createdAt(updatedLedger.getCreatedAt())
+        .updatedAt(updatedLedger.getUpdatedAt())
+        .name(updatedLedger.getName())
+        .readerIds(updatedLedger.getReaderIds())
+        .writerIds(updatedLedger.getWriterIds())
+        .note(updatedLedger.getNote())
+        .currencyId(updatedLedger.getCurrencyId())
+        .externalAccountId(updatedLedger.getExternalAccountId())
         .build();
       return Result.<Ledger>builder()
         .data(respLedger)
-        .transactionId(dittoResp.getTransactionId())
+        .transactionId(updateResp.getTransactionId())
         .build();
     } catch (DittoNotFoundException e) {
       throw new NotFoundException("Ledger not found");
