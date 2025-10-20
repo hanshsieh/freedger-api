@@ -19,49 +19,16 @@ import org.freedger.controller.utils.RequestValidator;
 import org.freedger.controller.utils.Scope;
 import org.freedger.controller.utils.ScopePredicate;
 import org.freedger.controller.utils.TokenValidator;
-import org.freedger.domain.models.Ledger;
 import org.freedger.openapi.models.AuthorizeRequest;
 import org.freedger.openapi.models.AuthorizeResponse;
 import org.freedger.openapi.models.DittoAuthToken;
-import org.freedger.openapi.models.Permission;
-import org.freedger.openapi.models.PermissionRules;
-import org.freedger.service.LedgerService;
-import org.freedger.service.models.QueryLedgerRequest;
+import org.freedger.service.AuthService;
+import org.freedger.service.models.DittoAuthRequest;
 
 /** Azure Functions with HTTP Trigger for Ditto APIs. */
 public class DittoApi {
-  private static final List<CollectionQuery> collections =
-      List.of(
-          new LedgerChildQuery("AccountChannels"),
-          new LedgerChildQuery("AccountGroups"),
-          new LedgerChildQuery("Accounts"),
-          new LedgerChildQuery("Categories"),
-          new LedgerChildQuery("CategoryGroups"),
-          new LedgerChildOrGlobalQuery("Currencies"),
-          new LedgerChildOrGlobalQuery("Instruments"),
-          new LedgerChildQuery("Journals"),
-          new CollectionQuery("Ledgers") {
-            @Override
-            public List<String> forReader(List<String> ledgerIds) {
-              return ledgerIds.stream()
-                  .map(id -> String.format("_id == '%s'", id))
-                  .collect(Collectors.toList());
-            }
-
-            @Override
-            public List<String> forWriter(List<String> ledgerIds) {
-              return Collections.emptyList();
-            }
-          },
-          new LedgerChildQuery("Platforms"),
-          new LedgerChildQuery("ProjectGroups"),
-          new LedgerChildQuery("Projects"),
-          new LedgerChildOrGlobalQuery("Quotes"),
-          new LedgerChildQuery("Tags"),
-          new LedgerChildQuery("Transactions"));
-
   private final RequestValidator requestValidator;
-  private final LedgerService ledgerService;
+  private final AuthService authService;
   private final Config config;
   private final TokenValidator tokenValidator;
   private final ScopePredicate scopePredicate;
@@ -71,12 +38,12 @@ public class DittoApi {
   public DittoApi(
       RequestValidator validator,
       Config config,
-      LedgerService ledgerService,
+      AuthService authService,
       TokenValidator tokenValidator,
       HttpMessageSerializer serializer) {
     this.requestValidator = validator;
     this.config = config;
-    this.ledgerService = ledgerService;
+    this.authService = authService;
     this.tokenValidator = tokenValidator;
     this.scopePredicate = new ScopePredicate(new String[] {Scope.READ_DITTO_AUTH.getValue()});
     this.serializer = serializer;
@@ -117,14 +84,10 @@ public class DittoApi {
         throw new SecurityException("Invalid token: missing subject");
       }
 
-      List<Ledger> accessibleLedgers = ledgerService.queryLedgers(
-        QueryLedgerRequest.builder()
+      final var response = authService.dittoAuthorize(DittoAuthRequest.builder()
         .userId(userId)
         .transactionId(dittoAuthToken.getTransactionId())
         .build());
-
-      AuthorizeResponse response = buildAuthResponse(userId, accessibleLedgers);
-
       return request.createResponseBuilder(HttpStatus.OK).body(response).build();
     } catch (ValidationException | IllegalArgumentException e) {
       logger.fine("Invalid request: " + e.getMessage());
@@ -169,52 +132,5 @@ public class DittoApi {
       context.getLogger().fine("Invalid provider: " + webhookRequest.getProvider());
       throw new ValidationException("Invalid provider: " + webhookRequest.getProvider());
     }
-  }
-
-  /**
-   * Builds the permissions response for accessible ledgers.
-   *
-   * @param userId The user ID
-   * @param ledgers List of ledgers the user has access to
-   * @return DittoWebhookResponse with the appropriate permissions
-   */
-  private AuthorizeResponse buildAuthResponse(String userId, List<Ledger> ledgers) {
-    final var readQueries = new HashMap<String, List<String>>();
-    final var writeQueries = new HashMap<String, List<String>>();
-    final var ledgerIds = ledgers.stream().map(Ledger::getId).collect(Collectors.toList());
-
-    for (var collection : collections) {
-      readQueries.put(collection.name, collection.forReader(ledgerIds));
-      writeQueries.put(collection.name, collection.forWriter(ledgerIds));
-    }
-
-    // Create permission rules for read and write
-    final var readRules =
-        new PermissionRules()
-            .everything(false)
-            .queriesByCollection(
-                readQueries.entrySet().stream()
-                    .filter(e -> !e.getValue().isEmpty())
-                    .collect(
-                        Collectors.toMap(
-                            Map.Entry::getKey,
-                            e -> e.getValue().stream().sorted().collect(Collectors.toList()))));
-    final var writeRules =
-        new PermissionRules()
-            .everything(false)
-            .queriesByCollection(
-                writeQueries.entrySet().stream()
-                    .filter(e -> !e.getValue().isEmpty())
-                    .collect(
-                        Collectors.toMap(
-                            Map.Entry::getKey,
-                            e -> e.getValue().stream().sorted().collect(Collectors.toList()))));
-
-    final var permissions = new Permission().read(readRules).write(writeRules);
-    return new AuthorizeResponse()
-        .authenticate(true)
-        .userID(userId)
-        .expirationSeconds(config.dittoTokenExpireSec())
-        .permissions(permissions);
   }
 }

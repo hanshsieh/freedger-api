@@ -80,3 +80,24 @@ See
 - [Use OpenTelemetry with Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto?tabs=app-insights&pivots=programming-language-java)
 
 To configure the log level to send to Application Insights, use `host.json`. But it only affects the logs sent via SLF4J. The logs sent via `ExecutionContext#getLogger()` will always be sent.    
+
+## Code Structure
+This project references the [Spring Boot architecture](https://www.javaguides.net/2025/03/spring-boot-architecture.html). The source code is organized into the following primary packages:
+- `controller`:
+  - It defines the entry points for the services.
+  - Input validation, serialization, de-serialization.
+  - Call the service layer.
+- `domain`
+  - Domain models.
+- `service`
+  - Implement the business logic.
+  - Call the repository layer.
+- `repository`
+  - Communicate with database or external APIs.
+- `di`
+  - Dependency injection.
+- `tools`
+  - Other command line tools.
+- `openapi`:
+  - The code automatically generated from [api.yml](src\main\resources\api.yml). 
+  - Define the input and output DTO.

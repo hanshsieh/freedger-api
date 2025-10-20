@@ -19,6 +19,7 @@ import org.freedger.controller.utils.HttpMessageSerializer;
 import org.freedger.controller.utils.RequestValidator;
 import org.freedger.controller.utils.TokenValidator;
 import org.freedger.repository.ditto.DittoClient;
+import org.freedger.service.AuthService;
 import org.freedger.service.LedgerService;
 
 @Module
@@ -47,6 +48,12 @@ public class AppModule {
   @Singleton
   public LedgerService provideLedgerService(DittoClient dittoClient) {
     return new LedgerService(dittoClient);
+  }
+
+  @Provides
+  @Singleton
+  public AuthService provideAuthService(Config config, DittoClient dittoClient) {
+    return new AuthService(config, dittoClient);
   }
 
   @Provides
