@@ -7,10 +7,10 @@ import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 import jakarta.validation.ValidationException;
 import java.time.ZoneOffset;
-import java.util.Collections;
 import java.util.logging.Level;
 import javax.inject.Inject;
 
+import org.freedger.domain.models.CreateLedgerRequest;
 import org.freedger.domain.models.Scope;
 import org.freedger.domain.models.ScopePredicate;
 import org.freedger.openapi.models.CreateLedger;
@@ -21,6 +21,7 @@ import org.freedger.openapi.models.UpdateLedger;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.ditto.exceptions.DittoNotFoundException;
 import org.freedger.service.HttpMessageSerializer;
+import org.freedger.service.LedgerService;
 import org.freedger.service.RequestValidator;
 import org.freedger.service.TokenValidator;
 
@@ -29,6 +30,7 @@ public class LedgersApi {
   private final TokenValidator tokenValidator;
   private final ScopePredicate writeLedgersPredicate;
   private final HttpMessageSerializer httpMessageSerializer;
+  private final LedgerService ledgerService;
   private final DittoClient dittoClient;
 
   @Inject
@@ -36,11 +38,13 @@ public class LedgersApi {
       RequestValidator requestValidator,
       TokenValidator tokenValidator,
       HttpMessageSerializer httpMessageSerializer,
+      LedgerService ledgerService,
       DittoClient dittoClient) {
     this.requestValidator = requestValidator;
     this.tokenValidator = tokenValidator;
     this.writeLedgersPredicate = new ScopePredicate(new String[] {Scope.WRITE_LEDGERS.getValue()});
     this.httpMessageSerializer = httpMessageSerializer;
+    this.ledgerService = ledgerService;
     this.dittoClient = dittoClient;
   }
 
@@ -58,31 +62,18 @@ public class LedgersApi {
       requestValidator.validate(request.getBody());
       final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
       final var reqLedgerCreate = request.getBody();
-      final var dittoLedgerCreate = new org.freedger.repository.ditto.models.CreateLedgerRequest();
-      dittoLedgerCreate.setName(reqLedgerCreate.getName());
-      dittoLedgerCreate.setNote(reqLedgerCreate.getNote());
-      dittoLedgerCreate.setCurrencyId(reqLedgerCreate.getCurrencyId());
-      dittoLedgerCreate.setExternalAccountName(reqLedgerCreate.getExternalAccountName());
-      dittoLedgerCreate.setReaderIds(Collections.emptyList());
-      dittoLedgerCreate.setWriterIds(Collections.singletonList(jwtToken.getSubject()));
-
-      final var dittoResp = dittoClient.createLedger(dittoLedgerCreate);
-      final var dittoLedger = dittoResp.getData();
-      final var respLedger = new Ledger();
-      respLedger.setId(dittoLedger.getId());
-      respLedger.setCreatedAt(dittoLedger.getCreatedAt().atOffset(ZoneOffset.UTC));
-      respLedger.setUpdatedAt(dittoLedger.getUpdatedAt().atOffset(ZoneOffset.UTC));
-      respLedger.setName(dittoLedger.getName());
-      respLedger.setReaderIds(dittoLedger.getReaderIds());
-      respLedger.setWriterIds(dittoLedger.getWriterIds());
-      respLedger.setNote(dittoLedger.getNote());
-      respLedger.setCurrencyId(dittoLedger.getCurrencyId());
-      respLedger.setExternalAccountId(dittoLedger.getExternalAccountId());
+      final var createdLedger = ledgerService.createLedger(CreateLedgerRequest.builder()
+        .name(reqLedgerCreate.getName())
+        .note(reqLedgerCreate.getNote())
+        .currencyId(reqLedgerCreate.getCurrencyId())
+        .externalAccountName(reqLedgerCreate.getExternalAccountName())
+        .userId(jwtToken.getSubject())
+        .build());
       return httpMessageSerializer
           .serializeResponse(
               request.createResponseBuilder(HttpStatus.CREATED),
-              respLedger,
-              dittoResp.getTransactionId())
+              createdLedger.getData().toOpenApiModel(),
+              createdLedger.getTransactionId())
           .build();
     } catch (ValidationException e) {
       logger.fine("Invalid request: " + e.getMessage());
