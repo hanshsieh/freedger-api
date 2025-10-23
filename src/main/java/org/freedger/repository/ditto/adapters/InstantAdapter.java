@@ -1,4 +1,4 @@
-package org.freedger.repository.ditto;
+package org.freedger.repository.ditto.adapters;
 
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;

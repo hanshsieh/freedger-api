@@ -1,4 +1,4 @@
-package org.freedger.repository.ditto;
+package org.freedger.repository.ditto.adapters;
 
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
@@ -16,7 +16,7 @@ public class BigDecimalAdapter extends TypeAdapter<BigDecimal> {
     }
     out.beginObject();
     out.name("strValue").value(value.toPlainString());
-    out.name("numValue").value(value);
+    out.name("numValue").value(value.doubleValue());
     out.endObject();
   }
 

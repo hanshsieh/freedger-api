@@ -29,6 +29,8 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Timeout;
+import org.freedger.repository.ditto.adapters.BigDecimalAdapter;
+import org.freedger.repository.ditto.adapters.InstantAdapter;
 import org.freedger.repository.ditto.exceptions.DittoNotFoundException;
 import org.freedger.repository.ditto.models.Account;
 import org.freedger.repository.ditto.models.AccountType;
