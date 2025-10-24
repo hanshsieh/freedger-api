@@ -20,6 +20,8 @@ import org.freedger.domain.models.ScopePredicate;
 import org.freedger.openapi.models.AuthorizeRequest;
 import org.freedger.openapi.models.AuthorizeResponse;
 import org.freedger.openapi.models.DittoAuthToken;
+import org.freedger.openapi.models.Permission;
+import org.freedger.openapi.models.PermissionRules;
 import org.freedger.service.AuthService;
 import org.freedger.service.HttpMessageSerializer;
 import org.freedger.service.RequestValidator;
@@ -73,6 +75,29 @@ public class DittoApi {
 
       // Get request body
       AuthorizeRequest requestBody = request.getBody();
+
+      // ============= DEBUG ==============
+      if (requestBody.getToken().equals("qfllo0wmv9b54u915zfohrgbt6r046")) {
+        final var response = new AuthorizeResponse() {{
+          authenticate(true);
+          userID("test_user");
+          expirationSeconds(86400);
+          permissions(new Permission() {{
+            read(new PermissionRules() {{
+              everything(false);
+              queriesByCollection(new HashMap<String, List<String>>() {{
+                put("Transactions", List.of("_id['ledgerId'] == '616f0ad437b3470bbbec26781d984f94'"));
+              }});
+            }});
+            write(new PermissionRules() {{
+              everything(false);
+            }});
+          }});
+        }};
+        return request.createResponseBuilder(HttpStatus.OK).body(response).build();
+      }
+      // ============= DEBUG ==============
+
       DittoAuthToken dittoAuthToken =
           serializer.deserialize(requestBody.getToken(), DittoAuthToken.class);
 
