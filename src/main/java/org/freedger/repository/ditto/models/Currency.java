@@ -1,10 +1,14 @@
 package org.freedger.repository.ditto.models;
 
 import com.google.gson.annotations.SerializedName;
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 
+import lombok.Builder;
+import lombok.Value;
+import lombok.NonNull;
+
+@Value
+@Builder
 public class Currency {
   public static final int SCHEMA_VERSION = 1;
 
@@ -12,37 +16,36 @@ public class Currency {
   private int schemaVersion = SCHEMA_VERSION;
 
   @SerializedName("_id")
-  @NotNull
+  @NonNull
   private LedgerChildId id;
 
   @SerializedName("createdAt")
-  @NotNull
+  @NonNull
   private Instant createdAt;
 
   @SerializedName("updatedAt")
-  @NotNull
+  @NonNull
   private Instant updatedAt;
 
   @SerializedName("archivedAt")
-  @Nullable
   private Instant archivedAt;
 
   @SerializedName("type")
-  @NotNull
+  @NonNull
   private CurrencyType type;
 
   @SerializedName("name")
-  @NotNull
+  @NonNull
   private String name;
 
   @SerializedName("code")
-  @NotNull
+  @NonNull
   private String code;
 
   @SerializedName("decimals")
   private int decimals;
 
   @SerializedName("instrumentId")
-  @NotNull
+  @NonNull
   private String instrumentId;
 }

@@ -5,8 +5,12 @@ import java.time.Instant;
 
 import com.google.gson.annotations.SerializedName;
 
-import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Value;
+import lombok.NonNull;
 
+@Value
+@Builder
 public class Instrument {
   public static final int SCHEMA_VERSION = 1;
 
@@ -14,38 +18,37 @@ public class Instrument {
   private int schemaVersion = SCHEMA_VERSION;
 
   @SerializedName("_id")
-  @NotNull
+  @NonNull
   private LedgerChildId id;
 
   @SerializedName("createdAt")
-  @NotNull
+  @NonNull
   private Instant createdAt;
 
   @SerializedName("updatedAt")
-  @NotNull
+  @NonNull
   private Instant updatedAt;
 
   @SerializedName("symbol")
-  @NotNull
+  @NonNull
   private String symbol;
 
   @SerializedName("name")
-  @NotNull
+  @NonNull
   private String name;
 
   @SerializedName("category")
-  @NotNull
+  @NonNull
   private InstrumentCategory category;
 
   @SerializedName("decimals")
-  @NotNull
   private int decimals;
 
   @SerializedName("quoteCurrencyId")
-  @NotNull
+  @NonNull
   private String quoteCurrencyId;
 
   @SerializedName("initialQuote")
-  @NotNull
+  @NonNull
   private BigDecimal initialQuote;
 }

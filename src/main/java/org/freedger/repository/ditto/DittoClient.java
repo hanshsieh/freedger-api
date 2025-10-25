@@ -34,6 +34,8 @@ import org.freedger.repository.ditto.adapters.InstantAdapter;
 import org.freedger.repository.ditto.exceptions.DittoNotFoundException;
 import org.freedger.repository.ditto.models.Account;
 import org.freedger.repository.ditto.models.AccountType;
+import org.freedger.repository.ditto.models.CreateCurrencyRequest;
+import org.freedger.repository.ditto.models.CreateCurrencyResponse;
 import org.freedger.repository.ditto.models.CreateLedgerRequest;
 import org.freedger.repository.ditto.models.CreateQuoteRequest;
 import org.freedger.repository.ditto.models.Currency;
@@ -285,6 +287,10 @@ public class DittoClient {
     } catch (Exception e) {
       throw new IOException("Failed to update ledger with ID: " + request.getId(), e);
     }
+  }
+
+  public DittoResponse<CreateCurrencyResponse> createCurrency(CreateCurrencyRequest request) throws IOException {
+    // TODO
   }
 
   public DittoResponse<List<Currency>> queryCurrencies(QueryCurrenciesRequest request) throws IOException {
