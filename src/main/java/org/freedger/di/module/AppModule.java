@@ -67,8 +67,11 @@ public class AppModule {
 
   @Provides
   @Singleton
-  public QuoteUpdater provideQuoteUpdater(OpenExchangeRatesClient exchangeRatesClient) {
-    return new QuoteUpdater(exchangeRatesClient);
+  public QuoteUpdater provideQuoteUpdater(
+    Config config, 
+    OpenExchangeRatesClient exchangeRatesClient, 
+    DittoClient dittoClient) {
+    return new QuoteUpdater(config, exchangeRatesClient, dittoClient);
   }
 
   @Provides

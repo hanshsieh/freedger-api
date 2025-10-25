@@ -11,6 +11,7 @@ public class EnvConfig implements Config {
   private final int dittoTokenExpireSec;
   private final String dittoApiKeySecretName;
   private final String openExchangeRatesAppIdSecretName;
+  private final String openExchangeRatesConfigPath;
 
   public EnvConfig() {
     this.keyVaultUrl = getRequiredEnv("KEY_VAULT_URL");
@@ -23,6 +24,7 @@ public class EnvConfig implements Config {
     this.dittoProviderName = getRequiredEnv("DITTO_PROVIDER_NAME");
     this.dittoTokenExpireSec = getRequiredIntEnv("DITTO_TOKEN_EXPIRE_SEC");
     this.openExchangeRatesAppIdSecretName = getRequiredEnv("OPEN_EXCHANGE_RATES_APP_ID_SECRET_NAME");
+    this.openExchangeRatesConfigPath = getRequiredEnv("OPEN_EXCHANGE_RATES_CONFIG_PATH");
   }
 
   @Override
@@ -73,6 +75,11 @@ public class EnvConfig implements Config {
   @Override
   public String openExchangeRatesAppIdSecretName() {
     return this.openExchangeRatesAppIdSecretName;
+  }
+
+  @Override
+  public String openExchangeRatesConfigPath() {
+    return this.openExchangeRatesConfigPath;
   }
 
   private static String getRequiredEnv(String name) {

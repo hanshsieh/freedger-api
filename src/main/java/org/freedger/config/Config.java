@@ -72,4 +72,11 @@ public interface Config {
    * @return The name of the secret in Key Vault
    */
   String openExchangeRatesAppIdSecretName();
+
+  /**
+   * The path to the Open Exchange Rates config file.
+   *
+   * @return The path to the Open Exchange Rates config file
+   */
+  String openExchangeRatesConfigPath();
 }
