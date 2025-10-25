@@ -1,5 +1,7 @@
 package org.freedger.repository.openexchangerates.models;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Request model for fetching currency list.
  *
@@ -16,11 +18,13 @@ public class CurrenciesRequest {
   /**
    * Include alternative currencies. Default is false.
    */
+  @SerializedName("show_alternative")
   private final boolean showAlternative;
 
   /**
    * Include historical/inactive currencies. Default is false.
    */
+  @SerializedName("show_inactive")
   private final boolean showInactive;
 
   /** Private constructor. Use builder() to create instances. */

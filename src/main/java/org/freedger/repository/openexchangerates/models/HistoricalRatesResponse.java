@@ -2,6 +2,8 @@ package org.freedger.repository.openexchangerates.models;
 
 import java.util.Map;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Response model for OpenExchangeRates historical rates API.
  *
@@ -9,27 +11,32 @@ import java.util.Map;
  */
 public class HistoricalRatesResponse {
   /** Optional disclaimer text. */
+  @SerializedName("disclaimer")
   private String disclaimer;
 
   /** Optional license information. */
+  @SerializedName("license")
   private String license;
 
   /**
    * UNIX timestamp indicating when the rates were published. Note: In JavaScript, multiply by 1000
    * as it uses milliseconds.
    */
+  @SerializedName("timestamp")
   private Long timestamp;
 
   /**
    * The base currency code (3-letter ISO currency code) to which all exchange rates are relative
    * (e.g., "USD").
    */
+  @SerializedName("base")
   private String base;
 
   /**
    * Map of currency codes to exchange rates. Keys are 3-letter ISO currency codes, values are
    * exchange rates relative to 1 unit of the base currency.
    */
+  @SerializedName("rates")
   private Map<String, Double> rates;
 
   /**

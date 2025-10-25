@@ -3,6 +3,8 @@ package org.freedger.repository.openexchangerates.models;
 import java.util.Collections;
 import java.util.Map;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Response model for OpenExchangeRates currencies API.
  *
@@ -18,6 +20,7 @@ public class CurrenciesResponse {
    * Map of currency codes to their full display names. Keys are typically 3-letter ISO currency
    * codes (or alternative currency identifiers), values are the currency's full name.
    */
+  @SerializedName("currencies")
   private Map<String, String> currencies;
 
   /**

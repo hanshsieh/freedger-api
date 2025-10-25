@@ -3,6 +3,8 @@ package org.freedger.repository.openexchangerates.models;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Request model for fetching historical exchange rates.
  *
@@ -18,18 +20,21 @@ import java.util.List;
  */
 public class HistoricalRatesRequest {
   /** The date to fetch historical rates for. */
+  @SerializedName("date")
   private final LocalDate date;
 
   /**
    * Optional base currency (3-letter ISO currency code). Requires Developer, Enterprise or
    * Unlimited plan.
    */
+  @SerializedName("base")
   private final String base;
 
   /**
    * Optional list of currency codes to limit the response. Requires Developer, Enterprise or
    * Unlimited plan.
    */
+  @SerializedName("symbols")
   private final List<String> symbols;
 
   /** Private constructor. Use builder() to create instances. */
