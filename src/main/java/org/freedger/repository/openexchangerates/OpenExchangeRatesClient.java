@@ -19,7 +19,6 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.freedger.repository.openexchangerates.models.CurrenciesRequest;
-import org.freedger.repository.openexchangerates.models.CurrenciesResponse;
 import org.freedger.repository.openexchangerates.models.HistoricalRatesRequest;
 import org.freedger.repository.openexchangerates.models.HistoricalRatesResponse;
 import org.slf4j.Logger;

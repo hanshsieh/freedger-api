@@ -14,7 +14,9 @@
     "DITTO_API_KEY_SECRET_NAME": "DITTO-API-KEY",
     "DITTO_API_BASE_URL": "https://i83inp.cloud.dittolive.app/46190b14-5d64-477c-b5b6-ba2d15e998be/api/v5",
     "DITTO_PROVIDER_NAME": "freedger-api",
-    "DITTO_TOKEN_EXPIRE_SEC": "86400"
+    "DITTO_TOKEN_EXPIRE_SEC": "86400",
+    "OPEN_EXCHANGE_RATES_APP_ID_SECRET_NAME": "OPEN-EXCHANGE-RATES-APP-ID",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true"
   },
   "Host": {
     "CORS": "*",

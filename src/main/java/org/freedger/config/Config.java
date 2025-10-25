@@ -65,4 +65,11 @@ public interface Config {
    * @return The name of the secret in Key Vault
    */
   String dittoApiKeySecretName();
+
+  /**
+   * The name of the secret in Key Vault that contains the Open Exchange Rates App ID.
+   *
+   * @return The name of the secret in Key Vault
+   */
+  String openExchangeRatesAppIdSecretName();
 }
