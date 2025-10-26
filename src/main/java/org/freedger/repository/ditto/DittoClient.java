@@ -216,7 +216,10 @@ public class DittoClient {
 
       var createAccountCommand = new UpsertCommand<LedgerChildId, Account>();
       createAccountCommand.setCollection(Collection.ACCOUNTS.getName());
-      var accountCompositeId = new LedgerChildId().setId(accountId).setLedgerId(ledgerId);
+      var accountCompositeId = LedgerChildId.builder()
+        .id(accountId)
+        .ledgerId(ledgerId)
+        .build();
       createAccountCommand.setId(accountCompositeId);
       createAccountCommand.setValue(account);
       commands.add(createAccountCommand);
@@ -340,8 +343,11 @@ public class DittoClient {
       final var instrumentId = hasLedger ? generateId() : generateGlobalId();
 
       // Create Instrument
-      var instrumentCompositeId = new LedgerChildId().setId(instrumentId).setLedgerId(request.getLedgerId());
-      var instrument = Instrument.builder()
+      final var instrumentCompositeId = LedgerChildId.builder()
+        .id(instrumentId)
+        .ledgerId(request.getLedgerId())
+        .build();
+      final var instrument = Instrument.builder()
           .createdAt(now)
           .updatedAt(now)
           .symbol(request.getSymbol())
@@ -359,8 +365,11 @@ public class DittoClient {
       commands.add(createInstrumentCommand);
 
       // Create Currency
-      var currencyCompositeId = new LedgerChildId().setId(currencyId).setLedgerId(request.getLedgerId());
-      var currency = Currency.builder()
+      final var currencyCompositeId = LedgerChildId.builder()
+        .id(currencyId)
+        .ledgerId(request.getLedgerId())
+        .build();
+      final var currency = Currency.builder()
           .createdAt(now)
           .updatedAt(now)
           .archivedAt(request.getArchivedAt())
@@ -520,10 +529,10 @@ public class DittoClient {
       final var quoteId = hasLedger ? generateGlobalId() : generateId();
       final var args = new HashMap<String, Object>();
       args.put("quote", Quote.builder()
-          .id(new LedgerChildId() {{
-            setLedgerId(request.getLedgerId());
-            setId(quoteId);
-          }})
+          .id(LedgerChildId.builder()
+            .ledgerId(request.getLedgerId())
+            .id(quoteId)
+            .build())
           .createdAt(now)
           .updatedAt(now)
           .instrumentId(request.getInstrumentId())
