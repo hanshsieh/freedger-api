@@ -1,7 +1,6 @@
 package org.freedger.service;
 
 import java.io.IOException;
-import java.time.ZoneOffset;
 import java.util.Collections;
 
 import javax.inject.Inject;
@@ -24,13 +23,14 @@ public class LedgerService {
   }
 
   public Result<Ledger> createLedger(CreateLedgerRequest request) throws IOException {
-    final var dittoLedgerCreate = new org.freedger.repository.ditto.models.CreateLedgerRequest();
-    dittoLedgerCreate.setName(request.getName());
-    dittoLedgerCreate.setNote(request.getNote());
-    dittoLedgerCreate.setCurrencyId(request.getCurrencyId());
-    dittoLedgerCreate.setExternalAccountName(request.getExternalAccountName());
-    dittoLedgerCreate.setReaderIds(Collections.emptyList());
-    dittoLedgerCreate.setWriterIds(Collections.singletonList(request.getUserId()));
+    final var dittoLedgerCreate = org.freedger.repository.ditto.models.CreateLedgerRequest.builder()
+    .name(request.getName())
+    .note(request.getNote())
+    .currencyId(request.getCurrencyId())
+    .externalAccountName(request.getExternalAccountName())
+    .readerIds(Collections.emptyList())
+    .writerIds(Collections.singletonList(request.getUserId()))
+    .build();
 
     final var dittoResp = dittoClient.createLedger(dittoLedgerCreate);
     final var dittoLedger = dittoResp.getData();
@@ -53,25 +53,25 @@ public class LedgerService {
 
   public Result<Ledger> updateLedger(UpdateLedgerRequest request) throws IOException, NotFoundException {
     try {
-      final var dittoLedgerUpdate = new org.freedger.repository.ditto.models.UpdateLedgerRequest() {{
-        setId(request.getId());
-        setUserId(request.getUserId());
-        setName(request.getName());
-        setNote(request.getNote());
-        setCurrencyId(request.getCurrencyId());
-        setExternalAccountId(request.getExternalAccountId());
-        setReaderIds(request.getReaderIds());
-        setWriterIds(request.getWriterIds());
-      }};
+      final var dittoLedgerUpdate = org.freedger.repository.ditto.models.UpdateLedgerRequest.builder()
+        .id(request.getId())
+        .userId(request.getUserId())
+        .name(request.getName())
+        .note(request.getNote())
+        .currencyId(request.getCurrencyId())
+        .externalAccountId(request.getExternalAccountId())
+        .readerIds(request.getReaderIds())
+        .writerIds(request.getWriterIds())
+        .build();
 
       final var updateResp = dittoClient.updateLedger(dittoLedgerUpdate);
 
       // We aren't able to obtain the created time. To obtain it, we need to get the ledger again.
-      final var updatedLedger = dittoClient.getLedger(new GetLedgerRequest() {{
-        setId(request.getId());
-        setUserId(request.getUserId());
-        setTransactionId(updateResp.getTransactionId());
-      }}).getData();
+      final var updatedLedger = dittoClient.getLedger(GetLedgerRequest.builder()
+        .id(request.getId())
+        .userId(request.getUserId())
+        .transactionId(updateResp.getTransactionId())
+        .build()).getData();
       final var respLedger = Ledger.builder()
         .id(updatedLedger.getId())
         .createdAt(updatedLedger.getCreatedAt())
