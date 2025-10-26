@@ -221,15 +221,18 @@ public class DittoClient {
       createAccountCommand.setValue(account);
       commands.add(createAccountCommand);
 
-      var ledger = new Ledger();
-      ledger.setCreatedAt(now);
-      ledger.setUpdatedAt(now);
-      ledger.setName(config.getName());
-      ledger.setReaderIds(config.getReaderIds());
-      ledger.setWriterIds(config.getWriterIds());
-      ledger.setNote(config.getNote());
-      ledger.setExternalAccountId(accountId);
-      ledger.setCurrencyId(config.getCurrencyId());
+      // Create ledger for the command (without ID for Ditto store)
+      final var ledger = Ledger.builder()
+          .id(null)
+          .createdAt(now)
+          .updatedAt(now)
+          .name(config.getName())
+          .readerIds(config.getReaderIds())
+          .writerIds(config.getWriterIds())
+          .note(config.getNote())
+          .externalAccountId(accountId)
+          .currencyId(config.getCurrencyId())
+          .build();
 
       var createLedgerCommand = new UpsertCommand<String, Ledger>();
       createLedgerCommand.setCollection(Collection.LEDGERS.getName());
@@ -239,11 +242,22 @@ public class DittoClient {
 
       final var writeResponse = sendWriteRequest(request);
       logger.info("Created ledger. Ledger ID: {}, Account ID: {}", ledgerId, accountId);
-      // For the /store/write request, ID mustn't be set in the "value", so we need to set it
-      // after sending the request.
-      ledger.setId(ledgerId);
+      
+      // Create ledger with ID for the response
+      final var createdLedger = Ledger.builder()
+          .id(ledgerId)
+          .createdAt(now)
+          .updatedAt(now)
+          .name(config.getName())
+          .readerIds(config.getReaderIds())
+          .writerIds(config.getWriterIds())
+          .note(config.getNote())
+          .externalAccountId(accountId)
+          .currencyId(config.getCurrencyId())
+          .build();
+      
       final var transactionId = getTransactionId(writeResponse);
-      return new DittoResponse<>(transactionId.orElse(null), ledger);
+      return new DittoResponse<>(transactionId.orElse(null), createdLedger);
     } catch (Exception e) {
       throw new IOException("Failed to create ledger", e);
     }

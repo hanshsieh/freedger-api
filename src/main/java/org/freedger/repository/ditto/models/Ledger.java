@@ -1,15 +1,21 @@
 package org.freedger.repository.ditto.models;
 
-
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.constraints.NotNull;
 import jakarta.annotation.Nullable;
 
+import lombok.Builder;
+import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
+import lombok.NonNull;
+
 /** Represents a Ledger document from Ditto. */
+@Value
+@Builder
+@Jacksonized
 public class Ledger {
   public static final int SCHEMA_VERSION = 1;
 
@@ -23,119 +29,43 @@ public class Ledger {
   private String id;
 
   @JsonProperty("schemaVersion")
+  @Builder.Default
   private int schemaVersion = SCHEMA_VERSION;
 
   @JsonProperty("createdAt")
-  @NotNull
+  @NonNull
   private Instant createdAt;
 
   @JsonProperty("updatedAt")
-  @NotNull
+  @NonNull
   private Instant updatedAt;
 
   @JsonProperty("name")
-  @NotNull
+  @NonNull
   private String name;
 
   @JsonProperty("readerIds")
-  @NotNull
+  @NonNull
+  @Builder.Default
   private List<String> readerIds = Collections.emptyList();
 
   @JsonProperty("writerIds")
-  @NotNull
+  @NonNull
+  @Builder.Default
   private List<String> writerIds = Collections.emptyList();
 
   @JsonProperty("note")
-  @NotNull
+  @NonNull
+  @Builder.Default
   private String note = "";
 
   @JsonProperty("externalAccountId")
-  @NotNull
+  @NonNull
   private String externalAccountId;
 
   @JsonProperty("currencyId")
-  @NotNull
+  @NonNull
   private String currencyId;
-
-  public int getSchemaVersion() {
-    return schemaVersion;
-  }
-
-  public void setSchemaVersion(int schemaVersion) {
-    this.schemaVersion = schemaVersion;
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public Instant getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(Instant createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public Instant getUpdatedAt() {
-    return updatedAt;
-  }
-
-  public void setUpdatedAt(Instant updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public List<String> getReaderIds() {
-    return readerIds;
-  }
-
-  public void setReaderIds(List<String> readerIds) {
-    this.readerIds = readerIds;
-  }
-
-  public List<String> getWriterIds() {
-    return writerIds;
-  }
-
-  public void setWriterIds(List<String> writerIds) {
-    this.writerIds = writerIds;
-  }
-
-  public String getNote() {
-    return note;
-  }
-
-  public void setNote(String note) {
-    this.note = note;
-  }
-
-  public String getCurrencyId() {
-    return currencyId;
-  }
-
-  public void setCurrencyId(String currencyId) {
-    this.currencyId = currencyId;
-  }
-
-  public String getExternalAccountId() {
-    return externalAccountId;
-  }
-
-  public void setExternalAccountId(String externalAccountId) {
-    this.externalAccountId = externalAccountId;
-  }
 
   public org.freedger.domain.models.Ledger toDomain() {
     return org.freedger.domain.models.Ledger.builder()
