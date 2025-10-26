@@ -25,6 +25,9 @@ public class OXRCurrency {
   @JsonProperty("type")
   @NonNull
   OXRCurrencyType type;
+
+  @JsonProperty("enabled")
+  boolean enabled;
 }
 
 
