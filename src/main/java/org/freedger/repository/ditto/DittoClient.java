@@ -64,6 +64,7 @@ import org.slf4j.LoggerFactory;
 
 /** Client for interacting with Ditto's HTTP API. */
 public class DittoClient {
+  private static final String GLOBAL_ID_SUFFIX = "@g";
   private static final String HEADER_TXN_ID = "X-DITTO-TXN-ID";
   private static final Logger logger = LoggerFactory.getLogger(DittoClient.class);
   private static final Timeout REQUEST_TIMEOUT = Timeout.ofSeconds(10);
@@ -318,8 +319,9 @@ public class DittoClient {
       List<WriteCommand> commands = new ArrayList<>();
       writeRequest.setCommands(commands);
 
-      final var currencyId = generateId();
-      final var instrumentId = generateId();
+      final var hasLedger = request.getLedgerId() != null;
+      final var currencyId = hasLedger ? generateId() : generateGlobalId();
+      final var instrumentId = hasLedger ? generateId() : generateGlobalId();
 
       // Create Instrument
       var instrumentCompositeId = new LedgerChildId().setId(instrumentId).setLedgerId(request.getLedgerId());
@@ -500,7 +502,8 @@ public class DittoClient {
     try {
       final var queryBuilder = new StringBuilder(String.format("INSERT INTO %s DOCUMENTS (:quote)", Collection.QUOTES.getName()));
       final var now = Instant.now();
-      final var quoteId = generateId();
+      final var hasLedger = request.getLedgerId() != null;
+      final var quoteId = hasLedger ? generateGlobalId() : generateId();
       final var args = new HashMap<String, Object>() {{
         put("quote", new Quote() {{
           setId(new LedgerChildId() {{
@@ -621,5 +624,9 @@ public class DittoClient {
 
   private String generateId() {
     return UUID.randomUUID().toString().replace("-", "");
+  }
+
+  private String generateGlobalId() {
+    return generateId() + GLOBAL_ID_SUFFIX;
   }
 }
