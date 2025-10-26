@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 public class QuoteUpdater {
   private static final Logger logger = LoggerFactory.getLogger(QuoteUpdater.class);
-  private static final String QUOTE_CURRENCY_CODE = "USD";
   private static final String SOURCE = "openexchangerates.org";
   private static final LocalDate EARLIEST_DATE = LocalDate.of(1999, 1, 1);
 
@@ -58,6 +57,7 @@ public class QuoteUpdater {
   private final Map<String, CurrencyState> stateByCode = new HashMap<>();
   private String transactionId;
   private String quoteCurrencyId;
+  private String quoteCurrencyCode;
 
   public QuoteUpdater(Config config, OpenExchangeRatesClient openExchangeRatesClient, DittoClient dittoClient) {
     this.configPath = config.openExchangeRatesConfigPath();
@@ -93,6 +93,7 @@ public class QuoteUpdater {
     stateByCode.clear();
     transactionId = null;
     quoteCurrencyId = null;
+    quoteCurrencyCode = oxrConfig.getQuoteCurrency();
   }
 
   private void resolveQuoteCurrencyId() throws IOException {
@@ -100,14 +101,14 @@ public class QuoteUpdater {
       QueryCurrenciesRequest.builder()
         .transactionId(transactionId)
         .ledgerId(null)
-        .code(QUOTE_CURRENCY_CODE)
+        .code(quoteCurrencyCode)
         .build());
     this.transactionId = usdQueryResp.getTransactionId();
     if (usdQueryResp.getData().isEmpty()) {
-      throw new IOException(String.format("Quote currency %s not found in Ditto store", QUOTE_CURRENCY_CODE));
+      throw new IOException(String.format("Quote currency %s not found in Ditto store", quoteCurrencyCode));
     }
     if (usdQueryResp.getData().size() > 1) {
-      throw new IOException(String.format("Multiple %s currencies found in Ditto store", QUOTE_CURRENCY_CODE));
+      throw new IOException(String.format("Multiple %s currencies found in Ditto store", quoteCurrencyCode));
     }
     Currency usdCurrency = usdQueryResp.getData().get(0);
     this.quoteCurrencyId = Objects.requireNonNull(usdCurrency.getId()).getId();
@@ -128,9 +129,12 @@ public class QuoteUpdater {
   }
 
   private void buildStates(Map<String, Currency> dbCurrencies) throws IOException {
-    for (OXRCurrency conf : oxrConfig.getQuoteCurrencies()) {
+    for (OXRCurrency conf : oxrConfig.getBaseCurrencies()) {
+      if (!conf.isEnabled()) {
+        continue;
+      }
       String code = conf.getCode();
-      if (QUOTE_CURRENCY_CODE.equalsIgnoreCase(code)) {
+      if (quoteCurrencyCode.equalsIgnoreCase(code)) {
         continue;
       }
       Currency dbCurrency = dbCurrencies.get(code);
@@ -240,7 +244,7 @@ public class QuoteUpdater {
   private HistoricalRatesResponse fetchRates(LocalDate day) throws IOException {
     return exchangeRatesClient.getHistoricalRates(HistoricalRatesRequest.builder()
       .date(day)
-      .base(QUOTE_CURRENCY_CODE)
+      .base(quoteCurrencyCode)
       .build());
   }
 
@@ -305,7 +309,7 @@ public class QuoteUpdater {
 
   private void createCurrency(CurrencyState state, double rate) throws IOException {
     CurrencyType currencyType = state.getCurrencyType();
-    String symbol = String.format("%s/%s", state.getCode(), QUOTE_CURRENCY_CODE);
+    String symbol = String.format("%s/%s", state.getCode(), quoteCurrencyCode);
     DittoResponse<CreateCurrencyResponse> resp = dittoClient.createCurrency(
       CreateCurrencyRequest.builder()
         .transactionId(transactionId)
@@ -324,7 +328,7 @@ public class QuoteUpdater {
   }
 
   private void updateInstrumentInitialQuote(CurrencyState state, double rate) throws IOException {
-    String symbol = String.format("%s/%s", state.getCode(), QUOTE_CURRENCY_CODE);
+    String symbol = String.format("%s/%s", state.getCode(), quoteCurrencyCode);
     DittoResponse<String> updateResp = dittoClient.updateInstrument(
       UpdateInstrumentRequest.builder()
         .transactionId(transactionId)

@@ -1,6 +1,6 @@
 {
-  "baseCurrency": "USD",
-  "quoteCurrencies": [
+  "quoteCurrency": "USD",
+  "baseCurrencies": [
     {
       "code": "AED",
       "name": "United Arab Emirates Dirham",

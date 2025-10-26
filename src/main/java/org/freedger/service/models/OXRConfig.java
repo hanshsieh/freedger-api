@@ -13,13 +13,13 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 public class OXRConfig {
-  @JsonProperty("baseCurrency")
+  @JsonProperty("quoteCurrency")
   @NonNull
-  String baseCurrency;
+  String quoteCurrency;
 
-  @JsonProperty("quoteCurrencies")
+  @JsonProperty("baseCurrencies")
   @NonNull
-  List<OXRCurrency> quoteCurrencies;
+  List<OXRCurrency> baseCurrencies;
 }
 
 
