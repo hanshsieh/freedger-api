@@ -1,17 +1,25 @@
 package org.freedger.repository.ditto.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotNull;
+
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.constraints.NotNull;
+import jakarta.annotation.Nullable;
 
 /** Represents a Ledger document from Ditto. */
 public class Ledger {
   public static final int SCHEMA_VERSION = 1;
 
+  /**
+   * The ID of the ledger.
+   * ID can be null when creating a ledger with the legacy API.
+   */
   @JsonProperty("_id")
-  @NotNull
+  @Nullable
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private String id;
 
   @JsonProperty("schemaVersion")

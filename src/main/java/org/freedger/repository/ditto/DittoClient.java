@@ -199,18 +199,20 @@ public class DittoClient {
       final var ledgerId = generateId();
       final var accountId = generateId();
 
-      var account = new Account();
-      account.setCreatedAt(now);
-      account.setUpdatedAt(now);
-      account.setName(config.getExternalAccountName());
-      account.setType(AccountType.COUNTERPARTY);
-      account.setArchivedAt(null);
-      account.setGroupId(null);
-      account.setCurrencyId(config.getCurrencyId());
-      account.setInitialBalance(BigDecimal.ZERO);
-      account.setAutoReconcile(true);
-      account.setNote("");
-      account.setOrder(0.0);
+      final var account = Account.builder()
+          .id(null)
+          .createdAt(now)
+          .updatedAt(now)
+          .name(config.getExternalAccountName())
+          .type(AccountType.COUNTERPARTY)
+          .archivedAt(null)
+          .groupId(null)
+          .currencyId(config.getCurrencyId())
+          .initialBalance(BigDecimal.ZERO)
+          .autoReconcile(true)
+          .note("")
+          .order(0.0)
+          .build();
 
       var createAccountCommand = new UpsertCommand<LedgerChildId, Account>();
       createAccountCommand.setCollection(Collection.ACCOUNTS.getName());

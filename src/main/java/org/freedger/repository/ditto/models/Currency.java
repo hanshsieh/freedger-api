@@ -1,6 +1,8 @@
 package org.freedger.repository.ditto.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
 import java.time.Instant;
 
 import lombok.Builder;
@@ -23,6 +25,8 @@ public class Currency {
    * ID can be null when creating a currency with the legacy API.
    */
   @JsonProperty("_id")
+  @Nullable
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private LedgerChildId id;
 
   @JsonProperty("createdAt")

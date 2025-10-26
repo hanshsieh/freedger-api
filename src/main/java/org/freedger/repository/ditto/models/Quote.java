@@ -15,8 +15,13 @@ public class Quote {
   @JsonProperty("schemaVersion")
   private int schemaVersion = SCHEMA_VERSION;
 
+  /**
+   * The ID of the quote.
+   * ID can be null when creating a quote with the legacy API.
+   */
   @JsonProperty("_id")
-  @NotNull
+  @Nullable
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private LedgerChildId id;
 
   @JsonProperty("createdAt")
