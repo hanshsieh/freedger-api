@@ -289,8 +289,75 @@ public class DittoClient {
     }
   }
 
+  /**
+   * Creates a new currency and instrument. The currency and instrument are created atomically.
+   *
+   * @param request The currency configuration
+   * @return The IDs of the created currency and instrument
+   * @throws IOException If an error occurs while creating the currency and instrument
+   */
   public DittoResponse<CreateCurrencyResponse> createCurrency(CreateCurrencyRequest request) throws IOException {
-    // TODO
+    try {
+      final var now = Instant.now();
+      WriteRequest writeRequest = new WriteRequest();
+      List<WriteCommand> commands = new ArrayList<>();
+      writeRequest.setCommands(commands);
+
+      final var currencyId = generateId();
+      final var instrumentId = generateId();
+
+      // Create Instrument
+      var instrumentCompositeId = new LedgerChildId().setId(instrumentId).setLedgerId(request.getLedgerId());
+      var instrument = Instrument.builder()
+          .id(instrumentCompositeId)
+          .createdAt(now)
+          .updatedAt(now)
+          .symbol(request.getSymbol())
+          .name(request.getName())
+          .category(request.getCategory())
+          .decimals(request.getDecimals())
+          .quoteCurrencyId(request.getQuoteCurrencyId())
+          .initialQuote(request.getInitialQuote())
+          .build();
+
+      var createInstrumentCommand = new UpsertCommand<LedgerChildId, Instrument>();
+      createInstrumentCommand.setCollection(Collection.INSTRUMENTS.getName());
+      createInstrumentCommand.setId(instrumentCompositeId);
+      createInstrumentCommand.setValue(instrument);
+      commands.add(createInstrumentCommand);
+
+      // Create Currency
+      var currencyCompositeId = new LedgerChildId().setId(currencyId).setLedgerId(request.getLedgerId());
+      var currency = Currency.builder()
+          .id(currencyCompositeId)
+          .createdAt(now)
+          .updatedAt(now)
+          .archivedAt(request.getArchivedAt())
+          .type(request.getType())
+          .name(request.getName())
+          .code(request.getCode())
+          .decimals(request.getDecimals())
+          .instrumentId(instrumentId)
+          .build();
+
+      var createCurrencyCommand = new UpsertCommand<LedgerChildId, Currency>();
+      createCurrencyCommand.setCollection(Collection.CURRENCIES.getName());
+      createCurrencyCommand.setId(currencyCompositeId);
+      createCurrencyCommand.setValue(currency);
+      commands.add(createCurrencyCommand);
+
+      final var writeResponse = sendWriteRequest(writeRequest);
+      logger.info("Created currency and instrument. Currency ID: {}, Instrument ID: {}", currencyId, instrumentId);
+      
+      final var transactionId = getTransactionId(writeResponse);
+      final var response = CreateCurrencyResponse.builder()
+          .currencyId(currencyId)
+          .instrumentId(instrumentId)
+          .build();
+      return new DittoResponse<>(transactionId.orElse(null), response);
+    } catch (Exception e) {
+      throw new IOException("Failed to create currency", e);
+    }
   }
 
   public DittoResponse<List<Currency>> queryCurrencies(QueryCurrenciesRequest request) throws IOException {
