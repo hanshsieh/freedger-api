@@ -1,5 +1,6 @@
 package org.freedger.repository.ditto;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -86,15 +87,16 @@ public class DittoClient {
       throw new IllegalArgumentException("Invalid base URL: " + baseUrl, e);
     }
 
-    this.objectMapper = new ObjectMapper();
-    this.objectMapper.registerModule(new JavaTimeModule());
-    this.objectMapper.registerModule(
+    objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
+    objectMapper.registerModule(
         new com.fasterxml.jackson.databind.module.SimpleModule()
             .addSerializer(BigDecimal.class, new BigDecimalSerializer())
             .addDeserializer(BigDecimal.class, new BigDecimalDeserializer())
             .addSerializer(Instant.class, new InstantSerializer())
     );
-    this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    objectMapper.setSerializationInclusion(Include.NON_NULL);
 
     // Create a reusable HttpClient with connection pooling and timeouts
     RequestConfig config =
