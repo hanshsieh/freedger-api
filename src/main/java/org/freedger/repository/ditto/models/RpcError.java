@@ -1,9 +1,9 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RpcError {
-  @SerializedName("message")
+  @JsonProperty("message")
   private String message;
 
   public String getMessage() {

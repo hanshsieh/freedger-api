@@ -1,26 +1,26 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum InstrumentCategory {
-  @SerializedName("stocks")
+  @JsonProperty("stocks")
   STOCKS,
-  @SerializedName("funds")
+  @JsonProperty("funds")
   FUNDS,
-  @SerializedName("futures")
+  @JsonProperty("futures")
   FUTURES,
-  @SerializedName("forex")
+  @JsonProperty("forex")
   FOREX,
-  @SerializedName("crypto")
+  @JsonProperty("crypto")
   CRYPTO,
-  @SerializedName("indices")
+  @JsonProperty("indices")
   INDICES,
-  @SerializedName("bonds")
+  @JsonProperty("bonds")
   BONDS,
-  @SerializedName("economy")
+  @JsonProperty("economy")
   ECONOMY,
-  @SerializedName("options")
+  @JsonProperty("options")
   OPTIONS,
-  @SerializedName("other")
+  @JsonProperty("other")
   OTHER,
 }

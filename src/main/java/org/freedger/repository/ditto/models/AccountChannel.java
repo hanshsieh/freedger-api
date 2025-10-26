@@ -1,20 +1,20 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 
 public class AccountChannel {
   @NotNull
-  @SerializedName("name")
+  @JsonProperty("name")
   private String name;
 
-  @SerializedName("order")
+  @JsonProperty("order")
   private double order;
 
   @Nullable
-  @SerializedName("archivedAt")
+  @JsonProperty("archivedAt")
   private Instant archivedAt;
 
   public String getName() {

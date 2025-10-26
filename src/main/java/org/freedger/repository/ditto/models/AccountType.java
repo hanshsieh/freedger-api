@@ -1,22 +1,22 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum AccountType {
-  @SerializedName("cash")
+  @JsonProperty("cash")
   CASH,
-  @SerializedName("loadable")
+  @JsonProperty("loadable")
   LOADABLE,
-  @SerializedName("bank")
+  @JsonProperty("bank")
   BANK,
-  @SerializedName("volatile")
+  @JsonProperty("volatile")
   VOLATILE,
-  @SerializedName("credit")
+  @JsonProperty("credit")
   CREDIT,
-  @SerializedName("counterparty")
+  @JsonProperty("counterparty")
   COUNTERPARTY,
-  @SerializedName("loan")
+  @JsonProperty("loan")
   LOAN,
-  @SerializedName("invoice")
+  @JsonProperty("invoice")
   INVOICE,
 }

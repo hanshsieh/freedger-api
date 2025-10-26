@@ -3,7 +3,7 @@ package org.freedger.repository.ditto.models;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
 import lombok.Value;
@@ -14,41 +14,41 @@ import lombok.NonNull;
 public class Instrument {
   public static final int SCHEMA_VERSION = 1;
 
-  @SerializedName("schemaVersion")
+  @JsonProperty("schemaVersion")
   private int schemaVersion = SCHEMA_VERSION;
 
-  @SerializedName("_id")
+  @JsonProperty("_id")
   @NonNull
   private LedgerChildId id;
 
-  @SerializedName("createdAt")
+  @JsonProperty("createdAt")
   @NonNull
   private Instant createdAt;
 
-  @SerializedName("updatedAt")
+  @JsonProperty("updatedAt")
   @NonNull
   private Instant updatedAt;
 
-  @SerializedName("symbol")
+  @JsonProperty("symbol")
   @NonNull
   private String symbol;
 
-  @SerializedName("name")
+  @JsonProperty("name")
   @NonNull
   private String name;
 
-  @SerializedName("category")
+  @JsonProperty("category")
   @NonNull
   private InstrumentCategory category;
 
-  @SerializedName("decimals")
+  @JsonProperty("decimals")
   private int decimals;
 
-  @SerializedName("quoteCurrencyId")
+  @JsonProperty("quoteCurrencyId")
   @NonNull
   private String quoteCurrencyId;
 
-  @SerializedName("initialQuote")
+  @JsonProperty("initialQuote")
   @NonNull
   private BigDecimal initialQuote;
 }

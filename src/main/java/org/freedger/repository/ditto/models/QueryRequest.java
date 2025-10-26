@@ -1,14 +1,14 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /** Represents a query request to Ditto's query API. */
 public class QueryRequest {
-  @SerializedName("statement")
+  @JsonProperty("statement")
   private String statement;
 
-  @SerializedName("args")
+  @JsonProperty("args")
   private Map<String, Object> args;
 
   public QueryRequest() {}

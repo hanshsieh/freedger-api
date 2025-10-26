@@ -1,21 +1,21 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
 public class GetInstrumentRequest {
   @Nullable
-  @SerializedName("transactionId")
+  @JsonProperty("transactionId")
   private String transactionId;
 
   @NotNull
-  @SerializedName("ledgerId")
+  @JsonProperty("ledgerId")
   private String ledgerId;
 
   @NotNull
-  @SerializedName("instrumentId")
+  @JsonProperty("instrumentId")
   private String instrumentId;
 
   public String getTransactionId() {

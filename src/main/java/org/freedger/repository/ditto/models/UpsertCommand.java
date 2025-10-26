@@ -1,12 +1,12 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UpsertCommand<Id, Value> extends WriteCommand {
-  @SerializedName("id")
+  @JsonProperty("id")
   private Id id;
 
-  @SerializedName("value")
+  @JsonProperty("value")
   private Value value;
 
   public UpsertCommand() {

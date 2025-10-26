@@ -1,12 +1,12 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class WriteCommandResult {
-  @SerializedName("method")
+  @JsonProperty("method")
   private String method;
 
-  @SerializedName("transactionId")
+  @JsonProperty("transactionId")
   private long transactionId;
 
   public String getMethod() {

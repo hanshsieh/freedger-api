@@ -19,6 +19,7 @@
         <functionAppServicePlanName>freedger-dev</functionAppServicePlanName>
         <functionRegion>eastus</functionRegion>
         <gson.version>2.13.1</gson.version>
+        <jackson.version>3.0.1</jackson.version>
         <junit.version>5.13.2</junit.version>
         <mockito.version>5.18.0</mockito.version>
         <dagger.version>2.56.2</dagger.version>
@@ -57,6 +58,11 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
         <!-- Apache HttpClient -->

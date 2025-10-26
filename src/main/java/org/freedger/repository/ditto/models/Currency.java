@@ -1,6 +1,6 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 
 import lombok.Builder;
@@ -12,40 +12,40 @@ import lombok.NonNull;
 public class Currency {
   public static final int SCHEMA_VERSION = 1;
 
-  @SerializedName("schemaVersion")
+  @JsonProperty("schemaVersion")
   private int schemaVersion = SCHEMA_VERSION;
 
-  @SerializedName("_id")
+  @JsonProperty("_id")
   @NonNull
   private LedgerChildId id;
 
-  @SerializedName("createdAt")
+  @JsonProperty("createdAt")
   @NonNull
   private Instant createdAt;
 
-  @SerializedName("updatedAt")
+  @JsonProperty("updatedAt")
   @NonNull
   private Instant updatedAt;
 
-  @SerializedName("archivedAt")
+  @JsonProperty("archivedAt")
   private Instant archivedAt;
 
-  @SerializedName("type")
+  @JsonProperty("type")
   @NonNull
   private CurrencyType type;
 
-  @SerializedName("name")
+  @JsonProperty("name")
   @NonNull
   private String name;
 
-  @SerializedName("code")
+  @JsonProperty("code")
   @NonNull
   private String code;
 
-  @SerializedName("decimals")
+  @JsonProperty("decimals")
   private int decimals;
 
-  @SerializedName("instrumentId")
+  @JsonProperty("instrumentId")
   @NonNull
   private String instrumentId;
 }

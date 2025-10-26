@@ -1,7 +1,7 @@
 package org.freedger.repository.ditto.models;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -10,54 +10,54 @@ import java.time.Instant;
 public class Account {
   public static final int SCHEMA_VERSION = 1;
 
-  @SerializedName("schemaVersion")
+  @JsonProperty("schemaVersion")
   private int schemaVersion = SCHEMA_VERSION;
 
-  @SerializedName("_id")
+  @JsonProperty("_id")
   @NotNull
   private LedgerChildId id;
 
-  @SerializedName("createdAt")
+  @JsonProperty("createdAt")
   @NotNull
   private Instant createdAt;
 
-  @SerializedName("updatedAt")
+  @JsonProperty("updatedAt")
   @NotNull
   private Instant updatedAt;
 
-  @SerializedName("type")
+  @JsonProperty("type")
   @NotNull
   private AccountType type;
 
-  @SerializedName("name")
+  @JsonProperty("name")
   @NotNull
   private String name;
 
   @Nullable
-  @SerializedName("archivedAt")
+  @JsonProperty("archivedAt")
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private Instant archivedAt;
 
-  @SerializedName("groupId")
+  @JsonProperty("groupId")
   @Nullable
   private String groupId;
 
-  @SerializedName("currencyId")
+  @JsonProperty("currencyId")
   @NotNull
   private String currencyId;
 
-  @SerializedName("initialBalance")
+  @JsonProperty("initialBalance")
   @NotNull
   private BigDecimal initialBalance;
 
-  @SerializedName("autoReconcile")
+  @JsonProperty("autoReconcile")
   private boolean autoReconcile = true;
 
-  @SerializedName("note")
+  @JsonProperty("note")
   @NotNull
   private String note = "";
 
-  @SerializedName("order")
+  @JsonProperty("order")
   private double order = 0.0;
 
   public int getSchemaVersion() {

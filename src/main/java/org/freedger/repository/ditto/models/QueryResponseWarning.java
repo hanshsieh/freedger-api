@@ -1,13 +1,13 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** Represents a warning in the query response from Ditto's API. */
 public class QueryResponseWarning {
-  @SerializedName("_id")
+  @JsonProperty("_id")
   private Object id;
 
-  @SerializedName("description")
+  @JsonProperty("description")
   private String description;
 
   public Object getId() {

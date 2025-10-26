@@ -1,12 +1,12 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class LedgerChildId {
-  @SerializedName("id")
+  @JsonProperty("id")
   private String id;
 
-  @SerializedName("ledgerId")
+  @JsonProperty("ledgerId")
   private String ledgerId;
 
   public String getId() {

@@ -1,14 +1,14 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 
 public abstract class WriteCommand {
-  @SerializedName("method")
+  @JsonProperty("method")
   @NotNull
   private String method;
 
-  @SerializedName("collection")
+  @JsonProperty("collection")
   @NotNull
   private String collection;
 

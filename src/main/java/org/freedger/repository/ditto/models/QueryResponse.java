@@ -1,6 +1,6 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
@@ -8,25 +8,25 @@ import java.util.List;
  * Ditto API specification.
  */
 public class QueryResponse<Item, ItemId> {
-  @SerializedName("transactionId")
+  @JsonProperty("transactionId")
   private long transactionId;
 
-  @SerializedName("queryType")
+  @JsonProperty("queryType")
   private String queryType;
 
-  @SerializedName("items")
+  @JsonProperty("items")
   private List<Item> items;
 
-  @SerializedName("mutatedDocumentIds")
+  @JsonProperty("mutatedDocumentIds")
   private List<ItemId> mutatedDocumentIds;
 
-  @SerializedName("error")
+  @JsonProperty("error")
   private QueryResponseError error;
 
-  @SerializedName("warnings")
+  @JsonProperty("warnings")
   private List<QueryResponseWarning> warnings;
 
-  @SerializedName("totalWarningsCount")
+  @JsonProperty("totalWarningsCount")
   private long totalWarningsCount;
 
   public long getTransactionId() {

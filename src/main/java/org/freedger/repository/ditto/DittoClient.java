@@ -1,8 +1,9 @@
 package org.freedger.repository.ditto;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -29,8 +30,9 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Timeout;
-import org.freedger.repository.ditto.adapters.BigDecimalAdapter;
-import org.freedger.repository.ditto.adapters.InstantAdapter;
+import org.freedger.repository.ditto.adapters.BigDecimalDeserializer;
+import org.freedger.repository.ditto.adapters.BigDecimalSerializer;
+import org.freedger.repository.ditto.adapters.InstantSerializer;
 import org.freedger.repository.ditto.exceptions.DittoNotFoundException;
 import org.freedger.repository.ditto.models.Account;
 import org.freedger.repository.ditto.models.AccountType;
@@ -67,7 +69,7 @@ public class DittoClient {
   private static final Timeout RESPONSE_TIMEOUT = Timeout.ofSeconds(10);
 
   private final URI baseUri;
-  private final Gson gson;
+  private final ObjectMapper objectMapper;
   private final CloseableHttpClient httpClient;
 
   /**
@@ -84,11 +86,15 @@ public class DittoClient {
       throw new IllegalArgumentException("Invalid base URL: " + baseUrl, e);
     }
 
-    this.gson =
-        new GsonBuilder()
-            .registerTypeAdapter(Instant.class, new InstantAdapter())
-            .registerTypeAdapter(BigDecimal.class, new BigDecimalAdapter())
-            .create();
+    this.objectMapper = new ObjectMapper();
+    this.objectMapper.registerModule(new JavaTimeModule());
+    this.objectMapper.registerModule(
+        new com.fasterxml.jackson.databind.module.SimpleModule()
+            .addSerializer(BigDecimal.class, new BigDecimalSerializer())
+            .addDeserializer(BigDecimal.class, new BigDecimalDeserializer())
+            .addSerializer(Instant.class, new InstantSerializer())
+    );
+    this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     // Create a reusable HttpClient with connection pooling and timeouts
     RequestConfig config =
@@ -523,7 +529,7 @@ public class DittoClient {
       throws IOException {
     try {
       // Create JSON request body
-      String jsonRequestBody = gson.toJson(request);
+      String jsonRequestBody = objectMapper.writeValueAsString(request);
 
       // Build URI using URIBuilder
       URIBuilder uriBuilder = new URIBuilder(baseUri);
@@ -541,10 +547,9 @@ public class DittoClient {
       String responseBody = sendRequest(httpPost);
 
       // Parse and return response
-      QueryResponse<Item, ItemId> queryResponse =
-          gson.fromJson(
-              responseBody,
-              TypeToken.getParameterized(QueryResponse.class, itemClass, itemIdClass).getType());
+      TypeFactory typeFactory = objectMapper.getTypeFactory();
+      var typeReference = typeFactory.constructParametricType(QueryResponse.class, itemClass, itemIdClass);
+      QueryResponse<Item, ItemId> queryResponse = objectMapper.readValue(responseBody, typeReference);
       return queryResponse;
     } catch (URISyntaxException e) {
       throw new IOException("Failed to build URI", e);
@@ -563,7 +568,7 @@ public class DittoClient {
   private WriteResponse sendWriteRequest(WriteRequest request) throws IOException {
     try {
       // Create JSON request body
-      String jsonRequestBody = gson.toJson(request);
+      String jsonRequestBody = objectMapper.writeValueAsString(request);
 
       // Build URI using URIBuilder
       URIBuilder uriBuilder = new URIBuilder(baseUri);
@@ -578,7 +583,7 @@ public class DittoClient {
       String responseBody = sendRequest(httpPost);
 
       // Parse and return response
-      WriteResponse writeResponse = gson.fromJson(responseBody, WriteResponse.class);
+      WriteResponse writeResponse = objectMapper.readValue(responseBody, WriteResponse.class);
       return writeResponse;
     } catch (URISyntaxException e) {
       throw new IOException("Failed to build URI", e);

@@ -1,6 +1,6 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.Collections;
@@ -10,42 +10,42 @@ import java.util.List;
 public class Ledger {
   public static final int SCHEMA_VERSION = 1;
 
-  @SerializedName("_id")
+  @JsonProperty("_id")
   @NotNull
   private String id;
 
-  @SerializedName("schemaVersion")
+  @JsonProperty("schemaVersion")
   private int schemaVersion = SCHEMA_VERSION;
 
-  @SerializedName("createdAt")
+  @JsonProperty("createdAt")
   @NotNull
   private Instant createdAt;
 
-  @SerializedName("updatedAt")
+  @JsonProperty("updatedAt")
   @NotNull
   private Instant updatedAt;
 
-  @SerializedName("name")
+  @JsonProperty("name")
   @NotNull
   private String name;
 
-  @SerializedName("readerIds")
+  @JsonProperty("readerIds")
   @NotNull
   private List<String> readerIds = Collections.emptyList();
 
-  @SerializedName("writerIds")
+  @JsonProperty("writerIds")
   @NotNull
   private List<String> writerIds = Collections.emptyList();
 
-  @SerializedName("note")
+  @JsonProperty("note")
   @NotNull
   private String note = "";
 
-  @SerializedName("externalAccountId")
+  @JsonProperty("externalAccountId")
   @NotNull
   private String externalAccountId;
 
-  @SerializedName("currencyId")
+  @JsonProperty("currencyId")
   @NotNull
   private String currencyId;
 

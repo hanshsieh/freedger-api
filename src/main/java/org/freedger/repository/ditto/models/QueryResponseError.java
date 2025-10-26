@@ -1,10 +1,10 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** Represents an error in the query response from Ditto's API. */
 public class QueryResponseError {
-  @SerializedName("description")
+  @JsonProperty("description")
   private String description;
 
   public String getDescription() {

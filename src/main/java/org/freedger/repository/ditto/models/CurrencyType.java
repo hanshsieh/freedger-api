@@ -1,12 +1,12 @@
 package org.freedger.repository.ditto.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum CurrencyType {
-  @SerializedName("fiat")
+  @JsonProperty("fiat")
   FIAT,
-  @SerializedName("crypto")
+  @JsonProperty("crypto")
   CRYPTO,
-  @SerializedName("other")
+  @JsonProperty("other")
   OTHER,
 }
