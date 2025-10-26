@@ -5,10 +5,12 @@ import java.time.Instant;
 
 import lombok.Builder;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 import lombok.NonNull;
 
 @Value
 @Builder
+@Jacksonized
 public class Currency {
   public static final int SCHEMA_VERSION = 1;
 

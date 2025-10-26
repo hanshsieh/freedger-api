@@ -70,6 +70,10 @@ public class DittoClient {
   private static final Timeout RESPONSE_TIMEOUT = Timeout.ofSeconds(10);
 
   private final URI baseUri;
+  // We use jackson instead of gson because:
+  // 1. It allows us to easily control which fields should serialize null values.
+  // should serialize null values.
+  // 2. It is compatible with "lombok".
   private final ObjectMapper objectMapper;
   private final CloseableHttpClient httpClient;
 
@@ -88,11 +92,14 @@ public class DittoClient {
     }
 
     objectMapper = new ObjectMapper();
+    // Used for parsing ISO 8601 string as Instant.
     objectMapper.registerModule(new JavaTimeModule());
     objectMapper.registerModule(
         new com.fasterxml.jackson.databind.module.SimpleModule()
             .addSerializer(BigDecimal.class, new BigDecimalSerializer())
             .addDeserializer(BigDecimal.class, new BigDecimalDeserializer())
+            // Used for serializing Instant as ISO 8601 string with 3 decimal places.
+            // It must be registered after JavaTimeModule to override the default serializer.
             .addSerializer(Instant.class, new InstantSerializer())
     );
     objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);

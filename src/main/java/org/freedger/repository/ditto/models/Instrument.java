@@ -7,10 +7,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 import lombok.NonNull;
 
 @Value
 @Builder
+@Jacksonized
 public class Instrument {
   public static final int SCHEMA_VERSION = 1;
 
