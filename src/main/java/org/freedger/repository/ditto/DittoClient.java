@@ -395,12 +395,11 @@ public class DittoClient {
     try {
       final var queryBuilder =
           new StringBuilder(String.format("SELECT * FROM %s", Collection.CURRENCIES.getName()));
-      final List<String> whereClauses = new ArrayList<>() {{
-        add("schemaVersion = :schemaVersion");
-      }};
-      final Map<String, Object> args = new HashMap<>() {{
-        put("schemaVersion", Currency.SCHEMA_VERSION);
-      }};
+      final List<String> whereClauses = new ArrayList<>();
+      whereClauses.add("schemaVersion = :schemaVersion");
+      final Map<String, Object> args = new HashMap<>();
+      args.put("schemaVersion", Currency.SCHEMA_VERSION);
+
       if (request.getLedgerId() != null) {
         whereClauses.add("_id.ledgerId = :ledgerId");
         args.put("ledgerId", request.getLedgerId());
@@ -442,17 +441,15 @@ public class DittoClient {
   public DittoResponse<Instrument> getInstrument(GetInstrumentRequest request) throws IOException {
     try {
       final var queryBuilder = new StringBuilder(String.format("SELECT * FROM %s", Collection.INSTRUMENTS.getName()));
-      final List<String> whereClauses =
-          new ArrayList<>() {{
-            add("_id = :id");
-            add("schemaVersion = :schemaVersion");
-          }};
-      final Map<String, Object> args = new HashMap<>() {{
-        put("_id", Map.of(
-          "ledgerId", request.getLedgerId(), 
-          "id", request.getInstrumentId()));
-        put("schemaVersion", Instrument.SCHEMA_VERSION);
-      }};
+      final List<String> whereClauses = new ArrayList<>();
+      whereClauses.add("_id = :id");
+      whereClauses.add("schemaVersion = :schemaVersion");
+
+      final Map<String, Object> args = new HashMap<>();
+      args.put("_id", Map.of(
+        "ledgerId", request.getLedgerId(), 
+        "id", request.getInstrumentId()));
+      args.put("schemaVersion", Instrument.SCHEMA_VERSION);
       queryBuilder.append(" WHERE ");
       queryBuilder.append(String.join(" AND ", whereClauses));
       final var query = queryBuilder.toString();
@@ -471,14 +468,15 @@ public class DittoClient {
   public DittoResponse<List<Quote>> queryQuotes(QueryQuotesRequest request) throws IOException {
     try {
       final var queryBuilder = new StringBuilder(String.format("SELECT * FROM %s", Collection.QUOTES.getName()));
-      final List<String> whereClauses = new ArrayList<>() {{
-        add("instrumentId = :instrumentId");
-        add("schemaVersion = :schemaVersion");
-      }};
-      final Map<String, Object> args = new HashMap<>() {{
-        put("instrumentId", request.getInstrumentId());
-        put("schemaVersion", Quote.SCHEMA_VERSION);
-      }};
+      
+      final List<String> whereClauses = new ArrayList<>();
+      whereClauses.add("instrumentId = :instrumentId");
+      whereClauses.add("schemaVersion = :schemaVersion");
+      
+      final Map<String, Object> args = new HashMap<>();
+      args.put("instrumentId", request.getInstrumentId());
+      args.put("schemaVersion", Quote.SCHEMA_VERSION);
+
       if (request.getTimeBegin() != null) {
         whereClauses.add("time >= :timeBegin");
         args.put("timeBegin", request.getTimeBegin());
@@ -520,20 +518,19 @@ public class DittoClient {
       final var now = Instant.now();
       final var hasLedger = request.getLedgerId() != null;
       final var quoteId = hasLedger ? generateGlobalId() : generateId();
-      final var args = new HashMap<String, Object>() {{
-        put("quote", new Quote() {{
-          setId(new LedgerChildId() {{
+      final var args = new HashMap<String, Object>();
+      args.put("quote", Quote.builder()
+          .id(new LedgerChildId() {{
             setLedgerId(request.getLedgerId());
             setId(quoteId);
-          }});
-          setCreatedAt(now);
-          setUpdatedAt(now);
-          setInstrumentId(request.getInstrumentId());
-          setTime(request.getTime());
-          setValue(request.getValue());
-          setSource(request.getSource());
-        }});
-      }};
+          }})
+          .createdAt(now)
+          .updatedAt(now)
+          .instrumentId(request.getInstrumentId())
+          .time(request.getTime())
+          .value(request.getValue())
+          .source(request.getSource())
+          .build());
       final var query = queryBuilder.toString();
       final var response =
           sendQueryRequest(new QueryRequest(query, args), Quote.class, LedgerChildId.class, request.getTransactionId());

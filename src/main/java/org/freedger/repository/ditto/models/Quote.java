@@ -7,12 +7,20 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
 
+import lombok.Builder;
+import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
+import lombok.NonNull;
+
+@Value
+@Builder
+@Jacksonized
 public class Quote {
   public static final int SCHEMA_VERSION = 1;
 
   @JsonProperty("schemaVersion")
+  @Builder.Default
   private int schemaVersion = SCHEMA_VERSION;
 
   /**
@@ -25,23 +33,23 @@ public class Quote {
   private LedgerChildId id;
 
   @JsonProperty("createdAt")
-  @NotNull
+  @NonNull
   private Instant createdAt;
 
   @JsonProperty("updatedAt")
-  @NotNull
+  @NonNull
   private Instant updatedAt;
 
   @JsonProperty("instrumentId")
-  @NotNull
+  @NonNull
   private String instrumentId;
 
   @JsonProperty("time")
-  @NotNull
+  @NonNull
   private Instant time;
 
   @JsonProperty("value")
-  @NotNull
+  @NonNull
   private BigDecimal value;
 
   @Nullable
@@ -49,67 +57,4 @@ public class Quote {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private String source;
 
-  public int getSchemaVersion() {
-    return schemaVersion;
-  }
-
-  public void setSchemaVersion(int schemaVersion) {
-    this.schemaVersion = schemaVersion;
-  }
-
-  public LedgerChildId getId() {
-    return id;
-  }
-
-  public void setId(LedgerChildId id) {
-    this.id = id;
-  }
-
-  public Instant getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(Instant createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public Instant getUpdatedAt() {
-    return updatedAt;
-  }
-
-  public void setUpdatedAt(Instant updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
-  public String getInstrumentId() {
-    return instrumentId;
-  }
-
-  public void setInstrumentId(String instrumentId) {
-    this.instrumentId = instrumentId;
-  }
-
-  public Instant getTime() {
-    return time;
-  }
-
-  public void setTime(Instant time) {
-    this.time = time;
-  }
-
-  public BigDecimal getValue() {
-    return value;
-  }
-
-  public void setValue(BigDecimal value) {
-    this.value = value;
-  }
-
-  public String getSource() {
-    return source;
-  }
-
-  public void setSource(String source) {
-    this.source = source;
-  }
 }
