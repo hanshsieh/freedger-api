@@ -324,7 +324,6 @@ public class DittoClient {
       // Create Instrument
       var instrumentCompositeId = new LedgerChildId().setId(instrumentId).setLedgerId(request.getLedgerId());
       var instrument = Instrument.builder()
-          .id(instrumentCompositeId)
           .createdAt(now)
           .updatedAt(now)
           .symbol(request.getSymbol())
@@ -344,7 +343,6 @@ public class DittoClient {
       // Create Currency
       var currencyCompositeId = new LedgerChildId().setId(currencyId).setLedgerId(request.getLedgerId());
       var currency = Currency.builder()
-          .id(currencyCompositeId)
           .createdAt(now)
           .updatedAt(now)
           .archivedAt(request.getArchivedAt())

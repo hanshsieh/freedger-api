@@ -17,10 +17,14 @@ public class Instrument {
   public static final int SCHEMA_VERSION = 1;
 
   @JsonProperty("schemaVersion")
+  @Builder.Default
   private int schemaVersion = SCHEMA_VERSION;
 
+  /**
+   * The ID of the instrument.
+   * ID can be null when creating an instrument with the legacy API.
+   */
   @JsonProperty("_id")
-  @NonNull
   private LedgerChildId id;
 
   @JsonProperty("createdAt")
