@@ -53,6 +53,7 @@ import org.freedger.repository.ditto.models.QueryQuotesRequest;
 import org.freedger.repository.ditto.models.QueryRequest;
 import org.freedger.repository.ditto.models.QueryResponse;
 import org.freedger.repository.ditto.models.Quote;
+import org.freedger.repository.ditto.models.UpdateInstrumentRequest;
 import org.freedger.repository.ditto.models.UpdateLedgerRequest;
 import org.freedger.repository.ditto.models.UpsertCommand;
 import org.freedger.repository.ditto.models.WriteCommand;
@@ -474,6 +475,53 @@ public class DittoClient {
     }
   }
 
+  public DittoResponse<String> updateInstrument(UpdateInstrumentRequest request) throws IOException {
+    try {
+      final var queryBuilder = new StringBuilder(String.format("UPDATE %s", Collection.INSTRUMENTS.getName()));
+      final var now = Instant.now();
+      final var args = new HashMap<String, Object>();
+      args.put("schemaVersion", Instrument.SCHEMA_VERSION);
+      args.put("updatedAt", now);
+      args.put("_id", LedgerChildId.builder()
+        .ledgerId(request.getLedgerId())
+        .id(request.getInstrumentId())
+        .build());
+      args.put("symbol", request.getSymbol());
+      args.put("name", request.getName());
+      args.put("category", request.getCategory());
+      args.put("decimals", request.getDecimals());
+      args.put("quoteCurrencyId", request.getQuoteCurrencyId());
+      args.put("initialQuote", request.getInitialQuote());
+
+      final List<String> setClauses = new ArrayList<>();
+      setClauses.add("updatedAt = :updatedAt");
+      setClauses.add("symbol = :symbol");
+      setClauses.add("name = :name");
+      setClauses.add("category = :category");
+      setClauses.add("decimals = :decimals");
+      setClauses.add("quoteCurrencyId = :quoteCurrencyId");
+      setClauses.add("initialQuote = :initialQuote");
+      queryBuilder.append(" SET ");
+      queryBuilder.append(String.join(", ", setClauses));
+      queryBuilder.append(" WHERE _id = :_id AND schemaVersion = :schemaVersion");
+
+      final var query = queryBuilder.toString();
+
+      final var response =
+          sendQueryRequest(
+            new QueryRequest(query, args), 
+          Instrument.class, 
+          LedgerChildId.class, 
+          request.getTransactionId());
+      final var mutatedIds = response.getMutatedDocumentIds();
+      if (mutatedIds.isEmpty()) {
+        throw new DittoNotFoundException("No instrument found with ID: " + request.getInstrumentId());
+      }
+      return new DittoResponse<String>(String.valueOf(response.getTransactionId()), request.getInstrumentId());
+    } catch (Exception e) {
+      throw new IOException("Failed to update instrument", e);
+    }
+  }
   public DittoResponse<List<Quote>> queryQuotes(QueryQuotesRequest request) throws IOException {
     try {
       final var queryBuilder = new StringBuilder(String.format("SELECT * FROM %s", Collection.QUOTES.getName()));
