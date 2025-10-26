@@ -26,7 +26,7 @@ public class UpdateInstrumentRequest {
   private String name;
 
   @NonNull
-  private String category;
+  private InstrumentCategory category;
 
   private int decimals;
 

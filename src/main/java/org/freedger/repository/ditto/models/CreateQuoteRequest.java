@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
@@ -15,7 +14,7 @@ public class CreateQuoteRequest {
   @Nullable
   private String transactionId;
 
-  @NonNull
+  @Nullable
   private String ledgerId;
 
   @NonNull
