@@ -6,7 +6,6 @@ import com.microsoft.azure.functions.annotation.BindingName;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 import jakarta.validation.ValidationException;
-import java.time.ZoneOffset;
 import java.util.logging.Level;
 import javax.inject.Inject;
 
@@ -18,10 +17,7 @@ import org.freedger.domain.models.UpdateLedgerRequest;
 import org.freedger.openapi.models.CreateLedger;
 import org.freedger.openapi.models.ErrorCode;
 import org.freedger.openapi.models.ErrorResponse;
-import org.freedger.openapi.models.Ledger;
 import org.freedger.openapi.models.UpdateLedger;
-import org.freedger.repository.ditto.DittoClient;
-import org.freedger.repository.ditto.exceptions.DittoNotFoundException;
 import org.freedger.service.HttpMessageSerializer;
 import org.freedger.service.LedgerService;
 import org.freedger.service.RequestValidator;
@@ -33,21 +29,18 @@ public class LedgersApi {
   private final ScopePredicate writeLedgersPredicate;
   private final HttpMessageSerializer httpMessageSerializer;
   private final LedgerService ledgerService;
-  private final DittoClient dittoClient;
 
   @Inject
   public LedgersApi(
       RequestValidator requestValidator,
       TokenValidator tokenValidator,
       HttpMessageSerializer httpMessageSerializer,
-      LedgerService ledgerService,
-      DittoClient dittoClient) {
+      LedgerService ledgerService) {
     this.requestValidator = requestValidator;
     this.tokenValidator = tokenValidator;
     this.writeLedgersPredicate = new ScopePredicate(new String[] {Scope.WRITE_LEDGERS.getValue()});
     this.httpMessageSerializer = httpMessageSerializer;
     this.ledgerService = ledgerService;
-    this.dittoClient = dittoClient;
   }
 
   @FunctionName("CreateLedger")

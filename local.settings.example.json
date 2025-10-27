@@ -17,6 +17,7 @@
     "DITTO_TOKEN_EXPIRE_SEC": "86400",
     "OPEN_EXCHANGE_RATES_APP_ID_SECRET_NAME": "OPEN-EXCHANGE-RATES-APP-ID",
     "OPEN_EXCHANGE_RATES_CONFIG_PATH": "openexchangerates/config.json",
+    "QUOTES_UPDATE_DAYS": "20",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true"
   },
   "Host": {

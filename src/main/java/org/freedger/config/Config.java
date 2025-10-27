@@ -79,4 +79,11 @@ public interface Config {
    * @return The path to the Open Exchange Rates config file
    */
   String openExchangeRatesConfigPath();
+
+  /**
+   * The number of days to update the quotes for.
+   *
+   * @return The number of days to update the quotes for
+   */
+  int quotesUpdateDays();
 }
