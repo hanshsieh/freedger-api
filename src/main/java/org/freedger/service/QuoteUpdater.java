@@ -83,8 +83,8 @@ public class QuoteUpdater {
       return;
     }
     for (LocalDate day : dayPlan) {
-      HistoricalRatesResponse resp = fetchRates(day);
-      processDay(resp, day);
+      final var rates = fetchRates(day);
+      processDay(rates, day);
     }
   }
 
@@ -241,31 +241,38 @@ public class QuoteUpdater {
     return plan;
   }
 
-  private HistoricalRatesResponse fetchRates(LocalDate day) throws IOException {
-    return exchangeRatesClient.getHistoricalRates(HistoricalRatesRequest.builder()
+  private Map<String, Double> fetchRates(LocalDate day) throws IOException {
+    final var resp =exchangeRatesClient.getHistoricalRates(HistoricalRatesRequest.builder()
       .date(day)
+      // The OpenExchangeRates API returns the rates for the given base currency.
+      // We will need to take an inverse of the returned rates.
       .base(quoteCurrencyCode)
       .build());
+    final var rates = resp.getRates();
+    final var invertedRates = new HashMap<String, Double>();
+    rates.forEach((code, rate) -> {
+      if (rate.doubleValue() <= 0.0) {
+        return;
+      }
+      invertedRates.put(code, 1.0 / rate);
+    });
+    return invertedRates;
   }
 
-  private void processDay(HistoricalRatesResponse ratesResp, LocalDate day) throws IOException {
-    Map<String, Double> rates = ratesResp.getRates();
-    if (rates == null || rates.isEmpty()) {
-      return;
-    }
-    Instant quoteTime = day.atStartOfDay().toInstant(ZoneOffset.UTC);
+  private void processDay(Map<String, Double> rates, LocalDate day) throws IOException {
+    final var quoteTime = day.atStartOfDay().toInstant(ZoneOffset.UTC);
     for (CurrencyState state : stateByCode.values()) {
       if (!state.isEnabled()) {
         continue;
       }
-      String code = state.getCode();
-      Instant dayInstant = quoteTime;
+      final var code = state.getCode();
+      final var dayInstant = quoteTime;
       if (!shouldInsertQuote(state, dayInstant)) {
         continue;
       }
       
-      Double rate = rates.get(code);
-      if (rate == null || rate.doubleValue() <= 0) {
+      final var rate = rates.get(code);
+      if (rate == null) {
         // Skip the update for this currency
         state.setEnabled(false);
         logger.warn("Rate for {} is not available for day {}", code, day);
