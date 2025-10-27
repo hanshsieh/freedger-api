@@ -445,7 +445,7 @@
     {
       "code": "IDR",
       "name": "Indonesian Rupiah",
-      "decimalPlaces": 2,
+      "decimalPlaces": 0,
       "type": "fiat",
       "enabled": true
     },
@@ -1026,7 +1026,7 @@
     {
       "code": "TWD",
       "name": "New Taiwan Dollar",
-      "decimalPlaces": 2,
+      "decimalPlaces": 0,
       "type": "fiat",
       "enabled": true
     },
