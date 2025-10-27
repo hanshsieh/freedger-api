@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +33,6 @@ import org.freedger.repository.ditto.models.UpdateInstrumentRequest;
 import org.freedger.repository.ditto.models.InstrumentCategory;
 import org.freedger.repository.openexchangerates.OpenExchangeRatesClient;
 import org.freedger.repository.openexchangerates.models.HistoricalRatesRequest;
-import org.freedger.repository.openexchangerates.models.HistoricalRatesResponse;
 import org.freedger.service.models.CurrencyState;
 import org.freedger.service.models.OXRConfig;
 import org.freedger.service.models.OXRCurrency;
@@ -344,6 +342,7 @@ public class QuoteUpdater {
         .build());
     this.transactionId = resp.getTransactionId();
     state.setInstrumentId(resp.getData().getInstrumentId());
+    logger.info("Created currency {} with instrument {}. Initial quote: {}", state.getCode(), state.getInstrumentId(), quote);
   }
 
   private void updateInstrumentInitialQuote(CurrencyState state, double rate) throws IOException {
@@ -361,6 +360,7 @@ public class QuoteUpdater {
         .initialQuote(BigDecimal.valueOf(rate))
         .build());
     this.transactionId = updateResp.getTransactionId();
+    logger.info("Updated instrument {} of currency {}. Initial quote: {}", state.getInstrumentId(), state.getCode(), rate);
   }
 
   private void createQuote(CurrencyState state, Instant time, double quote) throws IOException {
@@ -374,6 +374,8 @@ public class QuoteUpdater {
         .source(SOURCE)
         .build());
     this.transactionId = createQuoteResp.getTransactionId();
+    logger.info("Created quote for currency {}. Instrument: {}, Time: {}, Value: {}",
+      state.getCode(), state.getInstrumentId(), time, quote);
   }
 
   private OXRConfig loadConfig() throws IOException {
