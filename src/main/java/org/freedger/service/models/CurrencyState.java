@@ -1,7 +1,6 @@
 package org.freedger.service.models;
 
 import java.time.Instant;
-import java.time.LocalDate;
 
 import org.freedger.repository.ditto.models.CurrencyType;
 
@@ -32,10 +31,4 @@ public class CurrencyState {
 
   @Nullable
   private Instant latestInstant;
-
-  @Nullable
-  private LocalDate earliestDate;
-
-  @Nullable
-  private LocalDate latestDate;
 }

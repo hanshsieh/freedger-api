@@ -173,9 +173,7 @@ public class QuoteUpdater {
   }
 
   private void populateStateBoundaries(CurrencyState state) throws IOException {
-    state.setEarliestDate(null);
     state.setEarliestInstant(null);
-    state.setLatestDate(null);
     state.setLatestInstant(null);
     // earliest
     DittoResponse<List<Quote>> earliestResp = dittoClient.queryQuotes(
@@ -189,7 +187,6 @@ public class QuoteUpdater {
     if (!earliestResp.getData().isEmpty()) {
       Instant time = earliestResp.getData().get(0).getTime();
       state.setEarliestInstant(time);
-      state.setEarliestDate(time.atOffset(ZoneOffset.UTC).toLocalDate());
     }
 
     // latest
@@ -204,7 +201,6 @@ public class QuoteUpdater {
     if (!latestResp.getData().isEmpty()) {
       Instant time = latestResp.getData().get(0).getTime();
       state.setLatestInstant(time);
-      state.setLatestDate(time.atOffset(ZoneOffset.UTC).toLocalDate());
     }
   }
 
@@ -225,10 +221,12 @@ public class QuoteUpdater {
       return Optional.empty();
     }
 
-    boolean hasAnyLatest = stateByCode.values().stream().anyMatch(s -> s.getLatestDate() != null);
+    // Special case: if all currencies have no quotes, use the last stable date
+    final var hasAnyLatest = stateByCode.values().stream().anyMatch(s -> s.getLatestInstant() != null);
     if (!hasAnyLatest) {
       return Optional.of(lastStableDate);
     }
+
     // Forward first
     Instant earliestEndInstant = null;
     for (CurrencyState state : stateByCode.values()) {
@@ -269,6 +267,8 @@ public class QuoteUpdater {
         return Optional.of(backwardStartDate);
       }
     }
+
+    // No more days to update
     return Optional.empty();
   }
 
@@ -313,16 +313,12 @@ public class QuoteUpdater {
         // After creation, boundaries become this day
         state.setEarliestInstant(dayInstant);
         state.setLatestInstant(dayInstant);
-        state.setEarliestDate(day);
-        state.setLatestDate(day);
       } else if (state.getEarliestInstant() == null || dayInstant.isBefore(state.getEarliestInstant())) {
         updateInstrumentInitialQuote(state, quote);
         state.setEarliestInstant(dayInstant);
-        state.setEarliestDate(day);
       }
       if (state.getLatestInstant() == null || dayInstant.isAfter(state.getLatestInstant())) {
         state.setLatestInstant(dayInstant);
-        state.setLatestDate(day);
       }
 
       createQuote(state, dayInstant, quote);
