@@ -455,13 +455,19 @@ public class DittoClient {
     try {
       final var queryBuilder = new StringBuilder(String.format("SELECT * FROM %s", Collection.INSTRUMENTS.getName()));
       final List<String> whereClauses = new ArrayList<>();
-      whereClauses.add("_id = :id");
+      final Map<String, Object> args = new HashMap<>();
       whereClauses.add("schemaVersion = :schemaVersion");
 
-      final Map<String, Object> args = new HashMap<>();
-      args.put("_id", Map.of(
-        "ledgerId", request.getLedgerId(), 
-        "id", request.getInstrumentId()));
+      whereClauses.add("_id.id = :id");
+      args.put("id", request.getInstrumentId());
+
+      if (request.getLedgerId() != null) {
+        whereClauses.add("_id.ledgerId = :ledgerId");
+        args.put("ledgerId", request.getLedgerId());
+      } else {
+        // DQL doesn't support matching a composite field with NULL
+        whereClauses.add("_id.ledgerId IS NULL");
+      }
       args.put("schemaVersion", Instrument.SCHEMA_VERSION);
       queryBuilder.append(" WHERE ");
       queryBuilder.append(String.join(" AND ", whereClauses));
