@@ -3,6 +3,7 @@ package org.freedger.di.hook;
 import com.microsoft.azure.functions.spi.inject.FunctionInstanceInjector;
 
 import org.freedger.di.component.DaggerAppComponent;
+import org.freedger.controller.BackgroundWorker;
 import org.freedger.controller.DittoApi;
 import org.freedger.controller.LedgersApi;
 import org.freedger.di.component.AppComponent;
@@ -22,6 +23,9 @@ public class AppFunctionInstanceInjector implements FunctionInstanceInjector {
     }
     if (aClass == LedgersApi.class) {
       return (T) appComponent.buildLedgersApi();
+    }
+    if (aClass == BackgroundWorker.class) {
+      return (T) appComponent.buildBackgroundWorker();
     }
     throw new IllegalArgumentException("Unsupported class: " + aClass.getName());
   }

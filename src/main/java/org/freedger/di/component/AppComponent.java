@@ -5,12 +5,13 @@ import javax.inject.Singleton;
 
 import org.freedger.controller.DittoApi;
 import org.freedger.controller.LedgersApi;
+import org.freedger.controller.BackgroundWorker;
 import org.freedger.di.module.AppModule;
 
 @Singleton
 @Component(modules = AppModule.class)
 public interface AppComponent {
   DittoApi buildDittoApi();
-
   LedgersApi buildLedgersApi();
+  BackgroundWorker buildBackgroundWorker();
 }

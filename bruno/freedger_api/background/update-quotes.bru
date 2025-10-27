@@ -1,0 +1,16 @@
+meta {
+  name: update-quotes
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/background/update-quotes
+  body: none
+  auth: none
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
