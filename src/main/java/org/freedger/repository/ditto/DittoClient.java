@@ -457,6 +457,7 @@ public class DittoClient {
       final List<String> whereClauses = new ArrayList<>();
       final Map<String, Object> args = new HashMap<>();
       whereClauses.add("schemaVersion = :schemaVersion");
+      args.put("schemaVersion", Instrument.SCHEMA_VERSION);
 
       whereClauses.add("_id.id = :id");
       args.put("id", request.getInstrumentId());
@@ -468,7 +469,6 @@ public class DittoClient {
         // DQL doesn't support matching a composite field with NULL
         whereClauses.add("_id.ledgerId IS NULL");
       }
-      args.put("schemaVersion", Instrument.SCHEMA_VERSION);
       queryBuilder.append(" WHERE ");
       queryBuilder.append(String.join(" AND ", whereClauses));
       final var query = queryBuilder.toString();
@@ -489,30 +489,48 @@ public class DittoClient {
       final var queryBuilder = new StringBuilder(String.format("UPDATE %s", Collection.INSTRUMENTS.getName()));
       final var now = Instant.now();
       final var args = new HashMap<String, Object>();
-      args.put("schemaVersion", Instrument.SCHEMA_VERSION);
-      args.put("updatedAt", now);
-      args.put("_id", LedgerChildId.builder()
-        .ledgerId(request.getLedgerId())
-        .id(request.getInstrumentId())
-        .build());
-      args.put("symbol", request.getSymbol());
-      args.put("name", request.getName());
-      args.put("category", request.getCategory());
-      args.put("decimals", request.getDecimals());
-      args.put("quoteCurrencyId", request.getQuoteCurrencyId());
-      args.put("initialQuote", request.getInitialQuote());
-
+      final List<String> whereClauses = new ArrayList<>();
       final List<String> setClauses = new ArrayList<>();
+
+      whereClauses.add("schemaVersion = :schemaVersion");
+      args.put("schemaVersion", Instrument.SCHEMA_VERSION);
+
+      whereClauses.add("_id.id = :id");
+      args.put("id", request.getInstrumentId());
+
+      if (request.getLedgerId() != null) {
+        whereClauses.add("_id.ledgerId = :ledgerId");
+        args.put("ledgerId", request.getLedgerId());
+      } else {
+        // DQL doesn't support matching a composite field with NULL
+        whereClauses.add("_id.ledgerId IS NULL");
+      }
+
+      args.put("updatedAt", now);
       setClauses.add("updatedAt = :updatedAt");
+
+      args.put("symbol", request.getSymbol());
       setClauses.add("symbol = :symbol");
+
+      args.put("name", request.getName());
       setClauses.add("name = :name");
+
+      args.put("category", request.getCategory());
       setClauses.add("category = :category");
+
+      args.put("decimals", request.getDecimals());
       setClauses.add("decimals = :decimals");
+
+      args.put("quoteCurrencyId", request.getQuoteCurrencyId());
       setClauses.add("quoteCurrencyId = :quoteCurrencyId");
+
+      args.put("initialQuote", request.getInitialQuote());
       setClauses.add("initialQuote = :initialQuote");
+
       queryBuilder.append(" SET ");
       queryBuilder.append(String.join(", ", setClauses));
-      queryBuilder.append(" WHERE _id = :_id AND schemaVersion = :schemaVersion");
+      queryBuilder.append(" WHERE ");
+      queryBuilder.append(String.join(" AND ", whereClauses));
 
       final var query = queryBuilder.toString();
 
