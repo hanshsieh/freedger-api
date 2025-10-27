@@ -5,7 +5,9 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -228,30 +230,44 @@ public class QuoteUpdater {
       return Optional.of(lastStableDate);
     }
     // Forward first
-    LocalDate forwardStart = null;
+    Instant earliestEndInstant = null;
     for (CurrencyState state : stateByCode.values()) {
-      if (state.getLatestDate() != null) {
-        LocalDate start = state.getLatestDate().plusDays(1);
-        if (forwardStart == null || start.isBefore(forwardStart)) {
-          forwardStart = start;
+      if (state.getLatestInstant() != null) {
+        Instant instant = state.getLatestInstant();
+        if (earliestEndInstant == null || instant.isBefore(earliestEndInstant)) {
+          earliestEndInstant = instant;
         }
       }
     }
-    if (forwardStart != null && !forwardStart.isAfter(lastStableDate)) {
-      return Optional.of(forwardStart);
+    if (earliestEndInstant != null) {
+      final var forwardStartDate = earliestEndInstant.atZone(ZoneOffset.UTC)
+        .toLocalDate()
+        .plusDays(1);
+      if (!forwardStartDate.isAfter(lastStableDate)) {
+        return Optional.of(forwardStartDate);
+      }
     }
 
-    LocalDate backwardStart = null;
+    Instant latestStartInstant = null;
     for (CurrencyState state : stateByCode.values()) {
-      if (state.getEarliestDate() != null) {
-        LocalDate date = state.getEarliestDate();
-        if (backwardStart == null || date.isAfter(backwardStart)) {
-          backwardStart = date;
+      if (state.getEarliestInstant() != null) {
+        Instant instant = state.getEarliestInstant();
+        if (latestStartInstant == null || instant.isAfter(latestStartInstant)) {
+          latestStartInstant = instant;
         }
       }
     }
-    if (backwardStart != null && !backwardStart.isBefore(EARLIEST_DATE)) {
-      return Optional.of(backwardStart);
+    if (latestStartInstant != null) {
+      ZonedDateTime latestStartDate = latestStartInstant.atZone(ZoneOffset.UTC);
+      LocalDate backwardStartDate;
+      if (latestStartDate.toLocalTime().equals(LocalTime.MIDNIGHT)) {
+        backwardStartDate = latestStartDate.toLocalDate().minusDays(1);
+      } else {
+        backwardStartDate = latestStartDate.toLocalDate();
+      }
+      if (!backwardStartDate.isBefore(EARLIEST_DATE)) {
+        return Optional.of(backwardStartDate);
+      }
     }
     return Optional.empty();
   }
