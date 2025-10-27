@@ -288,7 +288,7 @@ public class QuoteUpdater {
   }
 
   private Map<String, Double> fetchQuotes(LocalDate day) throws IOException {
-    final var resp =exchangeRatesClient.getHistoricalRates(HistoricalRatesRequest.builder()
+    final var resp = exchangeRatesClient.getHistoricalRates(HistoricalRatesRequest.builder()
       .date(day)
       // The OpenExchangeRates API returns the rates for the given base currency.
       // We will need to take an inverse of the returned rates.

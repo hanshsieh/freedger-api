@@ -3,7 +3,10 @@ package org.freedger.repository.openexchangerates.models;
 import java.util.Collections;
 import java.util.Map;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * Response model for OpenExchangeRates currencies API.
@@ -15,44 +18,15 @@ import com.google.gson.annotations.SerializedName;
  *
  * <p>Note: Alternative currencies may not always use a three-letter code.
  */
+@Value
+@Builder
+@Jacksonized
 public class CurrenciesResponse {
   /**
    * Map of currency codes to their full display names. Keys are typically 3-letter ISO currency
    * codes (or alternative currency identifiers), values are the currency's full name.
    */
-  @SerializedName("currencies")
+  @JsonProperty("currencies")
   private Map<String, String> currencies;
-
-  /**
-   * Default constructor for JSON deserialization.
-   */
-  public CurrenciesResponse() {}
-
-  /**
-   * Creates a new CurrenciesResponse with the given currencies map.
-   *
-   * @param currencies Map of currency codes to display names
-   */
-  public CurrenciesResponse(Map<String, String> currencies) {
-    this.currencies = currencies;
-  }
-
-  /**
-   * Gets the currencies map.
-   *
-   * @return Map of currency codes to their full display names
-   */
-  public Map<String, String> getCurrencies() {
-    return currencies != null ? currencies : Collections.emptyMap();
-  }
-
-  /**
-   * Sets the currencies map.
-   *
-   * @param currencies Map of currency codes to display names
-   */
-  public void setCurrencies(Map<String, String> currencies) {
-    this.currencies = currencies;
-  }
 }
 

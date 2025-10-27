@@ -1,7 +1,5 @@
 package org.freedger.repository.ditto.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Value;
@@ -13,7 +11,7 @@ public class GetInstrumentRequest {
   @Nullable
   private String transactionId;
 
-  @NonNull
+  @Nullable
   private String ledgerId;
 
   @NonNull

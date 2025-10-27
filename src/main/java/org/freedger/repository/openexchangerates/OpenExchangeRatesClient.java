@@ -1,10 +1,8 @@
 package org.freedger.repository.openexchangerates;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -45,7 +43,7 @@ public class OpenExchangeRatesClient {
 
   private final URI baseUri;
   private final String appId;
-  private final Gson gson;
+  private final ObjectMapper objectMapper;
   private final CloseableHttpClient httpClient;
 
   /**
@@ -71,7 +69,7 @@ public class OpenExchangeRatesClient {
     }
 
     this.appId = appId;
-    this.gson = new GsonBuilder().create();
+    this.objectMapper = new ObjectMapper();
 
     // Create a reusable HttpClient with connection pooling and timeouts
     RequestConfig config =
@@ -139,7 +137,7 @@ public class OpenExchangeRatesClient {
 
       // Create and execute the GET request
       final HttpGet httpGet = new HttpGet(uri);
-      HistoricalRatesResponse response = sendRequest(httpGet, HistoricalRatesResponse.class);
+      HistoricalRatesResponse response = sendRequest(httpGet, new TypeReference<HistoricalRatesResponse>() {});
 
       logger.debug("Successfully fetched historical rates for date: {}", dateStr);
       return response;
@@ -181,14 +179,14 @@ public class OpenExchangeRatesClient {
       // Build the URI with query parameters using URIBuilder
       URIBuilder uriBuilder = new URIBuilder(baseUri);
       uriBuilder.appendPathSegments("currencies.json");
-      uriBuilder.addParameter("show_alternative", request.getShowAlternative() ? "true" : "false");
-      uriBuilder.addParameter("show_inactive", request.getShowInactive() ? "true" : "false");
+      uriBuilder.addParameter("show_alternative", Boolean.toString(request.isShowAlternative()));
+      uriBuilder.addParameter("show_inactive", Boolean.toString(request.isShowInactive()));
 
       final URI uri = uriBuilder.build();
 
       final HttpGet httpGet = new HttpGet(uri);
       
-      return sendRequest(httpGet, new TypeToken<Map<String, String>>() {}.getType());
+      return sendRequest(httpGet, new TypeReference<Map<String, String>>() {});
     } catch (Exception e) {
       logger.error("Failed to fetch currencies", e);
       throw new IOException("Failed to fetch currencies", e);
@@ -200,11 +198,11 @@ public class OpenExchangeRatesClient {
    *
    * @param <T> The type of the response object
    * @param request The HTTP request to send
-   * @param responseClass The class of the response object
+   * @param responseType The type reference for the response object
    * @return The parsed response object
    * @throws IOException If the request fails, returns a non-2xx status code, or parsing fails
    */
-  private <T> T sendRequest(ClassicHttpRequest request, Type responseType) throws IOException {
+  private <T> T sendRequest(ClassicHttpRequest request, TypeReference<T> responseType) throws IOException {
     try {
       return httpClient.execute(
           request,
@@ -215,7 +213,7 @@ public class OpenExchangeRatesClient {
 
             if (statusCode >= 200 && statusCode < 300) {
               // Parse the response body to the specified class
-              return gson.fromJson(responseBody, responseType);
+              return objectMapper.readValue(responseBody, responseType);
             } else {
               logger.error("Request failed with status code {}: {}", statusCode, responseBody);
               throw new IOException(

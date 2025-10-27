@@ -2,153 +2,46 @@ package org.freedger.repository.openexchangerates.models;
 
 import java.util.Map;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * Response model for OpenExchangeRates historical rates API.
  *
  * <p>Contains exchange rate data for a specific date, with all rates relative to the base currency.
  */
+@Value
+@Builder
+@Jacksonized
 public class HistoricalRatesResponse {
   /** Optional disclaimer text. */
-  @SerializedName("disclaimer")
-  private String disclaimer;
+  @JsonProperty("disclaimer")
+  private final String disclaimer;
 
   /** Optional license information. */
-  @SerializedName("license")
-  private String license;
+  @JsonProperty("license")
+  private final String license;
 
   /**
    * UNIX timestamp indicating when the rates were published. Note: In JavaScript, multiply by 1000
    * as it uses milliseconds.
    */
-  @SerializedName("timestamp")
-  private Long timestamp;
+  @JsonProperty("timestamp")
+  private final Long timestamp;
 
   /**
    * The base currency code (3-letter ISO currency code) to which all exchange rates are relative
    * (e.g., "USD").
    */
-  @SerializedName("base")
-  private String base;
+  @JsonProperty("base")
+  private final String base;
 
   /**
    * Map of currency codes to exchange rates. Keys are 3-letter ISO currency codes, values are
    * exchange rates relative to 1 unit of the base currency.
    */
-  @SerializedName("rates")
-  private Map<String, Double> rates;
-
-  /**
-   * Gets the disclaimer text.
-   *
-   * @return The disclaimer text, or null if not present
-   */
-  public String getDisclaimer() {
-    return disclaimer;
-  }
-
-  /**
-   * Sets the disclaimer text.
-   *
-   * @param disclaimer The disclaimer text
-   */
-  public void setDisclaimer(String disclaimer) {
-    this.disclaimer = disclaimer;
-  }
-
-  /**
-   * Gets the license information.
-   *
-   * @return The license information, or null if not present
-   */
-  public String getLicense() {
-    return license;
-  }
-
-  /**
-   * Sets the license information.
-   *
-   * @param license The license information
-   */
-  public void setLicense(String license) {
-    this.license = license;
-  }
-
-  /**
-   * Gets the UNIX timestamp when the rates were published.
-   *
-   * @return The UNIX timestamp in seconds
-   */
-  public Long getTimestamp() {
-    return timestamp;
-  }
-
-  /**
-   * Sets the UNIX timestamp when the rates were published.
-   *
-   * @param timestamp The UNIX timestamp in seconds
-   */
-  public void setTimestamp(Long timestamp) {
-    this.timestamp = timestamp;
-  }
-
-  /**
-   * Gets the base currency code.
-   *
-   * @return The 3-letter ISO currency code (e.g., "USD")
-   */
-  public String getBase() {
-    return base;
-  }
-
-  /**
-   * Sets the base currency code.
-   *
-   * @param base The 3-letter ISO currency code
-   */
-  public void setBase(String base) {
-    this.base = base;
-  }
-
-  /**
-   * Gets the exchange rates map.
-   *
-   * @return Map of currency codes to exchange rates
-   */
-  public Map<String, Double> getRates() {
-    return rates;
-  }
-
-  /**
-   * Sets the exchange rates map.
-   *
-   * @param rates Map of currency codes to exchange rates
-   */
-  public void setRates(Map<String, Double> rates) {
-    this.rates = rates;
-  }
-
-  /**
-   * Gets the exchange rate for a specific currency.
-   *
-   * @param currencyCode The 3-letter ISO currency code
-   * @return The exchange rate, or null if the currency is not in the response
-   */
-  public Double getRate(String currencyCode) {
-    return rates != null ? rates.get(currencyCode) : null;
-  }
-
-  @Override
-  public String toString() {
-    return "HistoricalRatesResponse{"
-        + "timestamp="
-        + timestamp
-        + ", base='"
-        + base
-        + '\''
-        + ", ratesCount="
-        + (rates != null ? rates.size() : 0)
-        + '}';
-  }
+  @JsonProperty("rates")
+  private final Map<String, Double> rates;
 }
