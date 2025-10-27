@@ -33,6 +33,7 @@ import org.apache.hc.core5.util.Timeout;
 import org.freedger.repository.ditto.adapters.BigDecimalDeserializer;
 import org.freedger.repository.ditto.adapters.BigDecimalSerializer;
 import org.freedger.repository.ditto.adapters.InstantSerializer;
+import org.freedger.repository.ditto.exceptions.DittoException;
 import org.freedger.repository.ditto.exceptions.DittoNotFoundException;
 import org.freedger.repository.ditto.models.Account;
 import org.freedger.repository.ditto.models.AccountType;
@@ -262,6 +263,7 @@ public class DittoClient {
       final var transactionId = getTransactionId(writeResponse);
       return new DittoResponse<>(transactionId.orElse(null), createdLedger);
     } catch (Exception e) {
+      logger.error("Failed to create ledger", e);
       throw new IOException("Failed to create ledger", e);
     }
   }
@@ -396,6 +398,8 @@ public class DittoClient {
           .build();
       return new DittoResponse<>(transactionId.orElse(null), response);
     } catch (Exception e) {
+      logger.error("Failed to create currency. ledgerId={}",
+        request.getLedgerId(), e);
       throw new IOException("Failed to create currency", e);
     }
   }
@@ -474,7 +478,7 @@ public class DittoClient {
     }
   }
 
-  public DittoResponse<String> updateInstrument(UpdateInstrumentRequest request) throws IOException {
+  public DittoResponse<String> updateInstrument(UpdateInstrumentRequest request) throws IOException, DittoException {
     try {
       final var queryBuilder = new StringBuilder(String.format("UPDATE %s", Collection.INSTRUMENTS.getName()));
       final var now = Instant.now();
@@ -514,10 +518,16 @@ public class DittoClient {
           request.getTransactionId());
       final var mutatedIds = response.getMutatedDocumentIds();
       if (mutatedIds.isEmpty()) {
-        throw new DittoNotFoundException("No instrument found with ID: " + request.getInstrumentId());
+        throw new DittoNotFoundException(
+          String.format("No instrument found with ID. ledgerId=%s, instrumentId=%s", 
+          request.getLedgerId(), request.getInstrumentId()));
       }
       return new DittoResponse<String>(String.valueOf(response.getTransactionId()), request.getInstrumentId());
+    } catch (DittoException e) {
+      throw e;
     } catch (Exception e) {
+      logger.error("Failed to update instrument. ledgerId={}, instrumentId={}",
+        request.getLedgerId(), request.getInstrumentId(), e);
       throw new IOException("Failed to update instrument", e);
     }
   }
@@ -592,6 +602,8 @@ public class DittoClient {
           sendQueryRequest(new QueryRequest(query, args), Quote.class, LedgerChildId.class, request.getTransactionId());
       return new DittoResponse<String>(String.valueOf(response.getTransactionId()), quoteId);
     } catch (Exception e) {
+      logger.error("Failed to create quote. ledgerId={}, instrumentId={}",
+        request.getLedgerId(), request.getInstrumentId(), e);
       throw new IOException("Failed to create quote", e);
     }
   }

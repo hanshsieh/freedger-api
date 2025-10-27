@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.freedger.config.Config;
 import org.freedger.repository.ditto.DittoClient;
+import org.freedger.repository.ditto.exceptions.DittoException;
 import org.freedger.repository.ditto.models.CreateCurrencyRequest;
 import org.freedger.repository.ditto.models.CreateCurrencyResponse;
 import org.freedger.repository.ditto.models.CreateQuoteRequest;
@@ -88,6 +89,9 @@ public class QuoteUpdater {
         final var quotes = fetchQuotes(day.get());
         updateQuotesForDay(quotes, day.get());
       }
+    } catch (Exception e) {
+      logger.error("Failed to update quotes", e);
+      throw new IOException("Failed to update quotes", e);
     } finally {
       resetState();
     }
@@ -270,7 +274,7 @@ public class QuoteUpdater {
     return invertedRates;
   }
 
-  private void updateQuotesForDay(Map<String, Double> quotes, LocalDate day) throws IOException {
+  private void updateQuotesForDay(Map<String, Double> quotes, LocalDate day) throws IOException, DittoException {
     final var dayInstant = day.atStartOfDay().toInstant(ZoneOffset.UTC);
     Set<String> disableCodes = new HashSet<>();
     for (final CurrencyState state : stateByCode.values()) {
@@ -345,7 +349,7 @@ public class QuoteUpdater {
     logger.info("Created currency {} with instrument {}. Initial quote: {}", state.getCode(), state.getInstrumentId(), quote);
   }
 
-  private void updateInstrumentInitialQuote(CurrencyState state, double rate) throws IOException {
+  private void updateInstrumentInitialQuote(CurrencyState state, double rate) throws IOException, DittoException {
     String symbol = String.format("%s/%s", state.getCode(), quoteCurrencyCode);
     DittoResponse<String> updateResp = dittoClient.updateInstrument(
       UpdateInstrumentRequest.builder()
