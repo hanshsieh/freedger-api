@@ -28,6 +28,7 @@ import org.freedger.repository.ditto.models.CreateQuoteRequest;
 import org.freedger.repository.ditto.models.Currency;
 import org.freedger.repository.ditto.models.CurrencyType;
 import org.freedger.repository.ditto.models.DittoResponse;
+import org.freedger.repository.ditto.models.GetInstrumentRequest;
 import org.freedger.repository.ditto.models.QueryCurrenciesRequest;
 import org.freedger.repository.ditto.models.QueryQuotesRequest;
 import org.freedger.repository.ditto.models.Quote;
@@ -78,7 +79,6 @@ public class QuoteUpdater {
     }
 
     try {
-      resetState();
       initializeState();
       for (var updatedDays = 0; updatedDays < maxDays; updatedDays++) {
         if (stateByCode.isEmpty()) {
@@ -100,6 +100,7 @@ public class QuoteUpdater {
   }
 
   private void initializeState() throws IOException {
+    resetState();
     oxrConfig = loadConfig();
     quoteCurrencyCode = oxrConfig.getQuoteCurrency();
     resolveQuoteCurrencyId();
@@ -157,13 +158,27 @@ public class QuoteUpdater {
         continue;
       }
       Currency dbCurrency = dbCurrencies.get(code);
+      final var instrumentId = dbCurrency != null ? dbCurrency.getInstrumentId() : null;
+      if (instrumentId != null) {
+        // Verify that the instrument's quote currency is the same as the quote currency
+        final var instrumentResp = dittoClient.getInstrument(GetInstrumentRequest.builder()
+          .transactionId(transactionId)
+          .ledgerId(null)
+          .instrumentId(instrumentId)
+          .build());
+        if (!instrumentResp.getData().getQuoteCurrencyId().equals(quoteCurrencyId)) {
+          logger.warn("Instrument's quote currency mismatch. code={}, instrumentId={}, actual={}, expected={}",
+            code, instrumentId, instrumentResp.getData().getQuoteCurrencyId(), quoteCurrencyId);
+          continue;
+        }
+      }
       CurrencyType currencyType = mapCurrencyType(currencyConf.getType());
       CurrencyState state = CurrencyState.builder()
         .code(code)
         .name(currencyConf.getName())
         .decimalPlaces(currencyConf.getDecimalPlaces())
         .currencyType(currencyType)
-        .instrumentId(dbCurrency != null ? dbCurrency.getInstrumentId() : null)
+        .instrumentId(instrumentId)
         .build();
       stateByCode.put(code, state);
       if (state.getInstrumentId() != null) {
