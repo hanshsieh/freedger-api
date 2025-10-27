@@ -7,6 +7,6 @@ public enum OXRCurrencyType {
   FIAT,
   @JsonProperty("crypto")
   CRYPTO,
-  @JsonProperty("preciousMetals")
-  PRECIOUS_METALS,
+  @JsonProperty("commodity")
+  COMMODITY,
 }

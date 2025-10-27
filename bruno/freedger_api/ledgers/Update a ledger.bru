@@ -5,9 +5,13 @@ meta {
 }
 
 put {
-  url: {{baseUrl}}/ledgers/{{ledgerId}}
+  url: {{baseUrl}}/ledgers/:ledgerId
   body: json
   auth: inherit
+}
+
+params:path {
+  ledgerId: cb25b3a5633c4e78a8d7e587bc8034d7
 }
 
 body:json {

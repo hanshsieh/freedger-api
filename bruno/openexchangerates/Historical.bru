@@ -1,0 +1,27 @@
+meta {
+  name: Historical
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/historical/:date.json?app_id={{appId}}&base=USD
+  body: none
+  auth: inherit
+}
+
+params:query {
+  app_id: {{appId}}
+  base: USD
+  ~show_alternative: 
+  ~prettyprint: 
+}
+
+params:path {
+  date.json: 2025-10-26.json
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1118,14 +1118,14 @@
       "code": "XAG",
       "name": "Silver Ounce",
       "decimalPlaces": 8,
-      "type": "preciousMetals",
+      "type": "commodity",
       "enabled": false
     },
     {
       "code": "XAU",
       "name": "Gold Ounce",
       "decimalPlaces": 8,
-      "type": "preciousMetals",
+      "type": "commodity",
       "enabled": false
     },
     {
@@ -1160,7 +1160,7 @@
       "code": "XPD",
       "name": "Palladium Ounce",
       "decimalPlaces": 8,
-      "type": "preciousMetals",
+      "type": "commodity",
       "enabled": false
     },
     {
@@ -1174,7 +1174,7 @@
       "code": "XPT",
       "name": "Platinum Ounce",
       "decimalPlaces": 8,
-      "type": "preciousMetals",
+      "type": "commodity",
       "enabled": false
     },
     {
