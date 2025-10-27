@@ -21,8 +21,6 @@ public class CurrencyState {
 
   private int decimalPlaces;
 
-  private boolean enabled;
-
   @NonNull
   private CurrencyType currencyType;
 

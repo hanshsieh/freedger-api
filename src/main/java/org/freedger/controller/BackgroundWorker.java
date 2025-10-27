@@ -28,13 +28,13 @@ public class BackgroundWorker {
 
   @FunctionName("UpdateQuotes")
   public void updateQuotes(
-      @TimerTrigger(name = "timer", schedule = "0 0 3 * * *") String timerInfo,
+      //@TimerTrigger(name = "timer", schedule = "0 0 3 * * *") String timerInfo,
       // Uncomment the HttpTrigger and comment out the TimerTrigger to test locally
-      /*@HttpTrigger(
+      @HttpTrigger(
         name = "req", 
         methods = {HttpMethod.GET}, 
         route = "background/update-quotes",
-        authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<String> request,*/
+        authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<String> request,
       final ExecutionContext context) throws Exception {
     final var logger = context.getLogger();
     logger.info("Timer trigger function executed at: " + ZonedDateTime.now());

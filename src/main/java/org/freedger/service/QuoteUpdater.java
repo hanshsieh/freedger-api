@@ -8,10 +8,12 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
- 
+import java.util.Optional;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
  
@@ -74,26 +76,39 @@ public class QuoteUpdater {
       return;
     }
 
-    initializeConfig();
-    resolveQuoteCurrencyId();
-    Map<String, Currency> dbCurrencies = loadDbCurrencies();
-    buildStates(dbCurrencies);
-    List<LocalDate> dayPlan = planDays(maxDays);
-    if (dayPlan.isEmpty()) {
-      return;
-    }
-    for (LocalDate day : dayPlan) {
-      final var rates = fetchRates(day);
-      processDay(rates, day);
+    try {
+      resetState();
+      initializeState();
+      for (var updatedDays = 0; updatedDays < maxDays; updatedDays++) {
+        if (stateByCode.isEmpty()) {
+          break;
+        }
+        final var day = getNextDayToUpdate();
+        if (day.isEmpty()) {
+          break;
+        }
+        final var quotes = fetchQuotes(day.get());
+        updateQuotesForDay(quotes, day.get());
+      }
+    } finally {
+      resetState();
     }
   }
 
-  private void initializeConfig() throws IOException {
+  private void initializeState() throws IOException {
     oxrConfig = loadConfig();
+    quoteCurrencyCode = oxrConfig.getQuoteCurrency();
+    resolveQuoteCurrencyId();
+    Map<String, Currency> dbCurrencies = loadDbCurrencies();
+    buildStates(dbCurrencies);
+  }
+
+  private void resetState() {
     stateByCode.clear();
     transactionId = null;
     quoteCurrencyId = null;
-    quoteCurrencyCode = oxrConfig.getQuoteCurrency();
+    quoteCurrencyCode = null;
+    oxrConfig = null;
   }
 
   private void resolveQuoteCurrencyId() throws IOException {
@@ -129,21 +144,20 @@ public class QuoteUpdater {
   }
 
   private void buildStates(Map<String, Currency> dbCurrencies) throws IOException {
-    for (OXRCurrency conf : oxrConfig.getBaseCurrencies()) {
-      if (!conf.isEnabled()) {
+    for (OXRCurrency currencyConf : oxrConfig.getBaseCurrencies()) {
+      if (!currencyConf.isEnabled()) {
         continue;
       }
-      String code = conf.getCode();
+      String code = currencyConf.getCode();
       if (quoteCurrencyCode.equalsIgnoreCase(code)) {
         continue;
       }
       Currency dbCurrency = dbCurrencies.get(code);
-      CurrencyType currencyType = mapCurrencyType(conf.getType());
+      CurrencyType currencyType = mapCurrencyType(currencyConf.getType());
       CurrencyState state = CurrencyState.builder()
         .code(code)
-        .name(conf.getName())
-        .decimalPlaces(conf.getDecimalPlaces())
-        .enabled(conf.isEnabled())
+        .name(currencyConf.getName())
+        .decimalPlaces(currencyConf.getDecimalPlaces())
         .currencyType(currencyType)
         .instrumentId(dbCurrency != null ? dbCurrency.getInstrumentId() : null)
         .build();
@@ -155,6 +169,10 @@ public class QuoteUpdater {
   }
 
   private void populateStateBoundaries(CurrencyState state) throws IOException {
+    state.setEarliestDate(null);
+    state.setEarliestInstant(null);
+    state.setLatestDate(null);
+    state.setLatestInstant(null);
     // earliest
     DittoResponse<List<Quote>> earliestResp = dittoClient.queryQuotes(
       QueryQuotesRequest.builder()
@@ -186,19 +204,26 @@ public class QuoteUpdater {
     }
   }
 
-  private List<LocalDate> planDays(int maxDays) {
+  /**
+   * Returns the next day to update the quotes for.
+   * We cannot calculate all the days in advance because the states of the currencies
+   * will be updated as we go along, and the next day to update will depend on the states.
+   * For example, currency A has no quotes, and currency B has some quotes from T1 to T2. 
+   * We will update the quotes for A and B for T2 + 1. If T2 + 1 is the last stable date,
+   * the next day to update should be T2 because A's earliest date will be T2 + 1.
+   * 
+   * @return The next day to update the quotes for, or empty if no day is available.
+   */
+  private Optional<LocalDate> getNextDayToUpdate() {
     LocalDate nowUtcDate = LocalDate.now(ZoneOffset.UTC);
     LocalDate lastStableDate = nowUtcDate.minusDays(1);
-    List<LocalDate> plan = new ArrayList<>();
+    if (lastStableDate.isBefore(EARLIEST_DATE)) {
+      return Optional.empty();
+    }
 
     boolean hasAnyLatest = stateByCode.values().stream().anyMatch(s -> s.getLatestDate() != null);
     if (!hasAnyLatest) {
-      LocalDate date = lastStableDate;
-      while (!date.isBefore(EARLIEST_DATE) && plan.size() < maxDays) {
-        plan.add(date);
-        date = date.minusDays(1);
-      }
-      return plan;
+      return Optional.of(lastStableDate);
     }
     // Forward first
     LocalDate forwardStart = null;
@@ -211,37 +236,25 @@ public class QuoteUpdater {
       }
     }
     if (forwardStart != null && !forwardStart.isAfter(lastStableDate)) {
-      LocalDate date = forwardStart;
-      while (!date.isAfter(lastStableDate) && plan.size() < maxDays) {
-        plan.add(date);
-        date = date.plusDays(1);
-      }
+      return Optional.of(forwardStart);
     }
 
-    if (plan.size() < maxDays) {
-      LocalDate backwardStart = null;
-      for (CurrencyState state : stateByCode.values()) {
-        if (state.getEarliestDate() != null) {
-          LocalDate date = state.getEarliestDate();
-          if (backwardStart == null || date.isAfter(backwardStart)) {
-            backwardStart = date;
-          }
-        }
-      }
-      if (backwardStart != null) {
-        LocalDate date = backwardStart;
-        while (!date.isBefore(EARLIEST_DATE) && plan.size() < maxDays) {
-          if (!plan.contains(date)) {
-            plan.add(date);
-          }
-          date = date.minusDays(1);
+    LocalDate backwardStart = null;
+    for (CurrencyState state : stateByCode.values()) {
+      if (state.getEarliestDate() != null) {
+        LocalDate date = state.getEarliestDate();
+        if (backwardStart == null || date.isAfter(backwardStart)) {
+          backwardStart = date;
         }
       }
     }
-    return plan;
+    if (backwardStart != null && !backwardStart.isBefore(EARLIEST_DATE)) {
+      return Optional.of(backwardStart);
+    }
+    return Optional.empty();
   }
 
-  private Map<String, Double> fetchRates(LocalDate day) throws IOException {
+  private Map<String, Double> fetchQuotes(LocalDate day) throws IOException {
     final var resp =exchangeRatesClient.getHistoricalRates(HistoricalRatesRequest.builder()
       .date(day)
       // The OpenExchangeRates API returns the rates for the given base currency.
@@ -259,45 +272,44 @@ public class QuoteUpdater {
     return invertedRates;
   }
 
-  private void processDay(Map<String, Double> rates, LocalDate day) throws IOException {
-    final var quoteTime = day.atStartOfDay().toInstant(ZoneOffset.UTC);
-    for (CurrencyState state : stateByCode.values()) {
-      if (!state.isEnabled()) {
-        continue;
-      }
+  private void updateQuotesForDay(Map<String, Double> quotes, LocalDate day) throws IOException {
+    final var dayInstant = day.atStartOfDay().toInstant(ZoneOffset.UTC);
+    Set<String> disableCodes = new HashSet<>();
+    for (final CurrencyState state : stateByCode.values()) {
       final var code = state.getCode();
-      final var dayInstant = quoteTime;
       if (!shouldInsertQuote(state, dayInstant)) {
         continue;
       }
       
-      final var rate = rates.get(code);
-      if (rate == null) {
+      final var quote = quotes.get(code);
+      if (quote == null) {
         // Skip the update for this currency
-        state.setEnabled(false);
-        logger.warn("Rate for {} is not available for day {}", code, day);
+        disableCodes.add(code);
+        logger.warn("Quote for {} is not available for day {}", code, day);
         continue;
       }
 
       if (state.getInstrumentId() == null) {
-        createCurrency(state, rate);
+        createCurrency(state, quote);
         // After creation, boundaries become this day
         state.setEarliestInstant(dayInstant);
         state.setLatestInstant(dayInstant);
         state.setEarliestDate(day);
         state.setLatestDate(day);
       } else if (state.getEarliestInstant() == null || dayInstant.isBefore(state.getEarliestInstant())) {
-        updateInstrumentInitialQuote(state, rate);
+        updateInstrumentInitialQuote(state, quote);
         state.setEarliestInstant(dayInstant);
         state.setEarliestDate(day);
       }
-
-      createQuote(state, dayInstant, rate);
-
       if (state.getLatestInstant() == null || dayInstant.isAfter(state.getLatestInstant())) {
         state.setLatestInstant(dayInstant);
         state.setLatestDate(day);
       }
+
+      createQuote(state, dayInstant, quote);
+    }
+    for (String code : disableCodes) {
+      stateByCode.remove(code);
     }
   }
 
@@ -314,7 +326,7 @@ public class QuoteUpdater {
     return false;
   }
 
-  private void createCurrency(CurrencyState state, double rate) throws IOException {
+  private void createCurrency(CurrencyState state, double quote) throws IOException {
     CurrencyType currencyType = state.getCurrencyType();
     String symbol = String.format("%s/%s", state.getCode(), quoteCurrencyCode);
     DittoResponse<CreateCurrencyResponse> resp = dittoClient.createCurrency(
@@ -328,7 +340,7 @@ public class QuoteUpdater {
         .decimals(state.getDecimalPlaces())
         .category(mapInstrumentCategory(currencyType))
         .quoteCurrencyId(quoteCurrencyId)
-        .initialQuote(BigDecimal.valueOf(rate))
+        .initialQuote(BigDecimal.valueOf(quote))
         .build());
     this.transactionId = resp.getTransactionId();
     state.setInstrumentId(resp.getData().getInstrumentId());
@@ -351,14 +363,14 @@ public class QuoteUpdater {
     this.transactionId = updateResp.getTransactionId();
   }
 
-  private void createQuote(CurrencyState st, Instant time, double rate) throws IOException {
+  private void createQuote(CurrencyState state, Instant time, double quote) throws IOException {
     DittoResponse<String> createQuoteResp = dittoClient.createQuote(
       CreateQuoteRequest.builder()
         .transactionId(transactionId)
         .ledgerId(null)
-        .instrumentId(st.getInstrumentId())
+        .instrumentId(state.getInstrumentId())
         .time(time)
-        .value(BigDecimal.valueOf(rate))
+        .value(BigDecimal.valueOf(quote))
         .source(SOURCE)
         .build());
     this.transactionId = createQuoteResp.getTransactionId();
