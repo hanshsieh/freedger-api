@@ -37,7 +37,7 @@ public class BackgroundWorker {
         authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<String> request,
       final ExecutionContext context) throws Exception {
     final var logger = context.getLogger();
-    logger.info("Timer trigger function executed at: " + ZonedDateTime.now());
+    logger.info("Timer trigger function executed at: {}" + ZonedDateTime.now());
     try {
       quoteUpdater.updateQuotes(config.quotesUpdateDays());
     } catch (Exception ex) {

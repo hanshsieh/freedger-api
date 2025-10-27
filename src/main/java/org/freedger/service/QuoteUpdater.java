@@ -287,7 +287,8 @@ public class QuoteUpdater {
       if (quote == null) {
         // Skip the update for this currency
         disableCodes.add(code);
-        logger.warn("Quote for {} is not available for day {}", code, day);
+        logger.warn("Quote not available for currency on a day. instrumentId={}, code={}, day={}",
+          state.getInstrumentId(), code, day);
         continue;
       }
 
@@ -346,10 +347,11 @@ public class QuoteUpdater {
         .build());
     this.transactionId = resp.getTransactionId();
     state.setInstrumentId(resp.getData().getInstrumentId());
-    logger.info("Created currency {} with instrument {}. Initial quote: {}", state.getCode(), state.getInstrumentId(), quote);
+    logger.info("Created currency. currencyId={}, instrumentId={}, initialQuote={}", 
+      resp.getData().getCurrencyId(), resp.getData().getInstrumentId(), quote);
   }
 
-  private void updateInstrumentInitialQuote(CurrencyState state, double rate) throws IOException, DittoException {
+  private void updateInstrumentInitialQuote(CurrencyState state, double quote) throws IOException, DittoException {
     String symbol = String.format("%s/%s", state.getCode(), quoteCurrencyCode);
     DittoResponse<String> updateResp = dittoClient.updateInstrument(
       UpdateInstrumentRequest.builder()
@@ -361,10 +363,11 @@ public class QuoteUpdater {
         .category(mapInstrumentCategory(state.getCurrencyType()))
         .decimals(state.getDecimalPlaces())
         .quoteCurrencyId(quoteCurrencyId)
-        .initialQuote(BigDecimal.valueOf(rate))
+        .initialQuote(BigDecimal.valueOf(quote))
         .build());
     this.transactionId = updateResp.getTransactionId();
-    logger.info("Updated instrument {} of currency {}. Initial quote: {}", state.getInstrumentId(), state.getCode(), rate);
+    logger.info("Updated instrument. instrumentId={}, initialQuote={}", 
+      state.getInstrumentId(), quote);
   }
 
   private void createQuote(CurrencyState state, Instant time, double quote) throws IOException {
@@ -378,8 +381,8 @@ public class QuoteUpdater {
         .source(SOURCE)
         .build());
     this.transactionId = createQuoteResp.getTransactionId();
-    logger.info("Created quote for currency {}. Instrument: {}, Time: {}, Value: {}",
-      state.getCode(), state.getInstrumentId(), time, quote);
+    logger.info("Created quote. instrumentId={}, code={}, time={}, value={}",
+      state.getInstrumentId(), state.getCode(), time, quote);
   }
 
   private OXRConfig loadConfig() throws IOException {
