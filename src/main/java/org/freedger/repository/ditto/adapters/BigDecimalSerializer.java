@@ -14,7 +14,8 @@ public class BigDecimalSerializer extends JsonSerializer<BigDecimal> {
       return;
     }
     gen.writeStartObject();
-    gen.writeStringField("strValue", value.toPlainString());
+    // Notice that the string may contain scientific notation
+    gen.writeStringField("strValue", value.toString());
     gen.writeNumberField("numValue", value.doubleValue());
     gen.writeEndObject();
   }
