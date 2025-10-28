@@ -1,5 +1,7 @@
 package org.freedger.service;
 
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import com.microsoft.azure.functions.ExecutionContext;
@@ -31,5 +33,20 @@ public class ContextService {
       return context.getLogger();
     }
     return fallbackLogger;
+  }
+
+  public void log(Level level, String message, Object... args) {
+    loge(level, null, message, args);
+  }
+
+  public void loge(Level level, Throwable throwable, String message, Object... args) {
+    final var logger = getLogger();
+    if (logger.isLoggable(level)) {
+      return;
+    }
+    final var record = new LogRecord(level, message);
+    record.setParameters(args);
+    record.setThrown(throwable);
+    logger.log(record);
   }
 }
