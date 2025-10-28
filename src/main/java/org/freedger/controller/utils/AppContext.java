@@ -36,10 +36,10 @@ public class AppContext {
   }
 
   public static void log(Level level, String message, Object... args) {
-    loge(level, null, message, args);
+    log(level, null, message, args);
   }
 
-  public static void loge(Level level, Throwable throwable, String message, Object... args) {
+  public static void log(Level level, Throwable throwable, String message, Object... args) {
     final var logger = getLogger();
     if (!logger.isLoggable(level)) {
       return;

@@ -94,7 +94,7 @@ public class QuoteUpdater {
         updateQuotesForDay(quotes, day.get());
       }
     } catch (Exception e) {
-      AppContext.loge(Level.SEVERE, e, "Failed to update quotes");
+      AppContext.log(Level.SEVERE, e, "Failed to update quotes");
       throw new IOException("Failed to update quotes", e);
     } finally {
       resetState();

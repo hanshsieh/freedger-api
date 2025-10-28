@@ -143,7 +143,7 @@ public class OpenExchangeRatesClient {
       return response;
 
     } catch (Exception e) {
-      AppContext.loge(Level.SEVERE, e, "Failed to fetch historical rates for date: {0}", request.getDate());
+      AppContext.log(Level.SEVERE, e, "Failed to fetch historical rates for date: {0}", request.getDate());
       throw new IOException("Failed to fetch historical rates", e);
     }
   }
@@ -188,7 +188,7 @@ public class OpenExchangeRatesClient {
       
       return sendRequest(httpGet, new TypeReference<Map<String, String>>() {});
     } catch (Exception e) {
-      AppContext.loge(Level.SEVERE, e, "Failed to fetch currencies");
+      AppContext.log(Level.SEVERE, e, "Failed to fetch currencies");
       throw new IOException("Failed to fetch currencies", e);
     }
   }
