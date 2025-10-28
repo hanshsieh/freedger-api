@@ -32,12 +32,11 @@ public class BackgroundWorker {
         route = "background/update-quotes",
         authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<String> request,*/
       final ExecutionContext context) throws Exception {
-    final var logger = context.getLogger();
     try {
       AppContext.setContext(context);
       quoteUpdater.updateQuotes(config.quotesUpdateDays());
     } catch (Exception ex) {
-      logger.log(Level.SEVERE, "Error updating quotes", ex);
+      AppContext.log(Level.SEVERE, ex, "Error updating quotes");
       throw ex;
     } finally {
       AppContext.clearContext();

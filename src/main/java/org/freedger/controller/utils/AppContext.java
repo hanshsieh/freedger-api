@@ -1,5 +1,6 @@
 package org.freedger.controller.utils;
 
+import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -27,7 +28,7 @@ public class AppContext {
   }
 
   @NotNull
-  public static Logger getLogger() {
+  private static Logger getLogger() {
     final var context = getContext();
     if (context != null) {
       return context.getLogger();
@@ -44,8 +45,11 @@ public class AppContext {
     if (!logger.isLoggable(level)) {
       return;
     }
-    final var record = new LogRecord(level, message);
-    record.setParameters(args);
+    // Azure functions won't format the message so `Record.setParameters` won't work.
+    String formatted = (args == null || args.length == 0)
+      ? message
+      : MessageFormat.format(message, args);
+    final var record = new LogRecord(level, formatted);
     record.setThrown(throwable);
     logger.log(record);
   }

@@ -65,11 +65,8 @@ public class DittoApi {
               route = "ditto/authorize")
           HttpRequestMessage<AuthorizeRequest> request,
       final ExecutionContext context) {
-    final var logger = context.getLogger();
     try {
       AppContext.setContext(context);
-      AppContext.log(Level.WARNING, "Debug: Log without exception: {0}", "Hello world");
-      AppContext.log(Level.WARNING, new Exception("Test exception"), "Debug: Log with exception: {0}", "Hello world");
       // Validate request
       validateRequest(context, request);
 
@@ -115,19 +112,19 @@ public class DittoApi {
         .build());
       return request.createResponseBuilder(HttpStatus.OK).body(response).build();
     } catch (ValidationException | IllegalArgumentException e) {
-      logger.fine("Invalid request: " + e.getMessage());
+      AppContext.log(Level.FINE, "Invalid request: {0}", e.getMessage());
       return request
           .createResponseBuilder(HttpStatus.BAD_REQUEST)
           .body(new AuthorizeResponse().authenticate(false))
           .build();
     } catch (SecurityException e) {
-      logger.info("Token validation failed: " + e.getMessage());
+      AppContext.log(Level.INFO, "Token validation failed: {0}", e.getMessage());
       return request
           .createResponseBuilder(HttpStatus.UNAUTHORIZED)
           .body(new AuthorizeResponse().authenticate(false))
           .build();
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Error processing Ditto permissions request", e);
+      AppContext.log(Level.SEVERE, e, "Error processing Ditto permissions request");
       return request
           .createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(new AuthorizeResponse().authenticate(false))

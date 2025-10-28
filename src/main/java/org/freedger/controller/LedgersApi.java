@@ -53,7 +53,6 @@ public class LedgersApi {
               route = "ledgers")
           HttpRequestMessage<CreateLedger> request,
       final ExecutionContext context) {
-    final var logger = context.getLogger();
     try {
       AppContext.setContext(context);
       requestValidator.validate(request.getBody());
@@ -73,19 +72,19 @@ public class LedgersApi {
               createdLedger.getTransactionId())
           .build();
     } catch (ValidationException e) {
-      logger.fine("Invalid request: " + e.getMessage());
+      AppContext.log(Level.FINE, "Invalid request: {0}", e.getMessage());
       return request
           .createResponseBuilder(HttpStatus.BAD_REQUEST)
           .body(new ErrorResponse().code(ErrorCode.INVALID_REQUEST).message(e.getMessage()))
           .build();
     } catch (SecurityException e) {
-      logger.info("Token validation failed: " + e.getMessage());
+      AppContext.log(Level.INFO, "Token validation failed: {0}", e.getMessage());
       return request
           .createResponseBuilder(HttpStatus.UNAUTHORIZED)
           .body(new ErrorResponse().code(ErrorCode.UNAUTHORIZED).message(e.getMessage()))
           .build();
     } catch (Exception ex) {
-      logger.log(Level.SEVERE, "Error processing create ledger request", ex);
+      AppContext.log(Level.SEVERE, ex, "Error processing create ledger request");
       return request
           .createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(new ErrorResponse().code(ErrorCode.SERVER_ERROR).message(ex.getMessage()))
