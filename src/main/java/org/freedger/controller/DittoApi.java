@@ -68,7 +68,8 @@ public class DittoApi {
     final var logger = context.getLogger();
     try {
       AppContext.setContext(context);
-      AppContext.log(Level.WARN, "Debug DittoAuthorize request");
+      AppContext.log(Level.WARNING, "Debug: Log without exception: {0}", "Hello world");
+      AppContext.log(Level.WARNING, new Exception("Test exception"), "Debug: Log with exception: {0}", "Hello world");
       // Validate request
       validateRequest(context, request);
 
