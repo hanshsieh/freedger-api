@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.logging.Level;
 import javax.inject.Inject;
 import org.freedger.config.Config;
+import org.freedger.controller.utils.AppContext;
 import org.freedger.domain.models.DittoAuthRequest;
 import org.freedger.domain.models.Scope;
 import org.freedger.domain.models.ScopePredicate;
@@ -66,6 +67,7 @@ public class DittoApi {
       final ExecutionContext context) {
     final var logger = context.getLogger();
     try {
+      AppContext.setContext(context);
       // Validate request
       validateRequest(context, request);
 
@@ -128,6 +130,8 @@ public class DittoApi {
           .createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(new AuthorizeResponse().authenticate(false))
           .build();
+    } finally {
+      AppContext.clearContext();
     }
   }
 

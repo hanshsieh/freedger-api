@@ -9,6 +9,7 @@ import jakarta.validation.ValidationException;
 import java.util.logging.Level;
 import javax.inject.Inject;
 
+import org.freedger.controller.utils.AppContext;
 import org.freedger.domain.exception.NotFoundException;
 import org.freedger.domain.models.CreateLedgerRequest;
 import org.freedger.domain.models.Scope;
@@ -54,6 +55,7 @@ public class LedgersApi {
       final ExecutionContext context) {
     final var logger = context.getLogger();
     try {
+      AppContext.setContext(context);
       requestValidator.validate(request.getBody());
       final var jwtToken = tokenValidator.validate(request, writeLedgersPredicate);
       final var reqLedgerCreate = request.getBody();
@@ -88,6 +90,8 @@ public class LedgersApi {
           .createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(new ErrorResponse().code(ErrorCode.SERVER_ERROR).message(ex.getMessage()))
           .build();
+    } finally {
+      AppContext.clearContext();
     }
   }
 
@@ -103,6 +107,7 @@ public class LedgersApi {
       final ExecutionContext context) {
     final var logger = context.getLogger();
     try {
+      AppContext.setContext(context);
       if (ledgerId == null) {
         throw new ValidationException("Ledger ID is required");
       }
@@ -151,6 +156,8 @@ public class LedgersApi {
           .createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(new ErrorResponse().code(ErrorCode.SERVER_ERROR).message(ex.getMessage()))
           .build();
+    } finally {
+      AppContext.clearContext();
     }
   }
 }
