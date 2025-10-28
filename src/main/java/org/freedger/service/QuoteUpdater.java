@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
  
@@ -41,14 +42,12 @@ import org.freedger.service.models.CurrencyState;
 import org.freedger.service.models.OXRConfig;
 import org.freedger.service.models.OXRCurrency;
 import org.freedger.service.models.OXRCurrencyType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class QuoteUpdater {
-  private static final Logger logger = LoggerFactory.getLogger(QuoteUpdater.class);
   private static final String SOURCE = "openexchangerates.org";
   private static final LocalDate EARLIEST_DATE = LocalDate.of(1999, 1, 1);
 
+  private final ContextService contextService;
   private final OpenExchangeRatesClient exchangeRatesClient;
   private final DittoClient dittoClient;
   /**
@@ -63,7 +62,11 @@ public class QuoteUpdater {
   private String quoteCurrencyId;
   private String quoteCurrencyCode;
 
-  public QuoteUpdater(Config config, OpenExchangeRatesClient openExchangeRatesClient, DittoClient dittoClient) {
+  public QuoteUpdater(ContextService contextService, 
+    Config config, 
+    OpenExchangeRatesClient openExchangeRatesClient, 
+    DittoClient dittoClient) {
+    this.contextService = contextService;
     this.configPath = config.openExchangeRatesConfigPath();
     this.exchangeRatesClient = openExchangeRatesClient;
     this.dittoClient = dittoClient;
@@ -92,7 +95,7 @@ public class QuoteUpdater {
         updateQuotesForDay(quotes, day.get());
       }
     } catch (Exception e) {
-      logger.error("Failed to update quotes", e);
+      contextService.getLogger().log(Level.SEVERE, "Failed to update quotes", e);
       throw new IOException("Failed to update quotes", e);
     } finally {
       resetState();
@@ -167,8 +170,10 @@ public class QuoteUpdater {
           .instrumentId(instrumentId)
           .build());
         if (!instrumentResp.getData().getQuoteCurrencyId().equals(quoteCurrencyId)) {
-          logger.warn("Instrument's quote currency mismatch. code={}, instrumentId={}, actual={}, expected={}",
-            code, instrumentId, instrumentResp.getData().getQuoteCurrencyId(), quoteCurrencyId);
+          contextService.getLogger().log(
+            Level.WARNING, 
+            "Instrument's quote currency mismatch. code={0}, instrumentId={1}, actual={2}, expected={3}",
+            new Object[] {code, instrumentId, instrumentResp.getData().getQuoteCurrencyId(), quoteCurrencyId});
           continue;
         }
       }
@@ -318,8 +323,10 @@ public class QuoteUpdater {
       if (quote == null) {
         // Skip the update for this currency
         disableCodes.add(code);
-        logger.warn("Quote not available for currency on a day. instrumentId={}, code={}, day={}",
-          state.getInstrumentId(), code, day);
+        contextService.getLogger().log(
+          Level.WARNING, 
+          "Quote not available for currency on a day. instrumentId={0}, code={1}, day={2}",
+          new Object[] {state.getInstrumentId(), code, day});
         continue;
       }
 
@@ -374,8 +381,10 @@ public class QuoteUpdater {
         .build());
     this.transactionId = resp.getTransactionId();
     state.setInstrumentId(resp.getData().getInstrumentId());
-    logger.info("Created currency. currencyId={}, instrumentId={}, initialQuote={}", 
-      resp.getData().getCurrencyId(), resp.getData().getInstrumentId(), quote);
+    contextService.getLogger().log(
+      Level.INFO, 
+      "Created currency. currencyId={0}, instrumentId={1}, initialQuote={2}", 
+      new Object[] {resp.getData().getCurrencyId(), resp.getData().getInstrumentId(), quote});
   }
 
   private void updateInstrumentInitialQuote(CurrencyState state, double quote) throws IOException, DittoException {
@@ -393,8 +402,10 @@ public class QuoteUpdater {
         .initialQuote(BigDecimal.valueOf(quote))
         .build());
     this.transactionId = updateResp.getTransactionId();
-    logger.info("Updated instrument. instrumentId={}, initialQuote={}", 
-      state.getInstrumentId(), quote);
+    contextService.getLogger().log(
+      Level.INFO, 
+      "Updated instrument. instrumentId={0}, initialQuote={1}", 
+      new Object[] {state.getInstrumentId(), quote});
   }
 
   private void createQuote(CurrencyState state, Instant time, double quote) throws IOException {
@@ -408,8 +419,10 @@ public class QuoteUpdater {
         .source(SOURCE)
         .build());
     this.transactionId = createQuoteResp.getTransactionId();
-    logger.info("Created quote. instrumentId={}, code={}, time={}, value={}",
-      state.getInstrumentId(), state.getCode(), time, quote);
+    contextService.getLogger().log(
+      Level.INFO, 
+      "Created quote. instrumentId={0}, code={1}, time={2}, value={3}",
+      new Object[] {state.getInstrumentId(), state.getCode(), time, quote});
   }
 
   private OXRConfig loadConfig() throws IOException {

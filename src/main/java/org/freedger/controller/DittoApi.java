@@ -22,8 +22,6 @@ import org.freedger.service.AuthService;
 import org.freedger.service.HttpMessageSerializer;
 import org.freedger.service.RequestValidator;
 import org.freedger.service.TokenValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Azure Functions with HTTP Trigger for Ditto APIs. */
 public class DittoApi {
@@ -33,7 +31,6 @@ public class DittoApi {
   private final TokenValidator tokenValidator;
   private final ScopePredicate scopePredicate;
   private final HttpMessageSerializer serializer;
-  private static final Logger slf4jLogger = LoggerFactory.getLogger(DittoApi.class);
 
   @Inject
   public DittoApi(

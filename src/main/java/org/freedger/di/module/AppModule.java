@@ -18,6 +18,7 @@ import org.freedger.config.EnvConfig;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.openexchangerates.OpenExchangeRatesClient;
 import org.freedger.service.AuthService;
+import org.freedger.service.ContextService;
 import org.freedger.service.HttpMessageSerializer;
 import org.freedger.service.LedgerService;
 import org.freedger.service.QuoteUpdater;
@@ -68,10 +69,17 @@ public class AppModule {
   @Provides
   @Singleton
   public QuoteUpdater provideQuoteUpdater(
+    ContextService contextService,
     Config config, 
     OpenExchangeRatesClient exchangeRatesClient, 
     DittoClient dittoClient) {
-    return new QuoteUpdater(config, exchangeRatesClient, dittoClient);
+    return new QuoteUpdater(contextService, config, exchangeRatesClient, dittoClient);
+  }
+
+  @Provides
+  @Singleton
+  public ContextService provideContextService() {
+    return new ContextService();
   }
 
   @Provides
