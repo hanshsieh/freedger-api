@@ -41,7 +41,7 @@ public class AppContext {
 
   public static void loge(Level level, Throwable throwable, String message, Object... args) {
     final var logger = getLogger();
-    if (logger.isLoggable(level)) {
+    if (!logger.isLoggable(level)) {
       return;
     }
     final var record = new LogRecord(level, message);

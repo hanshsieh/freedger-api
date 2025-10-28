@@ -119,6 +119,7 @@ public class QuoteUpdater {
   }
 
   private void resolveQuoteCurrencyId() throws IOException {
+    AppContext.log(Level.FINE, "Resolving quote currency ID. quoteCurrencyCode={0}", quoteCurrencyCode);
     DittoResponse<List<Currency>> usdQueryResp = dittoClient.queryCurrencies(
       QueryCurrenciesRequest.builder()
         .transactionId(transactionId)
@@ -137,6 +138,7 @@ public class QuoteUpdater {
   }
 
   private Map<String, Currency> loadDbCurrencies() throws IOException {
+    AppContext.log(Level.FINE, "Loading all currencies from Ditto store");
     DittoResponse<List<Currency>> allCurResp = dittoClient.queryCurrencies(
       QueryCurrenciesRequest.builder()
         .transactionId(transactionId)
@@ -162,6 +164,7 @@ public class QuoteUpdater {
       Currency dbCurrency = dbCurrencies.get(code);
       final var instrumentId = dbCurrency != null ? dbCurrency.getInstrumentId() : null;
       if (instrumentId != null) {
+        AppContext.log(Level.FINE, "Verifying instrument's quote currency. instrumentId={0}", instrumentId);
         // Verify that the instrument's quote currency is the same as the quote currency
         final var instrumentResp = dittoClient.getInstrument(GetInstrumentRequest.builder()
           .transactionId(transactionId)
@@ -171,7 +174,7 @@ public class QuoteUpdater {
         if (!instrumentResp.getData().getQuoteCurrencyId().equals(quoteCurrencyId)) {
           AppContext.log(
             Level.WARNING, 
-            "Instrument's quote currency mismatch. code={0}, instrumentId={1}, actual={2}, expected={3}",
+            "Instrument's quote currency mismatch, skipped it. code={0}, instrumentId={1}, actual={2}, expected={3}",
             code, instrumentId, instrumentResp.getData().getQuoteCurrencyId(), quoteCurrencyId);
           continue;
         }
@@ -292,6 +295,7 @@ public class QuoteUpdater {
   }
 
   private Map<String, Double> fetchQuotes(LocalDate day) throws IOException {
+    AppContext.log(Level.FINE, "Fetching quotes for day. day={0}", day);
     final var resp = exchangeRatesClient.getHistoricalRates(HistoricalRatesRequest.builder()
       .date(day)
       // The OpenExchangeRates API returns the rates for the given base currency.
@@ -310,6 +314,7 @@ public class QuoteUpdater {
   }
 
   private void updateQuotesForDay(Map<String, Double> quotes, LocalDate day) throws IOException, DittoException {
+    AppContext.log(Level.INFO, "Updating quotes for day. day={0}", day);
     final var dayInstant = day.atStartOfDay().toInstant(ZoneOffset.UTC);
     Set<String> disableCodes = new HashSet<>();
     for (final CurrencyState state : stateByCode.values()) {
