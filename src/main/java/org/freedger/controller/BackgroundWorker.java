@@ -5,7 +5,7 @@ import java.util.logging.Level;
 import javax.inject.Inject;
 
 import org.freedger.config.Config;
-import org.freedger.service.ContextService;
+import org.freedger.controller.utils.AppContext;
 import org.freedger.service.QuoteUpdater;
 
 import com.microsoft.azure.functions.ExecutionContext;
@@ -13,13 +13,11 @@ import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.TimerTrigger;
 
 public class BackgroundWorker {
-  private final ContextService contextService;
   private final Config config;
   private final QuoteUpdater quoteUpdater;
 
   @Inject
-  BackgroundWorker(ContextService contextService, Config config, QuoteUpdater quoteUpdater) {
-    this.contextService = contextService;
+  BackgroundWorker(Config config, QuoteUpdater quoteUpdater) {
     this.config = config;
     this.quoteUpdater = quoteUpdater;
   }
@@ -36,13 +34,13 @@ public class BackgroundWorker {
       final ExecutionContext context) throws Exception {
     final var logger = context.getLogger();
     try {
-      contextService.setContext(context);
+      AppContext.setContext(context);
       quoteUpdater.updateQuotes(config.quotesUpdateDays());
     } catch (Exception ex) {
       logger.log(Level.SEVERE, "Error updating quotes", ex);
       throw ex;
     } finally {
-      contextService.clearContext();
+      AppContext.clearContext();
     }
   }
 

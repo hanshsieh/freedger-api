@@ -1,4 +1,4 @@
-package org.freedger.service;
+package org.freedger.controller.utils;
 
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -9,25 +9,25 @@ import com.microsoft.azure.functions.ExecutionContext;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 
-public class ContextService {
-  private final ThreadLocal<ExecutionContext> executionContext = new ThreadLocal<>();
-  private static final Logger fallbackLogger = Logger.getLogger(ContextService.class.getName());
+public class AppContext {
+  private static final ThreadLocal<ExecutionContext> localContext = new ThreadLocal<>();
+  private static final Logger fallbackLogger = Logger.getLogger(AppContext.class.getName());
 
-  public void setContext(@Nullable ExecutionContext executionContext) {
-    this.executionContext.set(executionContext);
+  public static void setContext(@Nullable ExecutionContext context) {
+    localContext.set(context);
   }
 
   @Nullable
-  public ExecutionContext getContext() {
-    return executionContext.get();
+  public static ExecutionContext getContext() {
+    return localContext.get();
   }
 
-  public void clearContext() {
-    executionContext.remove();
+  public static void clearContext() {
+    localContext.remove();
   }
 
   @NotNull
-  public Logger getLogger() {
+  public static Logger getLogger() {
     final var context = getContext();
     if (context != null) {
       return context.getLogger();
@@ -35,11 +35,11 @@ public class ContextService {
     return fallbackLogger;
   }
 
-  public void log(Level level, String message, Object... args) {
+  public static void log(Level level, String message, Object... args) {
     loge(level, null, message, args);
   }
 
-  public void loge(Level level, Throwable throwable, String message, Object... args) {
+  public static void loge(Level level, Throwable throwable, String message, Object... args) {
     final var logger = getLogger();
     if (logger.isLoggable(level)) {
       return;

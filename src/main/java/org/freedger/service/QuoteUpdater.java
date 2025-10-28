@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  
 
 import org.freedger.config.Config;
+import org.freedger.controller.utils.AppContext;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.ditto.exceptions.DittoException;
 import org.freedger.repository.ditto.models.CreateCurrencyRequest;
@@ -47,7 +48,6 @@ public class QuoteUpdater {
   private static final String SOURCE = "openexchangerates.org";
   private static final LocalDate EARLIEST_DATE = LocalDate.of(1999, 1, 1);
 
-  private final ContextService contextService;
   private final OpenExchangeRatesClient exchangeRatesClient;
   private final DittoClient dittoClient;
   /**
@@ -62,11 +62,10 @@ public class QuoteUpdater {
   private String quoteCurrencyId;
   private String quoteCurrencyCode;
 
-  public QuoteUpdater(ContextService contextService, 
+  public QuoteUpdater(
     Config config, 
     OpenExchangeRatesClient openExchangeRatesClient, 
     DittoClient dittoClient) {
-    this.contextService = contextService;
     this.configPath = config.openExchangeRatesConfigPath();
     this.exchangeRatesClient = openExchangeRatesClient;
     this.dittoClient = dittoClient;
@@ -95,7 +94,7 @@ public class QuoteUpdater {
         updateQuotesForDay(quotes, day.get());
       }
     } catch (Exception e) {
-      contextService.loge(Level.SEVERE, e, "Failed to update quotes");
+      AppContext.loge(Level.SEVERE, e, "Failed to update quotes");
       throw new IOException("Failed to update quotes", e);
     } finally {
       resetState();
@@ -170,7 +169,7 @@ public class QuoteUpdater {
           .instrumentId(instrumentId)
           .build());
         if (!instrumentResp.getData().getQuoteCurrencyId().equals(quoteCurrencyId)) {
-          contextService.log(
+          AppContext.log(
             Level.WARNING, 
             "Instrument's quote currency mismatch. code={0}, instrumentId={1}, actual={2}, expected={3}",
             code, instrumentId, instrumentResp.getData().getQuoteCurrencyId(), quoteCurrencyId);
@@ -323,7 +322,7 @@ public class QuoteUpdater {
       if (quote == null) {
         // Skip the update for this currency
         disableCodes.add(code);
-        contextService.log(
+        AppContext.log(
           Level.WARNING, 
           "Quote not available for currency on a day. instrumentId={0}, code={1}, day={2}",
           state.getInstrumentId(), code, day);
@@ -381,7 +380,7 @@ public class QuoteUpdater {
         .build());
     this.transactionId = resp.getTransactionId();
     state.setInstrumentId(resp.getData().getInstrumentId());
-    contextService.log(
+    AppContext.log(
       Level.INFO, 
       "Created currency. currencyId={0}, instrumentId={1}, initialQuote={2}", 
       resp.getData().getCurrencyId(), resp.getData().getInstrumentId(), quote);
@@ -402,7 +401,7 @@ public class QuoteUpdater {
         .initialQuote(BigDecimal.valueOf(quote))
         .build());
     this.transactionId = updateResp.getTransactionId();
-    contextService.log(
+    AppContext.log(
       Level.INFO, 
       "Updated instrument. instrumentId={0}, initialQuote={1}", 
       state.getInstrumentId(), quote);
@@ -419,7 +418,7 @@ public class QuoteUpdater {
         .source(SOURCE)
         .build());
     this.transactionId = createQuoteResp.getTransactionId();
-    contextService.log(
+    AppContext.log(
       Level.INFO, 
       "Created quote. instrumentId={0}, code={1}, time={2}, value={3}",
       state.getInstrumentId(), state.getCode(), time, quote);
