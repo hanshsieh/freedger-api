@@ -69,6 +69,7 @@ public class DittoApi {
       final ExecutionContext context) {
     final var logger = context.getLogger();
     slf4jLogger.warn("DittoAuthorize: {}", "Hello kitty!", new Exception("Hello world!"));
+    logger.log(Level.WARNING, "DittoAuthorize from context logger: " + "Hello kitty!", new Exception("Hello world!"));
     try {
       // Validate request
       validateRequest(context, request);
