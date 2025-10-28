@@ -71,9 +71,13 @@ See `.github\workflows\main_freedger-api.yml` for the workflow definition.
 ## Logging
 This project uses `slf4j-jdk14` for logging. (It was observed that the severity level of Application Insights won't be 
 correctly populated when using `logback`.)
-When deployed to Azure Functions, both the logs sent via `ExecutionContext#getLogger()` and `SLF4J` are automatically sent to Application Insights. But only the logs sent via `ExecutionContext#getLogger()` will have the `operation_Id` set.  
+When deployed to Azure Functions, both the logs sent via `ExecutionContext#getLogger()` and `SLF4J` are automatically sent to Application Insights. But only the logs sent via `ExecutionContext#getLogger()` will have the `operation_Id` field.  
 Therefore, when possible, use `ExecutionContext#getLogger()` to send logs.  
 Notice that `host.json` enables "OpenTelemetry" mode so that the logs sent via `ExecutionContext#getLogger()` will be sent to Application Insights.  
+When sending logs via the JUL logger from `ExecutionContext`, the events may go to `traces` or `exceptions` App Insights table:
+- When calling JUL logger without a `Throwable` instance, the log goes to `traces`.
+- When calling JUL logger with a `Throwable` instance, the log goes to `exceptions`
+
 See
 - [Upgrading from Application Insights Java 2.x SDK](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-standalone-upgrade-from-2x)
 - [Configuration options: Azure Monitor Application Insights for Java](https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-standalone-config)
