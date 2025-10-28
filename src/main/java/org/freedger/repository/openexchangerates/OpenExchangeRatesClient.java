@@ -8,6 +8,8 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.logging.Level;
+
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -16,11 +18,10 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Timeout;
+import org.freedger.controller.utils.AppContext;
 import org.freedger.repository.openexchangerates.models.CurrenciesRequest;
 import org.freedger.repository.openexchangerates.models.HistoricalRatesRequest;
 import org.freedger.repository.openexchangerates.models.HistoricalRatesResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Client for interacting with OpenExchangeRates HTTP API.
@@ -35,7 +36,6 @@ import org.slf4j.LoggerFactory;
  * @see <a href="https://docs.openexchangerates.org">OpenExchangeRates API Documentation</a>
  */
 public class OpenExchangeRatesClient {
-  private static final Logger logger = LoggerFactory.getLogger(OpenExchangeRatesClient.class);
   private static final Timeout REQUEST_TIMEOUT = Timeout.ofSeconds(10);
   private static final Timeout RESPONSE_TIMEOUT = Timeout.ofSeconds(10);
   private static final String DEFAULT_BASE_URL = "https://openexchangerates.org/api/";
@@ -133,17 +133,17 @@ public class OpenExchangeRatesClient {
       }
 
       final URI uri = uriBuilder.build();
-      logger.debug("Fetching historical rates from: {}", uri);
+      AppContext.log(Level.FINE, "Fetching historical rates from: {0}", uri);
 
       // Create and execute the GET request
       final HttpGet httpGet = new HttpGet(uri);
       HistoricalRatesResponse response = sendRequest(httpGet, new TypeReference<HistoricalRatesResponse>() {});
 
-      logger.debug("Successfully fetched historical rates for date: {}", dateStr);
+      AppContext.log(Level.FINE, "Successfully fetched historical rates for date: {0}", dateStr);
       return response;
 
     } catch (Exception e) {
-      logger.error("Failed to fetch historical rates for date: {}", request.getDate(), e);
+      AppContext.loge(Level.SEVERE, e, "Failed to fetch historical rates for date: {0}", request.getDate());
       throw new IOException("Failed to fetch historical rates", e);
     }
   }
@@ -188,7 +188,7 @@ public class OpenExchangeRatesClient {
       
       return sendRequest(httpGet, new TypeReference<Map<String, String>>() {});
     } catch (Exception e) {
-      logger.error("Failed to fetch currencies", e);
+      AppContext.loge(Level.SEVERE, e, "Failed to fetch currencies");
       throw new IOException("Failed to fetch currencies", e);
     }
   }
@@ -215,7 +215,7 @@ public class OpenExchangeRatesClient {
               // Parse the response body to the specified class
               return objectMapper.readValue(responseBody, responseType);
             } else {
-              logger.error("Request failed with status code {}: {}", statusCode, responseBody);
+              AppContext.log(Level.SEVERE, "Request failed with status code {0}: {1}", statusCode, responseBody);
               throw new IOException(
                   "Request failed with status code " + statusCode + ": " + responseBody);
             }
