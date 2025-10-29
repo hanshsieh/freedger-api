@@ -16,7 +16,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 
-import lombok.var;
 import org.freedger.controller.utils.AppContext;
 import org.freedger.domain.config.AppConfig;
 import org.freedger.domain.config.CurrencyType;
