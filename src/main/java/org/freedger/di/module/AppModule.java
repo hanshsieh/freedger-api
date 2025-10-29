@@ -16,9 +16,9 @@ import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Singleton;
 
-import org.freedger.config.AppConfig;
 import org.freedger.config.Config;
 import org.freedger.config.EnvConfig;
+import org.freedger.domain.config.AppConfig;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.openexchangerates.OpenExchangeRatesClient;
 import org.freedger.service.AuthService;

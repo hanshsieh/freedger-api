@@ -18,10 +18,9 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
- 
 
-import org.freedger.config.AppConfig;
 import org.freedger.controller.utils.AppContext;
+import org.freedger.domain.config.AppConfig;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.ditto.exceptions.DittoException;
 import org.freedger.repository.ditto.models.CreateCurrencyRequest;

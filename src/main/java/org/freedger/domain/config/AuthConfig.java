@@ -1,4 +1,4 @@
-package org.freedger.config;
+package org.freedger.domain.config;
 
 import org.github.gestalt.config.annotations.Config;
 
