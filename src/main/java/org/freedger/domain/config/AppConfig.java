@@ -14,7 +14,7 @@ import lombok.Getter;
 public class AppConfig {
   private static final String ENV_NAME = "ENV";
 
-  @Config(path = "keyVault")
+  @Config(path = "key-vault")
   private KeyVaultConfig keyVault;
 
   @Config(path = "auth")
@@ -23,7 +23,7 @@ public class AppConfig {
   @Config(path = "ditto")
   private DittoConfig ditto;
 
-  @Config(path = "openExchangeRates")
+  @Config(path = "open-exchange-rates")
   private OpenExchangeRatesConfig openExchangeRates;
 
   public static AppConfig load() throws IOException {

@@ -12,7 +12,7 @@ public class BaseCurrencyConfig {
   @Config(path = "name")
   private String name;
 
-  @Config(path = "decimalPlaces")
+  @Config(path = "decimal-places")
   private int decimalPlaces;
 
   @Config(path = "type")

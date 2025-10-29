@@ -8,15 +8,15 @@ import lombok.Getter;
 
 @Getter
 public class OpenExchangeRatesConfig {
-  @Config(path = "appIdSecretName")
+  @Config(path = "app-id-secret-name")
   private String appIdSecretName;
 
-  @Config(path = "maxUpdateDays")
+  @Config(path = "max-update-days")
   private int maxUpdateDays = 20;
   
-  @Config(path = "quoteCurrency")
+  @Config(path = "quote-currency")
   private String quoteCurrency = "USD";
   
-  @Config(path = "baseCurrencies")
+  @Config(path = "base-currencies")
   private List<BaseCurrencyConfig> baseCurrencies;
 }

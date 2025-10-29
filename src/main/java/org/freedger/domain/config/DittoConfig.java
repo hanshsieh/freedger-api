@@ -8,18 +8,18 @@ import lombok.Getter;
 
 @Getter
 public class DittoConfig {
-  @Config(path = "apiKeySecretName")
+  @Config(path = "api-key-secret-name")
   private String apiKeySecretName;
   
-  @Config(path = "providerName")
+  @Config(path = "provider-name")
   private String providerName;
   
-  @Config(path = "tokenExpiresIn")
+  @Config(path = "token-expires-in")
   private Duration tokenExpiresIn;
 
-  @Config(path = "appId")
+  @Config(path = "app-id")
   private String appId;
   
-  @Config(path = "apiBaseUrl")
+  @Config(path = "api-base-url")
   private String apiBaseUrl;
 }

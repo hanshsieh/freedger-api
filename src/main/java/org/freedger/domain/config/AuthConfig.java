@@ -6,10 +6,10 @@ import lombok.Getter;
 
 @Getter
 public class AuthConfig {
-  @Config(path = "useManagedIdentity")
+  @Config(path = "use-managed-identity")
   private boolean useManagedIdentity;
 
-  @Config(path = "managedIdentityClientId", defaultVal = "")
+  @Config(path = "managed-identity-client-id", defaultVal = "")
   private String managedIdentityClientId;
   
   @Config(path = "issuer")
