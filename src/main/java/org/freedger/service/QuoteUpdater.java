@@ -1,7 +1,6 @@
 package org.freedger.service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -17,17 +16,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import lombok.var;
 import org.freedger.controller.utils.AppContext;
-import org.freedger.domain.config.AppConfig;
+import org.freedger.domain.config.CurrencyType;
+import org.freedger.domain.config.QuoteConfig;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.ditto.exceptions.DittoException;
 import org.freedger.repository.ditto.models.CreateCurrencyRequest;
 import org.freedger.repository.ditto.models.CreateCurrencyResponse;
 import org.freedger.repository.ditto.models.CreateQuoteRequest;
 import org.freedger.repository.ditto.models.Currency;
-import org.freedger.repository.ditto.models.CurrencyType;
 import org.freedger.repository.ditto.models.DittoResponse;
 import org.freedger.repository.ditto.models.GetInstrumentRequest;
 import org.freedger.repository.ditto.models.QueryCurrenciesRequest;
@@ -39,9 +37,6 @@ import org.freedger.repository.ditto.models.InstrumentCategory;
 import org.freedger.repository.openexchangerates.OpenExchangeRatesClient;
 import org.freedger.repository.openexchangerates.models.HistoricalRatesRequest;
 import org.freedger.service.models.CurrencyState;
-import org.freedger.service.models.OXRConfig;
-import org.freedger.service.models.OXRCurrency;
-import org.freedger.service.models.OXRCurrencyType;
 
 public class QuoteUpdater {
   private static final String SOURCE = "openexchangerates.org";
@@ -49,27 +44,20 @@ public class QuoteUpdater {
 
   private final OpenExchangeRatesClient exchangeRatesClient;
   private final DittoClient dittoClient;
-  /**
-   * Resource path to the config file.
-   */
-  private final String configPath;
-  
-  // Cached per-run state
-  private OXRConfig oxrConfig;
+  private final QuoteConfig config;
   private final Map<String, CurrencyState> stateByCode = new HashMap<>();
-  private final int maxQuotesUpdateDays;
+  private final String quoteCurrencyCode;
   private String transactionId;
   private String quoteCurrencyId;
-  private String quoteCurrencyCode;
 
   public QuoteUpdater(
-    AppConfig config, 
+    QuoteConfig config, 
     OpenExchangeRatesClient openExchangeRatesClient, 
     DittoClient dittoClient) {
-    this.configPath = config.getOpenExchangeRates().getConfigPath();
-    this.maxQuotesUpdateDays = config.getQuotesUpdateDays();
+    this.config = config;
     this.exchangeRatesClient = openExchangeRatesClient;
     this.dittoClient = dittoClient;
+    this.quoteCurrencyCode = config.getQuoteCurrency();
   }
   /**
    * Updates the quotes of all the currencies for the given number of days.
@@ -77,13 +65,14 @@ public class QuoteUpdater {
    * @param maxDays The maximum number of days to update the quotes for.
    */
   synchronized public void updateQuotes() throws IOException {
-    if (maxQuotesUpdateDays <= 0) {
+    final var maxUpdateDays = config.getMaxUpdateDays();
+    if (maxUpdateDays <= 0) {
       return;
     }
 
     try {
       initializeState();
-      for (var updatedDays = 0; updatedDays < maxQuotesUpdateDays; updatedDays++) {
+      for (var updatedDays = 0; updatedDays < maxUpdateDays; updatedDays++) {
         if (stateByCode.isEmpty()) {
           break;
         }
@@ -104,8 +93,6 @@ public class QuoteUpdater {
 
   private void initializeState() throws IOException {
     resetState();
-    oxrConfig = loadConfig();
-    quoteCurrencyCode = oxrConfig.getQuoteCurrency();
     resolveQuoteCurrencyId();
     Map<String, Currency> dbCurrencies = loadDbCurrencies();
     buildStates(dbCurrencies);
@@ -115,8 +102,6 @@ public class QuoteUpdater {
     stateByCode.clear();
     transactionId = null;
     quoteCurrencyId = null;
-    quoteCurrencyCode = null;
-    oxrConfig = null;
   }
 
   private void resolveQuoteCurrencyId() throws IOException {
@@ -154,7 +139,7 @@ public class QuoteUpdater {
   }
 
   private void buildStates(Map<String, Currency> dbCurrencies) throws IOException {
-    for (OXRCurrency currencyConf : oxrConfig.getBaseCurrencies()) {
+    for (final var currencyConf : config.getBaseCurrencies()) {
       if (!currencyConf.isEnabled()) {
         continue;
       }
@@ -180,7 +165,7 @@ public class QuoteUpdater {
           continue;
         }
       }
-      CurrencyType currencyType = mapCurrencyType(currencyConf.getType());
+      final var currencyType = mapCurrencyType(currencyConf.getType());
       CurrencyState state = CurrencyState.builder()
         .code(code)
         .name(currencyConf.getName())
@@ -369,7 +354,7 @@ public class QuoteUpdater {
   }
 
   private void createCurrency(CurrencyState state, double quote) throws IOException {
-    CurrencyType currencyType = state.getCurrencyType();
+    final var currencyType = state.getCurrencyType();
     String symbol = String.format("%s/%s", state.getCode(), quoteCurrencyCode);
     DittoResponse<CreateCurrencyResponse> resp = dittoClient.createCurrency(
       CreateCurrencyRequest.builder()
@@ -430,28 +415,18 @@ public class QuoteUpdater {
       state.getInstrumentId(), state.getCode(), time, quote);
   }
 
-  private OXRConfig loadConfig() throws IOException {
-    try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(configPath)) {
-      if (is == null) {
-        throw new IOException("Config not found at resource path: " + configPath);
-      }
-      ObjectMapper mapper = new ObjectMapper();
-      return mapper.readValue(is, OXRConfig.class);
-    }
-  }
-
-  private static CurrencyType mapCurrencyType(OXRCurrencyType type) {
+  private static org.freedger.repository.ditto.models.CurrencyType mapCurrencyType(CurrencyType type) {
     switch (type) {
       case FIAT:
-        return CurrencyType.FIAT;
+        return org.freedger.repository.ditto.models.CurrencyType.FIAT;
       case CRYPTO:
-        return CurrencyType.CRYPTO;
+        return org.freedger.repository.ditto.models.CurrencyType.CRYPTO;
       default:
         throw new IllegalArgumentException("Invalid currency type: " + type);
     }
   }
 
-  private static InstrumentCategory mapInstrumentCategory(CurrencyType type) {
+  private static InstrumentCategory mapInstrumentCategory(org.freedger.repository.ditto.models.CurrencyType type) {
     switch (type) {
       case FIAT:
         return InstrumentCategory.FOREX;
