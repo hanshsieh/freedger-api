@@ -8,11 +8,15 @@ import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import dagger.Module;
 import dagger.Provides;
+
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Singleton;
+
+import org.freedger.config.AppConfig;
 import org.freedger.config.Config;
 import org.freedger.config.EnvConfig;
 import org.freedger.controller.utils.AppContext;
@@ -79,6 +83,16 @@ public class AppModule {
   @Singleton
   public Config provideConfig() {
     return new EnvConfig();
+  }
+
+  @Provides
+  @Singleton
+  public AppConfig provideAppConfig() {
+    try {
+      return AppConfig.load();
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load app config", e);
+    }
   }
 
   @Provides
