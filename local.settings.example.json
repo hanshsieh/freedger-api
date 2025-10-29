@@ -3,7 +3,7 @@
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "java",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "ENV": "dev"
+    "ENV": "local"
   },
   "Host": {
     "CORS": "*",

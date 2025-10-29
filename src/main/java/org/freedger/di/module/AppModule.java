@@ -4,6 +4,8 @@ import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.JwkProviderBuilder;
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.DefaultAzureCredentialBuilder;
+import com.azure.identity.ManagedIdentityCredential;
+import com.azure.identity.ManagedIdentityCredentialBuilder;
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import dagger.Module;
@@ -89,8 +91,12 @@ public class AppModule {
 
   @Provides
   @Singleton
-  public TokenCredential provideTokenCredential() {
-    return new DefaultAzureCredentialBuilder().build();
+  public TokenCredential provideTokenCredential(AppConfig config) {
+    if (config.getAuth().isUseManagedIdentity()) {
+      return new ManagedIdentityCredentialBuilder().build();
+    } else {
+      return new DefaultAzureCredentialBuilder().build();
+    }
   }
 
   @Provides
