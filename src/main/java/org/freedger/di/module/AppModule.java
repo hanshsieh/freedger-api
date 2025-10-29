@@ -92,8 +92,11 @@ public class AppModule {
   @Provides
   @Singleton
   public TokenCredential provideTokenCredential(AppConfig config) {
-    if (config.getAuth().isUseManagedIdentity()) {
-      return new ManagedIdentityCredentialBuilder().build();
+    final var authConfig = config.getAuth();
+    if (authConfig.isUseManagedIdentity()) {
+      return new ManagedIdentityCredentialBuilder()
+        .clientId(authConfig.getManagedIdentityClientId())
+        .build();
     } else {
       return new DefaultAzureCredentialBuilder().build();
     }
