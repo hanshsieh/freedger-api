@@ -92,7 +92,7 @@ This project references the [Spring Boot architecture](https://www.javaguides.ne
   - Input validation, serialization, de-serialization.
   - Call the service layer.
 - `domain`
-  - Domain models.
+  - Domain models, configs, exceptions.
 - `service`
   - Implement the business logic.
   - Call the repository layer.
