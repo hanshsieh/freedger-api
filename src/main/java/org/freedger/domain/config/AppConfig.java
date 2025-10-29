@@ -26,9 +26,6 @@ public class AppConfig {
   @Config(path = "openExchangeRates")
   private OpenExchangeRatesConfig openExchangeRates;
 
-  @Config(path = "quote")
-  private QuoteConfig quote;
-
   public static AppConfig load() throws IOException {
     String env = System.getenv(ENV_NAME);
     if (env == null) {

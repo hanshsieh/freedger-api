@@ -76,7 +76,7 @@ public class AppModule {
     AppConfig config, 
     OpenExchangeRatesClient exchangeRatesClient, 
     DittoClient dittoClient) {
-    return new QuoteUpdater(config.getQuote(), exchangeRatesClient, dittoClient);
+    return new QuoteUpdater(config, exchangeRatesClient, dittoClient);
   }
 
   @Provides

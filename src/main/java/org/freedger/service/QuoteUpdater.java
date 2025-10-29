@@ -18,8 +18,9 @@ import java.util.logging.Level;
 
 import lombok.var;
 import org.freedger.controller.utils.AppContext;
+import org.freedger.domain.config.AppConfig;
 import org.freedger.domain.config.CurrencyType;
-import org.freedger.domain.config.QuoteConfig;
+import org.freedger.domain.config.OpenExchangeRatesConfig;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.ditto.exceptions.DittoException;
 import org.freedger.repository.ditto.models.CreateCurrencyRequest;
@@ -44,20 +45,20 @@ public class QuoteUpdater {
 
   private final OpenExchangeRatesClient exchangeRatesClient;
   private final DittoClient dittoClient;
-  private final QuoteConfig config;
+  private final OpenExchangeRatesConfig config;
   private final Map<String, CurrencyState> stateByCode = new HashMap<>();
   private final String quoteCurrencyCode;
   private String transactionId;
   private String quoteCurrencyId;
 
   public QuoteUpdater(
-    QuoteConfig config, 
+    AppConfig config, 
     OpenExchangeRatesClient openExchangeRatesClient, 
     DittoClient dittoClient) {
-    this.config = config;
+    this.config = config.getOpenExchangeRates();
     this.exchangeRatesClient = openExchangeRatesClient;
     this.dittoClient = dittoClient;
-    this.quoteCurrencyCode = config.getQuoteCurrency();
+    this.quoteCurrencyCode = this.config.getQuoteCurrency();
   }
   /**
    * Updates the quotes of all the currencies for the given number of days.
