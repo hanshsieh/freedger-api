@@ -19,7 +19,6 @@ import javax.inject.Singleton;
 import org.freedger.config.AppConfig;
 import org.freedger.config.Config;
 import org.freedger.config.EnvConfig;
-import org.freedger.controller.utils.AppContext;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.openexchangerates.OpenExchangeRatesClient;
 import org.freedger.service.AuthService;
@@ -73,7 +72,7 @@ public class AppModule {
   @Provides
   @Singleton
   public QuoteUpdater provideQuoteUpdater(
-    Config config, 
+    AppConfig config, 
     OpenExchangeRatesClient exchangeRatesClient, 
     DittoClient dittoClient) {
     return new QuoteUpdater(config, exchangeRatesClient, dittoClient);

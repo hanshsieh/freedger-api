@@ -20,7 +20,7 @@ import java.util.logging.Level;
 import com.fasterxml.jackson.databind.ObjectMapper;
  
 
-import org.freedger.config.Config;
+import org.freedger.config.AppConfig;
 import org.freedger.controller.utils.AppContext;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.ditto.exceptions.DittoException;
@@ -58,15 +58,17 @@ public class QuoteUpdater {
   // Cached per-run state
   private OXRConfig oxrConfig;
   private final Map<String, CurrencyState> stateByCode = new HashMap<>();
+  private final int maxQuotesUpdateDays;
   private String transactionId;
   private String quoteCurrencyId;
   private String quoteCurrencyCode;
 
   public QuoteUpdater(
-    Config config, 
+    AppConfig config, 
     OpenExchangeRatesClient openExchangeRatesClient, 
     DittoClient dittoClient) {
-    this.configPath = config.openExchangeRatesConfigPath();
+    this.configPath = config.getOpenExchangeRates().getConfigPath();
+    this.maxQuotesUpdateDays = config.getQuotesUpdateDays();
     this.exchangeRatesClient = openExchangeRatesClient;
     this.dittoClient = dittoClient;
   }
@@ -75,14 +77,14 @@ public class QuoteUpdater {
    * 
    * @param maxDays The maximum number of days to update the quotes for.
    */
-  synchronized public void updateQuotes(int maxDays) throws IOException {
-    if (maxDays <= 0) {
+  synchronized public void updateQuotes() throws IOException {
+    if (maxQuotesUpdateDays <= 0) {
       return;
     }
 
     try {
       initializeState();
-      for (var updatedDays = 0; updatedDays < maxDays; updatedDays++) {
+      for (var updatedDays = 0; updatedDays < maxQuotesUpdateDays; updatedDays++) {
         if (stateByCode.isEmpty()) {
           break;
         }
