@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import org.freedger.config.Config;
+import org.freedger.domain.config.AppConfig;
 import org.freedger.domain.models.CollectionQuery;
 import org.freedger.domain.models.DittoAuthRequest;
 import org.freedger.domain.models.LedgerChildOrGlobalQuery;
@@ -51,11 +51,11 @@ public class AuthService {
         new LedgerChildQuery("Tags"),
         new LedgerChildQuery("Transactions"));
 
-  private final Config config;
+  private final AppConfig config;
   private final DittoClient dittoClient;
   
   @Inject
-  public AuthService(Config config, DittoClient dittoClient) {
+  public AuthService(AppConfig config, DittoClient dittoClient) {
     this.config = config;
     this.dittoClient = dittoClient;
   }
@@ -111,7 +111,7 @@ public class AuthService {
     return new AuthorizeResponse()
         .authenticate(true)
         .userID(userId)
-        .expirationSeconds(config.dittoTokenExpireSec())
+        .expirationSeconds((int) config.getDitto().getTokenExpiresIn().toSeconds())
         .permissions(permissions);
   }
 }

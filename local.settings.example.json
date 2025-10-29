@@ -2,23 +2,8 @@
   "IsEncrypted": false,
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "java",
-    "AZURE_CLIENT_ID": "fc2ea029-4e30-44e6-8a91-ee77b0d1b222",
-    "ENV": "dev",
-    "KEY_VAULT_URL": "https://freedger-dev.vault.azure.net/",
-    
-    "AUTH_ISSUER": "https://freedger-dev.jp.auth0.com/",
-    "AUTH_AUDIENCE": "https://api.freedger.org/",
-    "AUTH_JWKS": "https://freedger-dev.jp.auth0.com/.well-known/jwks.json",
-
-    "DITTO_APP_ID": "46190b14-5d64-477c-b5b6-ba2d15e998be",
-    "DITTO_API_KEY_SECRET_NAME": "DITTO-API-KEY",
-    "DITTO_API_BASE_URL": "https://i83inp.cloud.dittolive.app/46190b14-5d64-477c-b5b6-ba2d15e998be/api/v5",
-    "DITTO_PROVIDER_NAME": "freedger-api",
-    "DITTO_TOKEN_EXPIRE_SEC": "86400",
-    "OPEN_EXCHANGE_RATES_APP_ID_SECRET_NAME": "OPEN-EXCHANGE-RATES-APP-ID",
-    "OPEN_EXCHANGE_RATES_CONFIG_PATH": "openexchangerates/config.json",
-    "QUOTES_UPDATE_DAYS": "20",
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true"
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "ENV": "dev"
   },
   "Host": {
     "CORS": "*",

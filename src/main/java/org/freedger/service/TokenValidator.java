@@ -11,16 +11,16 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import java.security.interfaces.RSAPublicKey;
 import java.util.regex.Pattern;
-import org.freedger.config.Config;
+import org.freedger.domain.config.AppConfig;
 import org.freedger.domain.models.ScopePredicate;
 
 public class TokenValidator {
   private final JwkProvider authProviderJwks;
-  private final Config config;
+  private final AppConfig config;
   private static final Pattern AUTH_HEADER_PATTERN =
       Pattern.compile("^Bearer\s+(\\S+)$", Pattern.CASE_INSENSITIVE);
 
-  public TokenValidator(JwkProvider authProviderJwks, Config config) {
+  public TokenValidator(JwkProvider authProviderJwks, AppConfig config) {
     this.authProviderJwks = authProviderJwks;
     this.config = config;
   }
@@ -49,10 +49,11 @@ public class TokenValidator {
       Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
 
       // Verify the token
+      final var authConfig = config.getAuth();
       JWTVerifier verifier =
           JWT.require(algorithm)
-              .withIssuer(config.authIssuer())
-              .withAudience(config.authAudience())
+              .withIssuer(authConfig.getIssuer())
+              .withAudience(authConfig.getAudience())
               .withClaim(ScopePredicate.CLAIM_NAME, scopePredicate)
               .acceptLeeway(10)
               .build();

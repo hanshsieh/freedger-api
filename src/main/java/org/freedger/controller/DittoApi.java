@@ -9,7 +9,6 @@ import jakarta.validation.ValidationException;
 import java.util.*;
 import java.util.logging.Level;
 import javax.inject.Inject;
-import org.freedger.config.Config;
 import org.freedger.controller.utils.AppContext;
 import org.freedger.domain.config.AppConfig;
 import org.freedger.domain.models.DittoAuthRequest;

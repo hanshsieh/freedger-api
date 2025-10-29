@@ -16,8 +16,6 @@ import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Singleton;
 
-import org.freedger.config.Config;
-import org.freedger.config.EnvConfig;
 import org.freedger.domain.config.AppConfig;
 import org.freedger.repository.ditto.DittoClient;
 import org.freedger.repository.openexchangerates.OpenExchangeRatesClient;
@@ -32,21 +30,22 @@ import org.freedger.service.TokenValidator;
 public class AppModule {
   @Provides
   @Singleton
-  public DittoClient provideDittoHttpClient(Config config, SecretClient secretClient) {
-    String apiKey = secretClient.getSecret(config.dittoApiKeySecretName()).getValue();
-    return new DittoClient(config.dittoApiBaseUrl(), apiKey);
+  public DittoClient provideDittoHttpClient(AppConfig config, SecretClient secretClient) {
+    String apiKey = secretClient.getSecret(config.getDitto().getApiKeySecretName()).getValue();
+    return new DittoClient(config.getDitto().getApiBaseUrl(), apiKey);
   }
 
   @Provides
   @Singleton
-  public JwkProvider provideJwkProvider(Config config) {
+  public JwkProvider provideJwkProvider(AppConfig config) {
+    final var jwksUrl = config.getAuth().getJwks();
     try {
-      return new JwkProviderBuilder(new URI(config.authJwks()).toURL())
+      return new JwkProviderBuilder(new URI(jwksUrl).toURL())
           .cached(10, 24, TimeUnit.HOURS)
           .timeouts(5000, 5000)
           .build();
     } catch (URISyntaxException | MalformedURLException e) {
-      throw new IllegalArgumentException("Invalid JWKS URL: " + config.authJwks(), e);
+      throw new IllegalArgumentException("Invalid JWKS URL: " + jwksUrl, e);
     }
   }
 
@@ -58,14 +57,14 @@ public class AppModule {
 
   @Provides
   @Singleton
-  public AuthService provideAuthService(Config config, DittoClient dittoClient) {
+  public AuthService provideAuthService(AppConfig config, DittoClient dittoClient) {
     return new AuthService(config, dittoClient);
   }
 
   @Provides
   @Singleton
-  public OpenExchangeRatesClient provideOpenExchangeRatesClient(Config config, SecretClient secretClient) {
-    String appId = secretClient.getSecret(config.openExchangeRatesAppIdSecretName()).getValue();
+  public OpenExchangeRatesClient provideOpenExchangeRatesClient(AppConfig config, SecretClient secretClient) {
+    String appId = secretClient.getSecret(config.getOpenExchangeRates().getAppIdSecretName()).getValue();
     return new OpenExchangeRatesClient(appId);
   }
 
@@ -76,12 +75,6 @@ public class AppModule {
     OpenExchangeRatesClient exchangeRatesClient, 
     DittoClient dittoClient) {
     return new QuoteUpdater(config, exchangeRatesClient, dittoClient);
-  }
-
-  @Provides
-  @Singleton
-  public Config provideConfig() {
-    return new EnvConfig();
   }
 
   @Provides
@@ -102,8 +95,8 @@ public class AppModule {
 
   @Provides
   @Singleton
-  public SecretClient provideSecretClient(Config config, TokenCredential credential) {
-    String keyVaultUrl = config.keyVaultUrl();
+  public SecretClient provideSecretClient(AppConfig config, TokenCredential credential) {
+    String keyVaultUrl = config.getKeyVault().getUrl();
     return new SecretClientBuilder().vaultUrl(keyVaultUrl).credential(credential).buildClient();
   }
 
@@ -115,7 +108,7 @@ public class AppModule {
 
   @Provides
   @Singleton
-  public TokenValidator provideTokenValidator(JwkProvider authProviderJwks, Config config) {
+  public TokenValidator provideTokenValidator(JwkProvider authProviderJwks, AppConfig config) {
     return new TokenValidator(authProviderJwks, config);
   }
 
