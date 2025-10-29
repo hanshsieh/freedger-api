@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import javax.inject.Inject;
 import org.freedger.config.Config;
 import org.freedger.controller.utils.AppContext;
+import org.freedger.domain.config.AppConfig;
 import org.freedger.domain.models.DittoAuthRequest;
 import org.freedger.domain.models.Scope;
 import org.freedger.domain.models.ScopePredicate;
@@ -28,7 +29,7 @@ import org.freedger.service.TokenValidator;
 public class DittoApi {
   private final RequestValidator requestValidator;
   private final AuthService authService;
-  private final Config config;
+  private final AppConfig config;
   private final TokenValidator tokenValidator;
   private final ScopePredicate scopePredicate;
   private final HttpMessageSerializer serializer;
@@ -36,7 +37,7 @@ public class DittoApi {
   @Inject
   public DittoApi(
       RequestValidator validator,
-      Config config,
+      AppConfig config,
       AuthService authService,
       TokenValidator tokenValidator,
       HttpMessageSerializer serializer) {
@@ -147,12 +148,13 @@ public class DittoApi {
     }
 
     // Validate appID and provider
-    if (!config.dittoAppId().equals(webhookRequest.getAppID())) {
+    final var dittoConfig = config.getDitto();
+    if (!dittoConfig.getAppId().equals(webhookRequest.getAppID())) {
       context.getLogger().fine("Invalid appID: " + webhookRequest.getAppID());
       throw new ValidationException("Invalid appID: " + webhookRequest.getAppID());
     }
 
-    if (!config.dittoProvider().equals(webhookRequest.getProvider())) {
+    if (!dittoConfig.getProviderName().equals(webhookRequest.getProvider())) {
       context.getLogger().fine("Invalid provider: " + webhookRequest.getProvider());
       throw new ValidationException("Invalid provider: " + webhookRequest.getProvider());
     }
