@@ -49,7 +49,9 @@ public class AuthService {
         new LedgerChildQuery("Projects"),
         new LedgerChildOrGlobalQuery("Quotes"),
         new LedgerChildQuery("Tags"),
-        new LedgerChildQuery("Transactions"));
+        new LedgerChildQuery("Transactions"),
+        new LedgerChildQuery("Goals"),
+        new LedgerChildQuery("GoalHistories"));
 
   private final AppConfig config;
   private final DittoClient dittoClient;
