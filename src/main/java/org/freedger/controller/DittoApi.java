@@ -73,28 +73,6 @@ public class DittoApi {
       // Get request body
       AuthorizeRequest requestBody = request.getBody();
 
-      // ============= DEBUG ==============
-      if (requestBody.getToken().equals("qfllo0wmv9b54u915zfohrgbt6r046")) {
-        final AuthorizeResponse response = new AuthorizeResponse()
-          .authenticate(true)
-          .userID("test_user")
-          .expirationSeconds(86400)
-          .permissions(new Permission()
-            .read(new PermissionRules()
-              .everything(false)
-              .queriesByCollection(Map.of("Transactions", 
-                List.of("_id['ledgerId'] == '616f0ad437b3470bbbec26781d984f94'")))
-            )
-            .write(new PermissionRules()
-              .everything(false)
-            )
-          );
-        return request.createResponseBuilder(HttpStatus.OK)
-          .body(response)
-          .build();
-      }
-      // ============= DEBUG ==============
-
       DittoAuthToken dittoAuthToken =
           serializer.deserialize(requestBody.getToken(), DittoAuthToken.class);
 
